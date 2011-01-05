@@ -9,7 +9,7 @@ require 'swissr'
 require 'rexml/document'
 
 BUCKET="fotonauts.infra"
-PATH="/lackr/"
+PATH="lackr/"
 
 version = nil
 pom = REXML::Document.new(File.new("pom.xml"))
@@ -51,8 +51,8 @@ task :push_jar do
   puts ""
   puts "crap to cut and paste to cookr"
   puts "-----------8<------------------------------------------------------"
-  puts "lackr_url=#{link}"
-  puts "lackr_version=#{version}"
+  puts "lackr_url='#{link}'"
+  puts "lackr_version='#{version}'"
   puts "-----------8<------------------------------------------------------"
 
 end
