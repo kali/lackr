@@ -1,14 +1,16 @@
 package com.fotonauts.lackr;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,129 +23,155 @@ import org.slf4j.LoggerFactory;
 
 public class LackrRequest {
 
-    static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
-            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length" };
+	static String[] headersToSkip = { "proxy-connection", "connection",
+			"keep-alive", "transfer-encoding", "te", "trailer",
+			"proxy-authorization", "proxy-authenticate", "upgrade",
+			"content-length" };
 
-    private boolean skipHeader(String header) {
-        for (String skip : headersToSkip) {
-            if (skip.equals(header.toLowerCase()))
-                return true;
-        }
-        return false;
-    }
+	private boolean skipHeader(String header) {
+		for (String skip : headersToSkip) {
+			if (skip.equals(header.toLowerCase()))
+				return true;
+		}
+		return false;
+	}
 
-    Map<String, LackrContentExchange> fragmentsMap;
+	Map<String, LackrContentExchange> fragmentsMap;
 
-    AtomicInteger pendingCount;
+	AtomicInteger pendingCount;
 
-    static Logger log = LoggerFactory.getLogger(LackrRequest.class);
+	static Logger log = LoggerFactory.getLogger(LackrRequest.class);
 
-    protected HttpServletRequest request;
+	protected HttpServletRequest request;
 
-    protected Service service;
+	protected Service service;
 
-    private String rootUrl;
+	private String rootUrl;
 
-    private Pattern pattern = Pattern.compile("<!--# include virtual=\"(.*?)\" -->");
+	protected LackrContentExchange rootExchange;
 
-    private Continuation continuation;
+	private Continuation continuation;
 
-    LackrRequest(Service service, HttpServletRequest request) throws IOException {
-        this.service = service;
-        this.request = request;
-        this.continuation = ContinuationSupport.getContinuation(request);
-        this.fragmentsMap = Collections.synchronizedMap(new HashMap<String, LackrContentExchange>());
-        this.pendingCount = new AtomicInteger(0);
-        rootUrl = request.getPathInfo();
-        log.debug("Starting to process " + rootUrl);
-        continuation.suspend();
-    }
+	protected List<Throwable> backendExceptions = Collections
+			.synchronizedList(new ArrayList<Throwable>(5));
 
-    public void scheduleUpstreamRequest(String uri) throws IOException {
-        ContentExchange exchange = new LackrContentExchange(this);
-        log.debug("Requesting backend for " + uri);
-        exchange.setURL("http://i3.testing.ftnz.net:2002" + uri);
-        exchange.addRequestHeader("X-NGINX-SSI", "yes");
-        this.pendingCount.incrementAndGet();
-        for (@SuppressWarnings("unchecked")
-        Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
-            String header = (String) e.nextElement();
-            if (!skipHeader(header)) {
-                exchange.addRequestHeader(header, request.getHeader(header));
-            }
-        }
+	LackrRequest(Service service, HttpServletRequest request)
+			throws IOException {
+		this.service = service;
+		this.request = request;
+		this.continuation = ContinuationSupport.getContinuation(request);
+		this.fragmentsMap = Collections
+				.synchronizedMap(new HashMap<String, LackrContentExchange>());
+		this.pendingCount = new AtomicInteger(0);
+		rootUrl = request.getPathInfo();
+		log.debug("Starting to process " + rootUrl);
+		continuation.suspend();
+	}
 
-        service.getClient().send(exchange);
-    }
+	public void scheduleUpstreamRequest(String uri) throws IOException {
+		ContentExchange exchange = new LackrContentExchange(this);
+		log.debug("Requesting backend for " + uri);
+		exchange.setURL(service.getBackend() + uri);
+		exchange.addRequestHeader("X-NGINX-SSI", "yes");
+		this.pendingCount.incrementAndGet();
+		for (@SuppressWarnings("unchecked")
+		Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
+			String header = (String) e.nextElement();
+			if (!skipHeader(header)) {
+				exchange.addRequestHeader(header, request.getHeader(header));
+			}
+		}
+		service.getClient().send(exchange);
+	}
 
-    protected boolean parseable(String mimeType) {
-        return mimeType.startsWith("text/html") || mimeType.startsWith("application/xml")
-                || mimeType.startsWith("application/json") || mimeType.startsWith("application/atom+xml")
-                || mimeType.startsWith("text/javascript") || mimeType.startsWith("application/x-mmtml")
-                || mimeType.startsWith("application/x-mmtml+xml");
-    }
+	public void processIncomingResponse(
+			LackrContentExchange lackrContentExchange) throws IOException {
+		log.debug("processing response for " + lackrContentExchange.getURI());
 
-    public void processIncomingResponse(LackrContentExchange lackrContentExchange) throws IOException {
-        log.debug("processing response for " + lackrContentExchange.getURI());
-        fragmentsMap.put(lackrContentExchange.getURI(), lackrContentExchange);
-        if (parseable(lackrContentExchange.getResponseFields().getStringField("Content-Type"))) {
-            try {
-                String content = new String(lackrContentExchange.getResponseContentBytes(), "UTF-8");
-                Matcher matcher = pattern.matcher(content);
-                while (matcher.find()) {
-                    scheduleUpstreamRequest(matcher.group(1));
-                }
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        if (pendingCount.decrementAndGet() == 0) {
-            log.debug("Gathered all fragments " + rootUrl);
-            continuation.resume();
-        }
-    }
+		synchronized (this) {
+			if (rootExchange == null)
+				rootExchange = lackrContentExchange;
+		}
 
-    public void writeResponse(HttpServletResponse response) throws IOException {
-        LackrContentExchange root = fragmentsMap.get(rootUrl);
-        for (@SuppressWarnings("unchecked")
-        Enumeration names = root.getResponseFields().getFieldNames(); names.hasMoreElements();) {
-            String name = (String) names.nextElement();
-            if (!skipHeader(name)) {
-                for (@SuppressWarnings("unchecked")
-                Enumeration values = root.getResponseFields().getValues(name); values.hasMoreElements();) {
-                    response.addHeader(name, (String) values.nextElement());
+		fragmentsMap.put(lackrContentExchange.getURI(), lackrContentExchange);
+		try {
+			for (SubstitutionEngine s : service.getSubstituers())
+				for (String sub : s.lookForSubqueries(lackrContentExchange))
+					scheduleUpstreamRequest(sub);
+		} catch (Throwable e) {
+			e.printStackTrace();
+			addBackendExceptions(e);
+		}
+		if (pendingCount.decrementAndGet() <= 0) {
+			log.debug("Gathered all fragments " + rootUrl);
+			continuation.resume();
+		}
+	}
 
-                }
-            }
-        }
-        if (parseable(root.getResponseFields().getStringField("Content-Type"))) {
-            try {
-                StringBuilder content = new StringBuilder(new String(root.getResponseContentBytes(), "UTF-8"));
-                boolean replacedSome = false;
-                do {
-                    replacedSome = false;
-                    Matcher matcher = pattern.matcher(content);
-                    while (matcher.find()) {
-                        String fragment = new String(fragmentsMap.get(matcher.group(1)).getResponseContentBytes(), "UTF-8");
-                        content.replace(matcher.start(0), matcher.end(0), fragment);
-                        replacedSome = true;
-                    }
-                } while (replacedSome);
-                byte[] bytes = content.toString().replaceAll("http://_A_S_S_E_T_S___P_A_T_H_",
-                        "http://assets.cdn.testing.ftnz.net/picor/433f647735b32b89fd5ecb7dd1bc8951c41617c1").getBytes("UTF-8");
-                response.getOutputStream().write(bytes);
-            } catch (UnsupportedEncodingException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        } else {
-            response.getOutputStream().write(root.getResponseContentBytes());
-        }
-        log.debug("sending response for " + rootUrl);
-    }
+	public void writeResponse(HttpServletResponse response) throws IOException {
+		if (backendExceptions.isEmpty()) {
+			writeSuccessResponse(response);
+		} else {
+			writeErrorResponse(response);
+		}
+	}
 
-    public void kick() throws IOException {
-        scheduleUpstreamRequest(rootUrl);
-    }
+	public void writeErrorResponse(HttpServletResponse response)
+			throws IOException {
+		response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+		response.setContentType("text/plain");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		for (Throwable t : backendExceptions)
+			t.printStackTrace(ps);
+		ps.flush();
+		response.setContentLength(baos.size());
+    	response.getOutputStream().write(baos.toByteArray());		
+	}
+
+	public void writeSuccessResponse(HttpServletResponse response)
+			throws IOException {
+		response.setStatus(rootExchange.getResponseStatus());
+		log.debug("writing response for " + rootExchange.getURI());
+		for (@SuppressWarnings("unchecked")
+		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names
+				.hasMoreElements();) {
+			String name = (String) names.nextElement();
+			if (!skipHeader(name)) {
+				for (@SuppressWarnings("unchecked")
+				Enumeration values = rootExchange.getResponseFields()
+						.getValues(name); values.hasMoreElements();) {
+					response.addHeader(name, (String) values.nextElement());
+
+				}
+			}
+		}
+		byte[] content = rootExchange.getResponseContentBytes();
+		if (content != null) {
+			byte[] previousContent = null;
+			while (!Arrays.equals(content, previousContent)) {
+				previousContent = content.clone();
+				for (SubstitutionEngine s : service.getSubstituers())
+					content = s.generateContent(this, content);
+			}
+
+		}
+		response.setStatus(HttpServletResponse.SC_OK);
+		response.setContentLength(content.length);
+		response.getOutputStream().write(content);
+	}
+
+	public void kick() {
+		try {
+			scheduleUpstreamRequest(rootUrl);
+		} catch (Throwable e) {
+			log.debug("in kick() error handler");
+			backendExceptions.add(e);
+			continuation.resume();
+		}
+	}
+
+	public void addBackendExceptions(Throwable x) {
+		backendExceptions.add(x);
+	}
 }

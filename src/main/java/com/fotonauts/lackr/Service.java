@@ -1,6 +1,8 @@
 package com.fotonauts.lackr;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -14,35 +16,55 @@ import org.slf4j.LoggerFactory;
 
 public class Service extends AbstractHandler {
 
-    private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
-    
-    static Logger log = LoggerFactory.getLogger(Service.class);
-    
-    protected HttpClient client;
-    
-    public HttpClient getClient() {
-        return client;
-    }
+	private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
 
-    @Override
-    public final void doStart() throws Exception {
-        client = new HttpClient();
-        client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-        client.start();
-        log.debug("Started client");
-    }
-    
-    @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        LackrRequest state = (LackrRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
-        if(state == null) {
-            state = new LackrRequest(this, request);
-            request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
-            state.kick();
-        } else {
-            state.writeResponse(response);
-        }
-    }
+	static Logger log = LoggerFactory.getLogger(Service.class);
+
+	protected String backend = "http://localhost";
+
+	protected HttpClient client;
+
+	private List<SubstitutionEngine> substituers = new ArrayList<SubstitutionEngine>();
+
+	public String getBackend() {
+		return backend;
+	}
+
+	public void setBackend(String backend) {
+		this.backend = backend;
+	}
+
+	public HttpClient getClient() {
+		return client;
+	}
+
+	public void setClient(HttpClient client) {
+		this.client = client;
+	}
+
+	public List<SubstitutionEngine> getSubstituers() {
+		return substituers;
+	}
+
+	public void setSubstituers(List<SubstitutionEngine> substituers) {
+		this.substituers = substituers;
+	}
+
+	@Override
+	public void handle(String target, Request baseRequest,
+			HttpServletRequest request, HttpServletResponse response)
+			throws IOException, ServletException {
+		LackrRequest state = (LackrRequest) request
+				.getAttribute(LACKR_STATE_ATTRIBUTE);
+		if (state == null) {
+			log.debug("starting processing for: " + request.getRequestURL());
+			state = new LackrRequest(this, request);
+			request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
+			state.kick();
+		} else {
+			log.debug("resuming processing for: " + request.getRequestURL());
+			state.writeResponse(response);
+		}
+	}
 
 }
