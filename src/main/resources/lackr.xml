@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd 
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-	<bean id="Server" class="org.eclipse.jetty.server.Server" init-method="start" destroy-method="stop">
+	<bean id="Server" class="org.eclipse.jetty.server.Server"
+		init-method="start" destroy-method="stop">
 
 		<property name="connectors">
 			<list>
@@ -15,24 +15,32 @@
 			</list>
 		</property>
 
-		<property name="handler" ref="proxyService"/>
+		<property name="handler" ref="proxyService" />
 	</bean>
-	
+
 	<bean id="proxyService" class="com.fotonauts.lackr.Service">
 		<property name="client" ref="httpClient" />
 		<property name="backend" value="http://www.virtual.ftnz.net:2002"></property>
 		<property name="substituers">
 			<list>
 				<bean class="com.fotonauts.lackr.ESISubstitutionEngine"></bean>
-				<bean class="com.fotonauts.lackr.SimpleSubstitutionEngine"></bean>
+				<bean class="com.fotonauts.lackr.SimpleSubstitutionEngine">
+					<property name="substitutions">
+						<map>
+							<entry key="http://_A_S_S_E_T_S___P_A_T_H_" value="" />
+						</map>
+					</property>
+				</bean>
 			</list>
 		</property>
 	</bean>
 
-	<bean id="httpClient" class="org.eclipse.jetty.client.HttpClient" init-method="start" destroy-method="stop">
+	<bean id="httpClient" class="org.eclipse.jetty.client.HttpClient"
+		init-method="start" destroy-method="stop">
 		<property name="connectTimeout" value="5"></property>
 		<property name="connectorType">
-			<util:constant static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL"/>
+			<util:constant
+				static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />
 		</property>
 	</bean>
 
