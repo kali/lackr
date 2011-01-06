@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd 
-	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<context:property-placeholder order="10"
+		location="${lackr.properties}"
+		ignore-resource-not-found="true" 
+		ignore-unresolvable="true"/>
+
+	<context:property-placeholder order="20"
+		location="classpath:/lackr.default.properties"
+		ignore-resource-not-found="false"
+		ignore-unresolvable="false" />
 
 	<bean id="Server" class="org.eclipse.jetty.server.Server"
 		init-method="start" destroy-method="stop">
@@ -20,14 +31,14 @@
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service">
 		<property name="client" ref="httpClient" />
-		<property name="backend" value="http://www.virtual.ftnz.net:2002"></property>
+		<property name="backend" value="${lackr.backend}"></property>
 		<property name="substituers">
 			<list>
 				<bean class="com.fotonauts.lackr.ESISubstitutionEngine"></bean>
 				<bean class="com.fotonauts.lackr.SimpleSubstitutionEngine">
 					<property name="substitutions">
 						<map>
-							<entry key="http://_A_S_S_E_T_S___P_A_T_H_" value="" />
+							<entry key="http://_A_S_S_E_T_S___P_A_T_H_" value="${lackr.assets_prefix}" />
 						</map>
 					</property>
 				</bean>
