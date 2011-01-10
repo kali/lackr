@@ -18,8 +18,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.ContinuationSupport;
+import org.eclipse.jetty.http.HttpMethods;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.URIUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 public class LackrRequest {
 
@@ -63,14 +68,18 @@ public class LackrRequest {
 		this.fragmentsMap = Collections
 				.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
-		rootUrl = request.getPathInfo();
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? request
+				.getPathInfo() + '?'
+				+ request.getQueryString() : request.getPathInfo();
 		log.debug("Starting to process " + rootUrl);
 		continuation.suspend();
 	}
 
-	public void scheduleUpstreamRequest(String uri) throws IOException {
+	public void scheduleUpstreamRequest(String uri, String method, byte[] body)
+			throws IOException {
 		ContentExchange exchange = new LackrContentExchange(this);
 		log.debug("Requesting backend for " + uri);
+		exchange.setMethod(method);
 		exchange.setURL(service.getBackend() + uri);
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
 		this.pendingCount.incrementAndGet();
@@ -80,6 +89,11 @@ public class LackrRequest {
 			if (!skipHeader(header)) {
 				exchange.addRequestHeader(header, request.getHeader(header));
 			}
+		}
+		if (body != null) {
+			exchange.setRequestContent(new ByteArrayBuffer(body));
+			exchange.setRequestHeader("Content-Length", Integer
+					.toString(body.length));
 		}
 		service.getClient().send(exchange);
 	}
@@ -97,7 +111,7 @@ public class LackrRequest {
 		try {
 			for (SubstitutionEngine s : service.getSubstituers())
 				for (String sub : s.lookForSubqueries(lackrContentExchange))
-					scheduleUpstreamRequest(sub);
+					scheduleUpstreamRequest(sub, HttpMethods.GET, null);
 		} catch (Throwable e) {
 			e.printStackTrace();
 			addBackendExceptions(e);
@@ -126,7 +140,7 @@ public class LackrRequest {
 			t.printStackTrace(ps);
 		ps.flush();
 		response.setContentLength(baos.size());
-    	response.getOutputStream().write(baos.toByteArray());		
+		response.getOutputStream().write(baos.toByteArray());
 	}
 
 	public void writeSuccessResponse(HttpServletResponse response)
@@ -149,21 +163,27 @@ public class LackrRequest {
 		byte[] content = rootExchange.getResponseContentBytes();
 		if (content != null) {
 			byte[] previousContent = null;
-			while (!Arrays.equals(content, previousContent)) {
+			while (previousContent == null
+					|| !Arrays.equals(content, previousContent)) {
 				previousContent = content.clone();
 				for (SubstitutionEngine s : service.getSubstituers())
 					content = s.generateContent(this, content);
+				if (content == null)
+					throw new RuntimeException("WTF just happened ?");
 			}
-
+			response.setContentLength(content.length);
+			response.getOutputStream().write(content);
+		} else {
+			response.flushBuffer(); // force commiting. possible bug in jetty
 		}
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentLength(content.length);
-		response.getOutputStream().write(content);
 	}
 
 	public void kick() {
 		try {
-			scheduleUpstreamRequest(rootUrl);
+			byte[] body = null;
+			if (request.getContentLength() > 0)
+				body = FileCopyUtils.copyToByteArray(request.getInputStream());
+			scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
 		} catch (Throwable e) {
 			log.debug("in kick() error handler");
 			backendExceptions.add(e);
