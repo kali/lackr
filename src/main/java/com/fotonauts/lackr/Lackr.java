@@ -33,6 +33,8 @@ public class Lackr {
 		CmdLineParser parser = new CmdLineParser(this);
 		
 		try {
+			System.setProperty("org.mortbay.util.URI.charset", "UTF-8");
+			
             parser.parseArgument(args);
             
             if(log4jConfigFile != null) {
