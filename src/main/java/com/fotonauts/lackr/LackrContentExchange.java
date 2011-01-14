@@ -40,6 +40,5 @@ public class LackrContentExchange extends ContentExchange {
 	protected synchronized void onResponseHeader(Buffer name, Buffer value)
 			throws IOException {
 		super.onResponseHeader(name, value);
-		log.debug("ORH " + name.toString() + " : " + value.toDetailString());
 	}
 }

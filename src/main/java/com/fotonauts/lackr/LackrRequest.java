@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.eclipse.jetty.http.HttpHeaders;
@@ -75,14 +74,15 @@ public class LackrRequest {
 		rootUrl = StringUtils.hasText(request.getQueryString()) ? request
 				.getPathInfo()
 				+ '?' + request.getQueryString() : request.getPathInfo();
-		log.debug("Starting to process " + rootUrl);
 		continuation.suspend();
 	}
 
 	public void scheduleUpstreamRequest(String uri, String method, byte[] body)
 			throws IOException {
-		ContentExchange exchange = new LackrContentExchange(this);
-		log.debug("Requesting backend for " + uri);
+		LackrContentExchange exchange = new LackrContentExchange(this);
+		if (rootExchange == null)
+			rootExchange = exchange;
+		
 		exchange.setMethod(method);
 		exchange.setURL(service.getBackend() + uri);
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
@@ -105,11 +105,6 @@ public class LackrRequest {
 	public void processIncomingResponse(
 			LackrContentExchange lackrContentExchange) throws IOException {
 		log.debug("processing response for " + lackrContentExchange.getURI());
-
-		synchronized (this) {
-			if (rootExchange == null)
-				rootExchange = lackrContentExchange;
-		}
 
 		fragmentsMap.put(lackrContentExchange.getURI(), lackrContentExchange);
 		try {
@@ -136,7 +131,6 @@ public class LackrRequest {
 				Enumeration values = rootExchange.getResponseFields()
 						.getValues(name); values.hasMoreElements();) {
 					String value = (String) values.nextElement();
-					log.debug("HEADER:" + name + " VALUE:" + value);
 					response.addHeader(name, value);
 				}
 			}
@@ -144,10 +138,10 @@ public class LackrRequest {
 	}
 
 	public void writeResponse(HttpServletResponse response) throws IOException {
-		if (backendExceptions.isEmpty()) {
-			writeSuccessResponse(response);
-		} else {
+		if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
 			writeErrorResponse(response);
+		} else {
+			writeSuccessResponse(response);
 		}
 	}
 
@@ -191,7 +185,7 @@ public class LackrRequest {
 			log.debug("if-none-match: "
 					+ request.getHeader(HttpHeaders.IF_NONE_MATCH));
 			if (rootExchange.getResponseStatus() == HttpStatus.OK_200
-					&& etag == request.getHeader(HttpHeaders.IF_NONE_MATCH)) {
+					&& etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
 				response.setStatus(HttpStatus.NOT_MODIFIED_304);
 				response.flushBuffer(); // force commiting
 			} else {
