@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.7</version>
 	<build>
 		<plugins>
 			<plugin>
@@ -76,11 +76,13 @@
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 		</dependency>
+		<!-- 
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
 			<version>7.2.1.v20101111</version>
 		</dependency>
+		 -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>

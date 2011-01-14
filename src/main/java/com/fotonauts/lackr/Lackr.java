@@ -34,6 +34,7 @@ public class Lackr {
 		
 		try {
 			System.setProperty("org.mortbay.util.URI.charset", "UTF-8");
+			System.setProperty("org.eclipse.jetty.util.URI.charset", "UTF-8");
 			
             parser.parseArgument(args);
             
@@ -58,14 +59,10 @@ public class Lackr {
 
             return;
         }
-        
-		Logger log = LoggerFactory.getLogger(Lackr.class);
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
-
 		Server server = (Server) ctx.getBean("Server");
 		server.start();
-		log.info("jetty server started");
 		server.join();
 	}
 }

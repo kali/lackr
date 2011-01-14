@@ -3,6 +3,9 @@ package com.fotonauts.lackr;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,7 +21,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.ContinuationSupport;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +73,8 @@ public class LackrRequest {
 				.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
 		rootUrl = StringUtils.hasText(request.getQueryString()) ? request
-				.getPathInfo() + '?'
-				+ request.getQueryString() : request.getPathInfo();
+				.getPathInfo()
+				+ '?' + request.getQueryString() : request.getPathInfo();
 		log.debug("Starting to process " + rootUrl);
 		continuation.suspend();
 	}
@@ -121,6 +126,23 @@ public class LackrRequest {
 		}
 	}
 
+	public void copyHeaders(HttpServletResponse response) {
+		for (@SuppressWarnings("unchecked")
+		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names
+				.hasMoreElements();) {
+			String name = (String) names.nextElement();
+			if (!skipHeader(name)) {
+				for (@SuppressWarnings("unchecked")
+				Enumeration values = rootExchange.getResponseFields()
+						.getValues(name); values.hasMoreElements();) {
+					String value = (String) values.nextElement();
+					log.debug("HEADER:" + name + " VALUE:" + value);
+					response.addHeader(name, value);
+				}
+			}
+		}
+	}
+
 	public void writeResponse(HttpServletResponse response) throws IOException {
 		if (backendExceptions.isEmpty()) {
 			writeSuccessResponse(response);
@@ -142,39 +164,54 @@ public class LackrRequest {
 		response.getOutputStream().write(baos.toByteArray());
 	}
 
+	public byte[] processContent(byte[] content) {
+		byte[] previousContent = null;
+		while (previousContent == null
+				|| !Arrays.equals(content, previousContent)) {
+			previousContent = content.clone();
+			for (SubstitutionEngine s : service.getSubstituers())
+				content = s.generateContent(this, content);
+			if (content == null)
+				throw new RuntimeException("WTF just happened ?");
+		}
+		return content;
+	}
+
 	public void writeSuccessResponse(HttpServletResponse response)
 			throws IOException {
 		response.setStatus(rootExchange.getResponseStatus());
+		copyHeaders(response);
 		log.debug("writing response for " + rootExchange.getURI());
-		for (@SuppressWarnings("unchecked")
-		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names
-				.hasMoreElements();) {
-			String name = (String) names.nextElement();
-			if (!skipHeader(name)) {
-				for (@SuppressWarnings("unchecked")
-				Enumeration values = rootExchange.getResponseFields()
-						.getValues(name); values.hasMoreElements();) {
-					response.addHeader(name, (String) values.nextElement());
-
-				}
-			}
-		}
 		byte[] content = rootExchange.getResponseContentBytes();
 		if (content != null) {
-			byte[] previousContent = null;
-			while (previousContent == null
-					|| !Arrays.equals(content, previousContent)) {
-				previousContent = content.clone();
-				for (SubstitutionEngine s : service.getSubstituers())
-					content = s.generateContent(this, content);
-				if (content == null)
-					throw new RuntimeException("WTF just happened ?");
+			content = processContent(content);
+			String etag = generateEtag(content);
+			response.setHeader(HttpHeaders.ETAG, etag);
+			log.debug("etag: " + etag);
+			log.debug("if-none-match: "
+					+ request.getHeader(HttpHeaders.IF_NONE_MATCH));
+			if (rootExchange.getResponseStatus() == HttpStatus.OK_200
+					&& etag == request.getHeader(HttpHeaders.IF_NONE_MATCH)) {
+				response.setStatus(HttpStatus.NOT_MODIFIED_304);
+				response.flushBuffer(); // force commiting
+			} else {
+				response.setContentLength(content.length);
+				response.getOutputStream().write(content);
 			}
-			response.setContentLength(content.length);
-			response.getOutputStream().write(content);
 		} else {
-			response.flushBuffer(); // force commiting. possible bug in jetty
+			response.flushBuffer(); // force commiting
 		}
+	}
+
+	private String generateEtag(byte[] content) {
+		MessageDigest m = null;
+		try {
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			// nope.
+		}
+		m.update(content, 0, content.length);
+		return '"' + new BigInteger(1, m.digest()).toString(16) + '"';
 	}
 
 	public void kick() {
