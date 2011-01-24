@@ -68,6 +68,7 @@ public class LackrRequest {
 		this.service = service;
 		this.request = request;
 		this.continuation = ContinuationSupport.getContinuation(request);
+		this.continuation.setTimeout(60 * 1000);
 		this.fragmentsMap = Collections
 				.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
