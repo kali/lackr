@@ -1,5 +1,6 @@
 package com.fotonauts.lackr;
 
+import com.mongodb.BasicDBObject;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -9,11 +10,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import static com.fotonauts.lackr.MongoLoggingKeys.*;
+import javax.servlet.http.Cookie;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,6 +67,10 @@ public class LackrRequest {
 	protected List<Throwable> backendExceptions = Collections
 			.synchronizedList(new ArrayList<Throwable>(5));
 
+        protected BasicDBObject logLine;
+
+        protected long startTimestamp;
+
 	LackrRequest(Service service, HttpServletRequest request)
 			throws IOException {
 		this.service = service;
@@ -75,6 +83,36 @@ public class LackrRequest {
 		rootUrl = StringUtils.hasText(request.getQueryString()) ? request
 				.getPathInfo()
 				+ '?' + request.getQueryString() : request.getPathInfo();
+
+                /* Prepare the log line */
+                logLine = new BasicDBObject();
+                logLine.put(FACILITY.getPrettyName(), "lackr");
+                logLine.put(OPERATION_ID.getPrettyName(), request.getHeader("HTTP_X_FTN_OPERATIONID"));
+                logLine.put(REMOTE_ADDR.getPrettyName(), request.getHeader("HTTP_X_FORWARDED_FOR"));
+
+                logLine.put(USER_AGENT.getPrettyName(), request.getHeader("HTTP_USER_AGENT"));
+                logLine.put(CLIENT_ID.getPrettyName(), request.getHeader("X-Ftn-User"));
+                logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
+
+                logLine.put(DATE.getPrettyName(), new Date());
+                logLine.put(METHOD.getPrettyName(), request.getMethod());
+                logLine.put(PATH.getPrettyName(), request.getPathInfo());
+                logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
+
+
+                Cookie[] cookies = request.getCookies();
+                if(cookies != null) {
+                    for(Cookie cookie:cookies) {
+                        String cname = cookie.getName();
+                        if(cname.equals("uid")) {
+                            logLine.put(USER_ID.getPrettyName(), cookie.getValue());
+                        } else if(cname.equals("login_session")) {
+                            logLine.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
+                        }
+                    }
+                }
+                
+
 		continuation.suspend();
 	}
 
@@ -139,11 +177,23 @@ public class LackrRequest {
 	}
 
 	public void writeResponse(HttpServletResponse response) throws IOException {
+            
+            long duration = (System.currentTimeMillis() - startTimestamp) / 1000;
+            logLine.put(ELAPSED.getPrettyName(),duration);
+            
+                try {
 		if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
 			writeErrorResponse(response);
 		} else {
 			writeSuccessResponse(response);
 		}
+                } catch (IOException writeResponseException) {
+                    logLine.put(STATUS.getPrettyName(),"500");
+                    logLine.put(DATA.getPrettyName(),writeResponseException.getMessage());
+                    service.logCollection.save(logLine);
+                    throw writeResponseException;
+                }
+
 	}
 
 	public void writeErrorResponse(HttpServletResponse response)
@@ -157,6 +207,11 @@ public class LackrRequest {
 		ps.flush();
 		response.setContentLength(baos.size());
 		response.getOutputStream().write(baos.toByteArray());
+
+                logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
+                logLine.put(DATA.getPrettyName(), baos.toByteArray());
+                service.logCollection.save(logLine);
+
 	}
 
 	public byte[] processContent(byte[] content) {
@@ -193,9 +248,13 @@ public class LackrRequest {
 				response.setContentLength(content.length);
 				response.getOutputStream().write(content);
 			}
+                        logLine.put(SIZE.getPrettyName(), content.length);
 		} else {
 			response.flushBuffer(); // force commiting
 		}
+                logLine.put(STATUS.getPrettyName(),Integer.toString(rootExchange.getResponseStatus()));
+                service.logCollection.save(logLine);
+
 	}
 
 	private String generateEtag(byte[] content) {
@@ -210,16 +269,17 @@ public class LackrRequest {
 	}
 
 	public void kick() {
-		try {
-			byte[] body = null;
-			if (request.getContentLength() > 0)
-				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
-		} catch (Throwable e) {
-			log.debug("in kick() error handler");
-			backendExceptions.add(e);
-			continuation.resume();
-		}
+            startTimestamp = System.currentTimeMillis();
+            try {
+                    byte[] body = null;
+                    if (request.getContentLength() > 0)
+                            body = FileCopyUtils.copyToByteArray(request.getInputStream());
+                    scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
+            } catch (Throwable e) {
+                    log.debug("in kick() error handler");
+                    backendExceptions.add(e);
+                    continuation.resume();
+            }
 	}
 
 	public void addBackendExceptions(Throwable x) {
