@@ -176,25 +176,29 @@ public class LackrRequest {
 		}
 	}
 
-	public void writeResponse(HttpServletResponse response) throws IOException {
-            
-            long duration = (System.currentTimeMillis() - startTimestamp) / 1000;
-            logLine.put(ELAPSED.getPrettyName(),duration);
-            
-                try {
-		if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
-			writeErrorResponse(response);
-		} else {
-			writeSuccessResponse(response);
-		}
-                } catch (IOException writeResponseException) {
-                    logLine.put(STATUS.getPrettyName(),"500");
-                    logLine.put(DATA.getPrettyName(),writeResponseException.getMessage());
-                    service.logCollection.save(logLine);
-                    throw writeResponseException;
-                }
+    public void writeResponse(HttpServletResponse response) throws IOException {
 
-	}
+        long duration = (System.currentTimeMillis() - startTimestamp) / 1000;
+        logLine.put(ELAPSED.getPrettyName(), duration);
+
+        try {
+            if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
+                writeErrorResponse(response);
+            } else {
+                writeSuccessResponse(response);
+            }
+        } catch (IOException writeResponseException) {
+            logLine.put(STATUS.getPrettyName(), "500");
+            logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
+            try {
+                service.logCollection.save(logLine);
+            } catch (Exception ex) {
+                log.error("Unable to log data in mongo: " + ex.getMessage());
+            }
+            throw writeResponseException;
+        }
+
+    }
 
 	public void writeErrorResponse(HttpServletResponse response)
 			throws IOException {
@@ -210,7 +214,11 @@ public class LackrRequest {
 
                 logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
                 logLine.put(DATA.getPrettyName(), baos.toByteArray());
-                service.logCollection.save(logLine);
+                try {
+                    service.logCollection.save(logLine);
+                } catch(Exception ex) {
+                    log.error("Unable to log data in mongo: "+ex.getMessage());
+                }
 
 	}
 
@@ -253,7 +261,12 @@ public class LackrRequest {
 			response.flushBuffer(); // force commiting
 		}
                 logLine.put(STATUS.getPrettyName(),Integer.toString(rootExchange.getResponseStatus()));
-                service.logCollection.save(logLine);
+                try {
+                    service.logCollection.save(logLine);
+                } catch(Exception ex) {
+                    log.error("Unable to log data in mongo: "+ex.getMessage());
+                }
+                
 
 	}
 
