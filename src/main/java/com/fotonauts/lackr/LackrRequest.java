@@ -87,14 +87,17 @@ public class LackrRequest {
                 /* Prepare the log line */
                 logLine = new BasicDBObject();
                 logLine.put(FACILITY.getPrettyName(), "lackr");
-                logLine.put(OPERATION_ID.getPrettyName(), request.getHeader("HTTP_X_FTN_OPERATIONID"));
-                logLine.put(REMOTE_ADDR.getPrettyName(), request.getHeader("HTTP_X_FORWARDED_FOR"));
+                logLine.put(OPERATION_ID.getPrettyName(), request.getHeader("X-Ftn-Operationid"));
+                logLine.put(REMOTE_ADDR.getPrettyName(), request.getHeader("X-Forwarded-For"));
 
-                logLine.put(USER_AGENT.getPrettyName(), request.getHeader("HTTP_USER_AGENT"));
+                logLine.put(USER_AGENT.getPrettyName(), request.getHeader("User-Agent"));
                 logLine.put(CLIENT_ID.getPrettyName(), request.getHeader("X-Ftn-User"));
                 logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
 
                 logLine.put(DATE.getPrettyName(), new Date());
+                logLine.put(SSL.getPrettyName(), request.getHeader("X-Ftn-SSL").equals("true"));
+
+                logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
                 logLine.put(METHOD.getPrettyName(), request.getMethod());
                 logLine.put(PATH.getPrettyName(), request.getPathInfo());
                 logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
