@@ -8,8 +8,7 @@ import java.util.regex.Pattern;
 
 public class ESISubstitutionEngine extends TextSubstitutionEngine implements SubstitutionEngine {
 
-	private Pattern pattern = Pattern
-			.compile("<!--# include virtual=\"(.*?)\" -->");
+	private Pattern pattern = Pattern.compile("<!--# include virtual=\"(.*?)\" -->");
 
 	@Override
 	public String[] lookForSubqueries(LackrContentExchange lackrContentExchange) {
@@ -18,11 +17,10 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 
 		List<String> subs = new ArrayList<String>();
 		if (lackrContentExchange.getResponseContentBytes() != null
-				&& lackrContentExchange.getResponseContentBytes().length > 0) {
+		        && lackrContentExchange.getResponseContentBytes().length > 0) {
 			String content;
 			try {
-				content = new String(lackrContentExchange
-						.getResponseContentBytes(), "UTF-8");
+				content = new String(lackrContentExchange.getResponseContentBytes(), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				/* very, very unlikely */
 				throw new RuntimeException(e);
@@ -39,7 +37,7 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 	public byte[] generateContent(LackrRequest rootRequest, byte[] byteContent) {
 		if (!parseable(rootRequest))
 			return rootRequest.rootExchange.getResponseContentBytes();
-		
+
 		StringBuilder content;
 		try {
 			content = new StringBuilder(new String(byteContent, "UTF-8"));
@@ -50,7 +48,7 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				if (matcher.find()) {
 					String replacement = "";
 					LackrContentExchange exchange = rootRequest.fragmentsMap.get(matcher.group(1));
-					if(exchange.getResponseContentBytes() != null) {
+					if (exchange.getResponseContentBytes() != null) {
 						replacement = new String(exchange.getResponseContentBytes(), "UTF-8");
 					}
 					content.replace(matcher.start(0), matcher.end(0), replacement);
@@ -58,11 +56,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				}
 			} while (replacedSome);
 			return content.toString().getBytes("UTF-8");
-			
+
 		} catch (UnsupportedEncodingException e) {
 			/* very, very unlikely */
-			throw new RuntimeException(e);			
-		}		
+			throw new RuntimeException(e);
+		}
 	}
 
 }

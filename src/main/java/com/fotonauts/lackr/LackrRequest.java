@@ -36,10 +36,8 @@ import org.springframework.util.StringUtils;
 
 public class LackrRequest {
 
-	static String[] headersToSkip = { "proxy-connection", "connection",
-			"keep-alive", "transfer-encoding", "te", "trailer",
-			"proxy-authorization", "proxy-authenticate", "upgrade",
-			"content-length" };
+	static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te",
+	        "trailer", "proxy-authorization", "proxy-authenticate", "upgrade", "content-length" };
 
 	private boolean skipHeader(String header) {
 		for (String skip : headersToSkip) {
@@ -65,68 +63,61 @@ public class LackrRequest {
 
 	private Continuation continuation;
 
-	protected List<Throwable> backendExceptions = Collections
-			.synchronizedList(new ArrayList<Throwable>(5));
+	protected List<Throwable> backendExceptions = Collections.synchronizedList(new ArrayList<Throwable>(5));
 
-        protected BasicDBObject logLine;
+	protected BasicDBObject logLine;
 
-        protected long startTimestamp;
+	protected long startTimestamp;
 
-	LackrRequest(Service service, HttpServletRequest request)
-			throws IOException {
+	LackrRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
 		this.request = request;
 		this.continuation = ContinuationSupport.getContinuation(request);
 		this.continuation.setTimeout(60 * 1000);
-		this.fragmentsMap = Collections
-				.synchronizedMap(new HashMap<String, LackrContentExchange>());
+		this.fragmentsMap = Collections.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
-		rootUrl = StringUtils.hasText(request.getQueryString()) ? request
-				.getPathInfo()
-				+ '?' + URLEncoder.encode(request.getQueryString(), "UTF-8") : request.getPathInfo();
-				rootUrl = rootUrl.replace(" ", "%20"); 
-					
-                /* Prepare the log line */
-                logLine = new BasicDBObject();
-                logLine.put(FACILITY.getPrettyName(), "lackr");
-                logLine.put(OPERATION_ID.getPrettyName(), request.getHeader("X-Ftn-Operationid"));
-                logLine.put(REMOTE_ADDR.getPrettyName(), request.getHeader("X-Forwarded-For"));
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? request.getPathInfo() + '?'
+		        + URLEncoder.encode(request.getQueryString(), "UTF-8") : request.getPathInfo();
+		rootUrl = rootUrl.replace(" ", "%20");
 
-                logLine.put(USER_AGENT.getPrettyName(), request.getHeader("User-Agent"));
-                logLine.put(CLIENT_ID.getPrettyName(), request.getHeader("X-Ftn-User"));
-                logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
+		/* Prepare the log line */
+		logLine = new BasicDBObject();
+		logLine.put(FACILITY.getPrettyName(), "lackr");
+		logLine.put(OPERATION_ID.getPrettyName(), request.getHeader("X-Ftn-Operationid"));
+		logLine.put(REMOTE_ADDR.getPrettyName(), request.getHeader("X-Forwarded-For"));
 
-                logLine.put(DATE.getPrettyName(), new Date());
-                logLine.put(SSL.getPrettyName(), "true".equals(request.getHeader("X-Ftn-SSL")));
+		logLine.put(USER_AGENT.getPrettyName(), request.getHeader("User-Agent"));
+		logLine.put(CLIENT_ID.getPrettyName(), request.getHeader("X-Ftn-User"));
+		logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
 
-                logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
-                logLine.put(METHOD.getPrettyName(), request.getMethod());
-                logLine.put(PATH.getPrettyName(), request.getPathInfo());
-                logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
+		logLine.put(DATE.getPrettyName(), new Date());
+		logLine.put(SSL.getPrettyName(), "true".equals(request.getHeader("X-Ftn-SSL")));
 
+		logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
+		logLine.put(METHOD.getPrettyName(), request.getMethod());
+		logLine.put(PATH.getPrettyName(), request.getPathInfo());
+		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
 
-                Cookie[] cookies = request.getCookies();
-                if(cookies != null) {
-                    for(Cookie cookie:cookies) {
-                        String cname = cookie.getName();
-                        if(cname.equals("uid")) {
-                            logLine.put(USER_ID.getPrettyName(), cookie.getValue());
-                        } else if(cname.equals("login_session")) {
-                            logLine.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
-                        }
-                    }
-                }
-                
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				String cname = cookie.getName();
+				if (cname.equals("uid")) {
+					logLine.put(USER_ID.getPrettyName(), cookie.getValue());
+				} else if (cname.equals("login_session")) {
+					logLine.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
+				}
+			}
+		}
 
 		continuation.suspend();
 	}
 
-	public void scheduleUpstreamRequest(String uri, String method, byte[] body)
-			throws IOException {
+	public void scheduleUpstreamRequest(String uri, String method, byte[] body) throws IOException {
 		LackrContentExchange exchange = new LackrContentExchange(this);
 		if (rootExchange == null)
 			rootExchange = exchange;
-		
+
 		exchange.setMethod(method);
 		exchange.setURL(service.getBackend() + uri);
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
@@ -140,14 +131,12 @@ public class LackrRequest {
 		}
 		if (body != null) {
 			exchange.setRequestContent(new ByteArrayBuffer(body));
-			exchange.setRequestHeader("Content-Length", Integer
-					.toString(body.length));
+			exchange.setRequestHeader("Content-Length", Integer.toString(body.length));
 		}
 		service.getClient().send(exchange);
 	}
 
-	public void processIncomingResponse(
-			LackrContentExchange lackrContentExchange) throws IOException {
+	public void processIncomingResponse(LackrContentExchange lackrContentExchange) throws IOException {
 		log.debug("processing response for " + lackrContentExchange.getURI());
 
 		fragmentsMap.put(lackrContentExchange.getURI(), lackrContentExchange);
@@ -167,13 +156,11 @@ public class LackrRequest {
 
 	public void copyHeaders(HttpServletResponse response) {
 		for (@SuppressWarnings("unchecked")
-		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names
-				.hasMoreElements();) {
+		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names.hasMoreElements();) {
 			String name = (String) names.nextElement();
 			if (!skipHeader(name)) {
 				for (@SuppressWarnings("unchecked")
-				Enumeration values = rootExchange.getResponseFields()
-						.getValues(name); values.hasMoreElements();) {
+				Enumeration values = rootExchange.getResponseFields().getValues(name); values.hasMoreElements();) {
 					String value = (String) values.nextElement();
 					response.addHeader(name, value);
 				}
@@ -181,32 +168,31 @@ public class LackrRequest {
 		}
 	}
 
-    public void writeResponse(HttpServletResponse response) throws IOException {
+	public void writeResponse(HttpServletResponse response) throws IOException {
 
-        long duration = (System.currentTimeMillis() - startTimestamp) / 1000;
-        logLine.put(ELAPSED.getPrettyName(), duration);
+		long duration = (System.currentTimeMillis() - startTimestamp) / 1000;
+		logLine.put(ELAPSED.getPrettyName(), duration);
 
-        try {
-            if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
-                writeErrorResponse(response);
-            } else {
-                writeSuccessResponse(response);
-            }
-        } catch (IOException writeResponseException) {
-            logLine.put(STATUS.getPrettyName(), "500");
-            logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
-            try {
-                service.logCollection.save(logLine);
-            } catch (Exception ex) {
-                log.error("Unable to log data in mongo: " + ex.getMessage());
-            }
-            throw writeResponseException;
-        }
+		try {
+			if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
+				writeErrorResponse(response);
+			} else {
+				writeSuccessResponse(response);
+			}
+		} catch (IOException writeResponseException) {
+			logLine.put(STATUS.getPrettyName(), "500");
+			logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
+			try {
+				service.logCollection.save(logLine);
+			} catch (Exception ex) {
+				log.error("Unable to log data in mongo: " + ex.getMessage());
+			}
+			throw writeResponseException;
+		}
 
-    }
+	}
 
-	public void writeErrorResponse(HttpServletResponse response)
-			throws IOException {
+	public void writeErrorResponse(HttpServletResponse response) throws IOException {
 		response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 		response.setContentType("text/plain");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -217,20 +203,19 @@ public class LackrRequest {
 		response.setContentLength(baos.size());
 		response.getOutputStream().write(baos.toByteArray());
 
-                logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
-                logLine.put(DATA.getPrettyName(), baos.toByteArray());
-                try {
-                    service.logCollection.save(logLine);
-                } catch(Exception ex) {
-                    log.error("Unable to log data in mongo: "+ex.getMessage());
-                }
+		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
+		logLine.put(DATA.getPrettyName(), baos.toByteArray());
+		try {
+			service.logCollection.save(logLine);
+		} catch (Exception ex) {
+			log.error("Unable to log data in mongo: " + ex.getMessage());
+		}
 
 	}
 
 	public byte[] processContent(byte[] content) {
 		byte[] previousContent = null;
-		while (previousContent == null
-				|| !Arrays.equals(content, previousContent)) {
+		while (previousContent == null || !Arrays.equals(content, previousContent)) {
 			previousContent = content.clone();
 			for (SubstitutionEngine s : service.getSubstituers())
 				content = s.generateContent(this, content);
@@ -240,8 +225,7 @@ public class LackrRequest {
 		return content;
 	}
 
-	public void writeSuccessResponse(HttpServletResponse response)
-			throws IOException {
+	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
 		log.debug("writing response for " + rootExchange.getURI());
@@ -251,27 +235,25 @@ public class LackrRequest {
 			String etag = generateEtag(content);
 			response.setHeader(HttpHeaders.ETAG, etag);
 			log.debug("etag: " + etag);
-			log.debug("if-none-match: "
-					+ request.getHeader(HttpHeaders.IF_NONE_MATCH));
+			log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
 			if (rootExchange.getResponseStatus() == HttpStatus.OK_200
-					&& etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
+			        && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
 				response.setStatus(HttpStatus.NOT_MODIFIED_304);
 				response.flushBuffer(); // force commiting
 			} else {
 				response.setContentLength(content.length);
 				response.getOutputStream().write(content);
 			}
-                        logLine.put(SIZE.getPrettyName(), content.length);
+			logLine.put(SIZE.getPrettyName(), content.length);
 		} else {
 			response.flushBuffer(); // force commiting
 		}
-                logLine.put(STATUS.getPrettyName(),Integer.toString(rootExchange.getResponseStatus()));
-                try {
-                    service.logCollection.save(logLine);
-                } catch(Exception ex) {
-                    log.error("Unable to log data in mongo: "+ex.getMessage());
-                }
-                
+		logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+		try {
+			service.logCollection.save(logLine);
+		} catch (Exception ex) {
+			log.error("Unable to log data in mongo: " + ex.getMessage());
+		}
 
 	}
 
@@ -287,17 +269,17 @@ public class LackrRequest {
 	}
 
 	public void kick() {
-            startTimestamp = System.currentTimeMillis();
-            try {
-                    byte[] body = null;
-                    if (request.getContentLength() > 0)
-                            body = FileCopyUtils.copyToByteArray(request.getInputStream());
-                    scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
-            } catch (Throwable e) {
-                    log.debug("in kick() error handler");
-                    backendExceptions.add(e);
-                    continuation.resume();
-            }
+		startTimestamp = System.currentTimeMillis();
+		try {
+			byte[] body = null;
+			if (request.getContentLength() > 0)
+				body = FileCopyUtils.copyToByteArray(request.getInputStream());
+			scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
+		} catch (Throwable e) {
+			log.debug("in kick() error handler");
+			backendExceptions.add(e);
+			continuation.resume();
+		}
 	}
 
 	public void addBackendExceptions(Throwable x) {

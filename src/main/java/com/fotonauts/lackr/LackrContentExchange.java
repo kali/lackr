@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LackrContentExchange extends ContentExchange {
-	
+
 	static Logger log = LoggerFactory.getLogger(LackrContentExchange.class);
 
 	protected LackrRequest lackrRequest;
@@ -29,16 +29,15 @@ public class LackrContentExchange extends ContentExchange {
 		super.onConnectionFailed(x);
 		lackrRequest.addBackendExceptions(x);
 	}
-	
+
 	@Override
 	protected void onException(Throwable x) {
 		super.onException(x);
 		lackrRequest.addBackendExceptions(x);
 	}
-	
+
 	@Override
-	protected synchronized void onResponseHeader(Buffer name, Buffer value)
-			throws IOException {
+	protected synchronized void onResponseHeader(Buffer name, Buffer value) throws IOException {
 		super.onResponseHeader(name, value);
 	}
 }

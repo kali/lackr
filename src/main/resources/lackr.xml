@@ -16,21 +16,23 @@
 		location="classpath:/lackr.default.properties"
 		ignore-resource-not-found="false" ignore-unresolvable="true" />
 
-                <context:annotation-config />
+	<context:annotation-config />
 
 	<bean id="Server" class="org.eclipse.jetty.server.Server"
 		init-method="start" destroy-method="stop" p:handler-ref="proxyService">
 
 		<property name="connectors">
 			<list>
-				<bean class="org.eclipse.jetty.server.nio.SelectChannelConnector" p:port="8888"/>
+				<bean class="org.eclipse.jetty.server.nio.SelectChannelConnector"
+					p:port="8888" />
 			</list>
 		</property>
 
 	</bean>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
-		p:client-ref="httpClient" p:backend="${lackr.backend}" p:mongoLoggingPath="${lackr.mongologgingpath}">
+		p:client-ref="httpClient" p:backend="${lackr.backend}"
+		p:mongoLoggingPath="${lackr.mongologgingpath}">
 		<property name="substituers">
 			<list>
 				<bean class="com.fotonauts.lackr.ESISubstitutionEngine" />

@@ -20,101 +20,105 @@ import org.slf4j.LoggerFactory;
 
 public class Service extends AbstractHandler {
 
-    private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
-    static Logger log = LoggerFactory.getLogger(Service.class);
-    protected String backend = "http://localhost";
-    protected String mongoLoggingPath = "127.0.0.1:27017/logs/logs";
-    protected HttpClient client;
-    private List<SubstitutionEngine> substituers = new ArrayList<SubstitutionEngine>();
-    protected Mongo logConnection;
-    protected DBCollection logCollection;
+	private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
+	static Logger log = LoggerFactory.getLogger(Service.class);
+	protected String backend = "http://localhost";
+	protected String mongoLoggingPath = "127.0.0.1:27017/logs/logs";
+	protected HttpClient client;
+	private List<SubstitutionEngine> substituers = new ArrayList<SubstitutionEngine>();
+	protected Mongo logConnection;
+	protected DBCollection logCollection;
 
-    public String getBackend() {
-        return backend;
-    }
+	public String getBackend() {
+		return backend;
+	}
 
-    public void setBackend(String backend) {
-        this.backend = backend;
-    }
+	public void setBackend(String backend) {
+		this.backend = backend;
+	}
 
-    public HttpClient getClient() {
-        return client;
-    }
+	public HttpClient getClient() {
+		return client;
+	}
 
-    public void setClient(HttpClient client) {
-        this.client = client;
-    }
+	public void setClient(HttpClient client) {
+		this.client = client;
+	}
 
-    public List<SubstitutionEngine> getSubstituers() {
-        return substituers;
-    }
+	public List<SubstitutionEngine> getSubstituers() {
+		return substituers;
+	}
 
-    public void setSubstituers(List<SubstitutionEngine> substituers) {
-        this.substituers = substituers;
-    }
-    /**
-     * @return the mongoPath
-     */
-    public String getMongoLoggingPath() {
-        return mongoLoggingPath;
-    }
+	public void setSubstituers(List<SubstitutionEngine> substituers) {
+		this.substituers = substituers;
+	}
 
-    /**
-     * @param mongoPath the mongoPath to set
-     */
-    public void setMongoLoggingPath(String mongoPath) {
-        this.mongoLoggingPath = mongoPath;
-    }
+	/**
+	 * @return the mongoPath
+	 */
+	public String getMongoLoggingPath() {
+		return mongoLoggingPath;
+	}
 
-    @PostConstruct
-    public void initLogger() throws MongoException, UnknownHostException {
+	/**
+	 * @param mongoPath
+	 *            the mongoPath to set
+	 */
+	public void setMongoLoggingPath(String mongoPath) {
+		this.mongoLoggingPath = mongoPath;
+	}
 
-        String[] pathComponents =  mongoLoggingPath.split("/");
-        if (pathComponents.length != 3)
-            throw new IllegalArgumentException("Mongo Logging Path not compliant with spec in \"" +
-                    mongoLoggingPath + "\", format is host:port/database/collection.");
+	@PostConstruct
+	public void initLogger() throws MongoException, UnknownHostException {
 
-        String[] hostComponents = pathComponents[0].split(":");
-        if (hostComponents.length != 2)
-            throw new IllegalArgumentException("Mongo Logging Hostname not compliant with spec, should be host:port (is \""+pathComponents[0]+"\" ).");
+		String[] pathComponents = mongoLoggingPath.split("/");
+		if (pathComponents.length != 3)
+			throw new IllegalArgumentException("Mongo Logging Path not compliant with spec in \"" + mongoLoggingPath
+			        + "\", format is host:port/database/collection.");
 
-        logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
-        setLogCollection(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
-        
-    }
+		String[] hostComponents = pathComponents[0].split(":");
+		if (hostComponents.length != 2)
+			throw new IllegalArgumentException(
+			        "Mongo Logging Hostname not compliant with spec, should be host:port (is \"" + pathComponents[0]
+			                + "\" ).");
 
-    @Override
-    public void handle(String target, Request baseRequest,
-            HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        LackrRequest state = (LackrRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
-        if (state == null) {
-            log.debug("starting processing for: " + request.getRequestURL());
-            state = new LackrRequest(this, request);
-            request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
-            state.kick();
-        } else {
-            log.debug("resuming processing for: " + request.getRequestURL());
-            state.writeResponse(response);
-        }
-    }
+		logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
+		setLogCollection(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
 
-    public void logInMongo() {
-        
-    }
+	}
 
-    /**
-     * @return the logCollection
-     */
-    public DBCollection getLogCollection() {
-        return logCollection;
-    }
+	@Override
+	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+	        throws IOException, ServletException {
+		LackrRequest state = (LackrRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
+		if (state == null) {
+			log.debug("starting processing for: " + request.getRequestURL());
+			state = new LackrRequest(this, request);
+			request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
+			state.kick();
+		} else {
+			log.debug("resuming processing for: " + request.getRequestURL());
+			state.writeResponse(response);
+		}
+	}
 
-    /**
-     * @param logCollection the logCollection to set
-     */
-    public void setLogCollection(DBCollection logCollection) {
-        this.logCollection = logCollection;
-    }
+	public void logInMongo() {
+
+	}
+
+	/**
+	 * @return the logCollection
+	 */
+	public DBCollection getLogCollection() {
+		return logCollection;
+	}
+
+	/**
+	 * @param logCollection
+	 *            the logCollection to set
+	 */
+	public void setLogCollection(DBCollection logCollection) {
+		this.logCollection = logCollection;
+	}
 
 }
