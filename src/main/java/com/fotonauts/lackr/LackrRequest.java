@@ -77,7 +77,7 @@ public class LackrRequest {
 		this.fragmentsMap = Collections.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
 		rootUrl = StringUtils.hasText(request.getQueryString()) ? request.getPathInfo() + '?'
-		        + URLEncoder.encode(request.getQueryString(), "UTF-8") : request.getPathInfo();
+		        + request.getQueryString() : request.getPathInfo();
 		rootUrl = rootUrl.replace(" ", "%20");
 
 		/* Prepare the log line */
