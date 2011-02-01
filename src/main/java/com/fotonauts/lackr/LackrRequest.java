@@ -90,7 +90,7 @@ public class LackrRequest {
 		logLine.put(CLIENT_ID.getPrettyName(), request.getHeader("X-Ftn-User"));
 		logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
 
-		logLine.put(DATE.getPrettyName(), new Date());
+		logLine.put(DATE.getPrettyName(), new Date().getTime());
 		logLine.put(SSL.getPrettyName(), "true".equals(request.getHeader("X-Ftn-SSL")));
 
 		logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
