@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -82,8 +83,9 @@ public class LackrRequest {
 		this.pendingCount = new AtomicInteger(0);
 		rootUrl = StringUtils.hasText(request.getQueryString()) ? request
 				.getPathInfo()
-				+ '?' + request.getQueryString() : request.getPathInfo();
-
+				+ '?' + URLEncoder.encode(request.getQueryString(), "UTF-8") : request.getPathInfo();
+				rootUrl = rootUrl.replace(" ", "%20"); 
+					
                 /* Prepare the log line */
                 logLine = new BasicDBObject();
                 logLine.put(FACILITY.getPrettyName(), "lackr");
@@ -95,7 +97,7 @@ public class LackrRequest {
                 logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
 
                 logLine.put(DATE.getPrettyName(), new Date());
-                logLine.put(SSL.getPrettyName(), request.getHeader("X-Ftn-SSL").equals("true"));
+                logLine.put(SSL.getPrettyName(), "true".equals(request.getHeader("X-Ftn-SSL")));
 
                 logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
                 logLine.put(METHOD.getPrettyName(), request.getMethod());
