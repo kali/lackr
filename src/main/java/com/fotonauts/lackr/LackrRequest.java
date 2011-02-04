@@ -1,11 +1,28 @@
 package com.fotonauts.lackr;
 
-import com.mongodb.BasicDBObject;
+import static com.fotonauts.lackr.MongoLoggingKeys.CLIENT_ID;
+import static com.fotonauts.lackr.MongoLoggingKeys.DATA;
+import static com.fotonauts.lackr.MongoLoggingKeys.DATE;
+import static com.fotonauts.lackr.MongoLoggingKeys.ELAPSED;
+import static com.fotonauts.lackr.MongoLoggingKeys.FACILITY;
+import static com.fotonauts.lackr.MongoLoggingKeys.HTTP_HOST;
+import static com.fotonauts.lackr.MongoLoggingKeys.LOGIN_SESSION;
+import static com.fotonauts.lackr.MongoLoggingKeys.METHOD;
+import static com.fotonauts.lackr.MongoLoggingKeys.OPERATION_ID;
+import static com.fotonauts.lackr.MongoLoggingKeys.PATH;
+import static com.fotonauts.lackr.MongoLoggingKeys.QUERY_PARMS;
+import static com.fotonauts.lackr.MongoLoggingKeys.REMOTE_ADDR;
+import static com.fotonauts.lackr.MongoLoggingKeys.SESSION_ID;
+import static com.fotonauts.lackr.MongoLoggingKeys.SIZE;
+import static com.fotonauts.lackr.MongoLoggingKeys.SSL;
+import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
+import static com.fotonauts.lackr.MongoLoggingKeys.USER_AGENT;
+import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
-import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -17,9 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import static com.fotonauts.lackr.MongoLoggingKeys.*;
-import javax.servlet.http.Cookie;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -33,6 +49,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
+
+import com.mongodb.BasicDBObject;
 
 public class LackrRequest {
 
@@ -78,7 +96,7 @@ public class LackrRequest {
 		this.pendingCount = new AtomicInteger(0);
 		rootUrl = StringUtils.hasText(request.getQueryString()) ? request.getPathInfo() + '?'
 		        + request.getQueryString() : request.getPathInfo();
-		rootUrl = rootUrl.replace(" ", "%20");
+		rootUrl = rootUrl.replace(" ", "%20").replace("?", "%3F");
 
 		/* Prepare the log line */
 		logLine = new BasicDBObject();
