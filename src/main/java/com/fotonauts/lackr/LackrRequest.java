@@ -94,9 +94,9 @@ public class LackrRequest {
 		this.continuation.setTimeout(60 * 1000);
 		this.fragmentsMap = Collections.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
-		rootUrl = StringUtils.hasText(request.getQueryString()) ? request.getPathInfo() + '?'
-		        + request.getQueryString() : request.getPathInfo();
-		rootUrl = rootUrl.replace(" ", "%20").replace("?", "%3F");
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? request.getPathInfo().replace("?", "%3F") + '?'
+		        + request.getQueryString() : request.getPathInfo().replace("?", "%3F");
+		rootUrl = rootUrl.replace(" ", "%20");
 
 		/* Prepare the log line */
 		logLine = new BasicDBObject();
