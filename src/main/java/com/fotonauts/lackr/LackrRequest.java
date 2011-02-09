@@ -258,15 +258,18 @@ public class LackrRequest {
 			        && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
 				response.setStatus(HttpStatus.NOT_MODIFIED_304);
 				response.flushBuffer(); // force commiting
+                                logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
 			} else {
+                                logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 				response.setContentLength(content.length);
 				response.getOutputStream().write(content);
 			}
 			logLine.put(SIZE.getPrettyName(), content.length);
 		} else {
+                        logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 			response.flushBuffer(); // force commiting
 		}
-		logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+		
 		try {
 			service.logCollection.save(logLine);
 		} catch (Exception ex) {
