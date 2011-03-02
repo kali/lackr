@@ -200,14 +200,14 @@ public class LackrRequest {
 		} catch (IOException writeResponseException) {
 			logLine.put(STATUS.getPrettyName(), "500");
 			logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
+			throw writeResponseException;
+		} finally {
 			try {
 				service.logCollection.save(logLine);
 			} catch (Exception ex) {
 				log.error("Unable to log data in mongo: " + ex.getMessage());
 			}
-			throw writeResponseException;
 		}
-
 	}
 
 	public void writeErrorResponse(HttpServletResponse response) throws IOException {
@@ -223,12 +223,6 @@ public class LackrRequest {
 
 		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
 		logLine.put(DATA.getPrettyName(), baos.toByteArray());
-		try {
-			service.logCollection.save(logLine);
-		} catch (Exception ex) {
-			log.error("Unable to log data in mongo: " + ex.getMessage());
-		}
-
 	}
 
 	public byte[] processContent(byte[] content) {
@@ -269,13 +263,6 @@ public class LackrRequest {
 			logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 			response.flushBuffer(); // force commiting
 		}
-
-		try {
-			service.logCollection.save(logLine);
-		} catch (Exception ex) {
-			log.error("Unable to log data in mongo: " + ex.getMessage());
-		}
-
 	}
 
 	private String generateEtag(byte[] content) {
