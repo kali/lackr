@@ -1,23 +1,14 @@
 package com.fotonauts.lackr;
 
-import static com.fotonauts.lackr.MongoLoggingKeys.CLIENT_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.DATA;
 import static com.fotonauts.lackr.MongoLoggingKeys.DATE;
 import static com.fotonauts.lackr.MongoLoggingKeys.ELAPSED;
-import static com.fotonauts.lackr.MongoLoggingKeys.FACILITY;
 import static com.fotonauts.lackr.MongoLoggingKeys.HTTP_HOST;
-import static com.fotonauts.lackr.MongoLoggingKeys.LOGIN_SESSION;
 import static com.fotonauts.lackr.MongoLoggingKeys.METHOD;
-import static com.fotonauts.lackr.MongoLoggingKeys.OPERATION_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.PATH;
 import static com.fotonauts.lackr.MongoLoggingKeys.QUERY_PARMS;
-import static com.fotonauts.lackr.MongoLoggingKeys.REMOTE_ADDR;
-import static com.fotonauts.lackr.MongoLoggingKeys.SESSION_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.SIZE;
-import static com.fotonauts.lackr.MongoLoggingKeys.SSL;
 import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
-import static com.fotonauts.lackr.MongoLoggingKeys.USER_AGENT;
-import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -98,40 +88,21 @@ public class LackrRequest {
 		        + request.getQueryString() : request.getPathInfo().replace("?", "%3F");
 		rootUrl = rootUrl.replace(" ", "%20");
 
-		/* Prepare the log line */
-		logLine = new BasicDBObject();
-		logLine.put(FACILITY.getPrettyName(), "lackr");
-		logLine.put(OPERATION_ID.getPrettyName(), request.getHeader("X-Ftn-Operationid"));
-		logLine.put(REMOTE_ADDR.getPrettyName(), request.getHeader("X-Forwarded-For"));
-
-		logLine.put(USER_AGENT.getPrettyName(), request.getHeader("User-Agent"));
-		logLine.put(CLIENT_ID.getPrettyName(), request.getHeader("X-Ftn-User"));
-		logLine.put(SESSION_ID.getPrettyName(), request.getHeader("X-Ftn-Session"));
-
-		logLine.put(DATE.getPrettyName(), new Date().getTime());
-		logLine.put(SSL.getPrettyName(), "true".equals(request.getHeader("X-Ftn-SSL")));
+		logLine = Service.standardLogLine(request, "lackr-front");
 
 		logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
 		logLine.put(METHOD.getPrettyName(), request.getMethod());
 		logLine.put(PATH.getPrettyName(), request.getPathInfo());
 		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
 
-		Cookie[] cookies = request.getCookies();
-		if (cookies != null) {
-			for (Cookie cookie : cookies) {
-				String cname = cookie.getName();
-				if (cname.equals("uid")) {
-					logLine.put(USER_ID.getPrettyName(), cookie.getValue());
-				} else if (cname.equals("login_session")) {
-					logLine.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
-				}
-			}
-		}
-
 		continuation.suspend();
 	}
 
 	public void scheduleUpstreamRequest(String uri, String method, byte[] body) throws IOException {
+		scheduleUpstreamRequest(uri, method, body, null);
+	}
+
+	public void scheduleUpstreamRequest(String uri, String method, byte[] body, String parent) throws IOException {
 		LackrContentExchange exchange = new LackrContentExchange(this);
 		if (rootExchange == null)
 			rootExchange = exchange;
@@ -139,6 +110,9 @@ public class LackrRequest {
 		exchange.setMethod(method);
 		exchange.setURL(service.getBackend() + uri);
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
+		exchange.addRequestHeader("X-SSI-ROOT", getRequest().getRequestURI());
+		if (parent != null)
+			exchange.addRequestHeader("X-SSI-PARENT", parent);
 		this.pendingCount.incrementAndGet();
 		for (@SuppressWarnings("unchecked")
 		Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
@@ -151,23 +125,31 @@ public class LackrRequest {
 			exchange.setRequestContent(new ByteArrayBuffer(body));
 			exchange.setRequestHeader("Content-Length", Integer.toString(body.length));
 		}
-		service.getClient().send(exchange);
+		exchange.start();
 	}
 
 	public void processIncomingResponse(LackrContentExchange lackrContentExchange) throws IOException {
 		log.debug("processing response for " + lackrContentExchange.getURI());
 
+		if (lackrContentExchange != rootExchange
+		        && (lackrContentExchange.getResponseStatus() / 100 == 4 || lackrContentExchange.getResponseStatus() / 100 == 5)
+		        && !lackrContentExchange.getResponseFields().containsKey("X-SSI-AWARE"))
+			addBackendExceptions(new Exception("Fragment " + lackrContentExchange.getURI() + " returned code "
+			        + lackrContentExchange.getResponseStatus()));
+
 		fragmentsMap.put(lackrContentExchange.getURI(), lackrContentExchange);
 		try {
 			for (SubstitutionEngine s : service.getSubstituers())
 				for (String sub : s.lookForSubqueries(lackrContentExchange))
-					scheduleUpstreamRequest(sub, HttpMethods.GET, null);
+					scheduleUpstreamRequest(sub, HttpMethods.GET, null, lackrContentExchange.getURI());
 		} catch (Throwable e) {
 			e.printStackTrace();
 			addBackendExceptions(e);
 		}
 		if (pendingCount.decrementAndGet() <= 0) {
-			log.debug("Gathered all fragments " + rootUrl);
+			if (log.isDebugEnabled())
+				log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
+				        + " exceptions.");
 			continuation.resume();
 		}
 	}
@@ -188,9 +170,6 @@ public class LackrRequest {
 
 	public void writeResponse(HttpServletResponse response) throws IOException {
 
-		long duration = (System.currentTimeMillis() - startTimestamp) / 1000;
-		logLine.put(ELAPSED.getPrettyName(), duration);
-
 		try {
 			if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
 				writeErrorResponse(response);
@@ -203,6 +182,9 @@ public class LackrRequest {
 			throw writeResponseException;
 		} finally {
 			try {
+				long endTimestamp = System.currentTimeMillis();
+				logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
+				logLine.put(DATE.getPrettyName(), new Date().getTime());
 				service.logCollection.save(logLine);
 			} catch (Exception ex) {
 				log.error("Unable to log data in mongo: " + ex.getMessage());
@@ -292,5 +274,13 @@ public class LackrRequest {
 
 	public void addBackendExceptions(Throwable x) {
 		backendExceptions.add(x);
+	}
+
+	public HttpServletRequest getRequest() {
+		return request;
+	}
+
+	public Service getService() {
+		return service;
 	}
 }
