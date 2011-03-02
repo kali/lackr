@@ -37,7 +37,7 @@ public class LackrContentExchange extends ContentExchange {
 		String path = getURI().indexOf('?') == -1 ? getURI() : getURI().substring(0, getURI().indexOf('?'));
 		String query = getURI().indexOf('?') == -1 ? null : getURI().substring(getURI().indexOf('?') + 1);
 		logLine = Service.standardLogLine(lackrRequest.getRequest(), "lackr-back");
-		logLine.put(HTTP_HOST.getPrettyName(), getAddress().toString());
+		logLine.put(HTTP_HOST.getPrettyName(), getRequestFields().getStringField("Host"));
 		logLine.put(METHOD.getPrettyName(), getMethod());
 		logLine.put(PATH.getPrettyName(), path);
 		if (query != null)

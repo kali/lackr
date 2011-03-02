@@ -90,7 +90,7 @@ public class LackrRequest {
 
 		logLine = Service.standardLogLine(request, "lackr-front");
 
-		logLine.put(HTTP_HOST.getPrettyName(), request.getServerName());
+		logLine.put(HTTP_HOST.getPrettyName(), request.getHeader("Host"));
 		logLine.put(METHOD.getPrettyName(), request.getMethod());
 		logLine.put(PATH.getPrettyName(), request.getPathInfo());
 		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
