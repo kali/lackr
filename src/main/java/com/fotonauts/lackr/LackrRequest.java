@@ -14,6 +14,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -84,8 +86,13 @@ public class LackrRequest {
 		this.continuation.setTimeout(60 * 1000);
 		this.fragmentsMap = Collections.synchronizedMap(new HashMap<String, LackrContentExchange>());
 		this.pendingCount = new AtomicInteger(0);
-		rootUrl = StringUtils.hasText(request.getQueryString()) ? request.getPathInfo().replace("?", "%3F") + '?'
-		        + request.getQueryString() : request.getPathInfo().replace("?", "%3F");
+		URI uri = null;
+		try {
+			uri = new URI(null, null, request.getPathInfo(), null);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("invalid URL");
+		}
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString() : uri.toASCIIString();
 		rootUrl = rootUrl.replace(" ", "%20");
 
 		logLine = Service.standardLogLine(request, "lackr-front");
