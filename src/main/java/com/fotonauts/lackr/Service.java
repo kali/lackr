@@ -57,7 +57,7 @@ public class Service extends AbstractHandler {
 		logLine.put(FACILITY.getPrettyName(), facility);
 
 		addHeadersIfPresent(logLine, request, USER_AGENT, "User-Agent");
-		addHeadersIfPresent(logLine, request, OPERATION_ID, "X-Ftn-Operationid");
+		addHeadersIfPresent(logLine, request, OPERATION_ID, "X-Ftn-OperationId");
 		addHeadersIfPresent(logLine, request, REMOTE_ADDR, "X-Forwarded-For");
 		addHeadersIfPresent(logLine, request, CLIENT_ID, "X-Ftn-User");
 		addHeadersIfPresent(logLine, request, SESSION_ID, "X-Ftn-Session");

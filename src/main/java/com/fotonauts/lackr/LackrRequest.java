@@ -92,7 +92,8 @@ public class LackrRequest {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException("invalid URL");
 		}
-		rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString() : uri.toASCIIString();
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString()
+		        : uri.toASCIIString();
 		rootUrl = rootUrl.replace(" ", "%20");
 
 		logLine = Service.standardLogLine(request, "lackr-front");
@@ -176,7 +177,8 @@ public class LackrRequest {
 	}
 
 	public void writeResponse(HttpServletResponse response) throws IOException {
-
+		if (request.getHeader("X-Ftn-OperationId") != null)
+			response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
 		try {
 			if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
 				writeErrorResponse(response);

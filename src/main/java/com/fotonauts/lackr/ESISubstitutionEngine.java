@@ -8,7 +8,12 @@ import java.util.regex.Pattern;
 
 public class ESISubstitutionEngine extends TextSubstitutionEngine implements SubstitutionEngine {
 
-	private Pattern pattern = Pattern.compile("<!--# include virtual=\"(.*?)\" -->");
+	private Pattern[] patterns;
+	{
+		patterns = new Pattern[2];
+		patterns[0] = Pattern.compile("<!--# include virtual=\"(.*?)\" -->");
+		patterns[1] = Pattern.compile("\"ssi:include:virtual:(.*)\"");
+	}
 
 	@Override
 	public String[] lookForSubqueries(LackrContentExchange lackrContentExchange) {
@@ -25,9 +30,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				/* very, very unlikely */
 				throw new RuntimeException(e);
 			}
-			Matcher matcher = pattern.matcher(content);
-			while (matcher.find()) {
-				subs.add(matcher.group(1));
+			for (Pattern pattern : patterns) {
+				Matcher matcher = pattern.matcher(content);
+				while (matcher.find()) {
+					subs.add(matcher.group(1));
+				}
 			}
 		}
 		return (String[]) subs.toArray(new String[subs.size()]);
@@ -44,15 +51,17 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 			boolean replacedSome = false;
 			do {
 				replacedSome = false;
-				Matcher matcher = pattern.matcher(content);
-				if (matcher.find()) {
-					String replacement = "";
-					LackrContentExchange exchange = rootRequest.fragmentsMap.get(matcher.group(1));
-					if (exchange.getResponseContentBytes() != null) {
-						replacement = new String(exchange.getResponseContentBytes(), "UTF-8");
+				for(Pattern pattern : patterns) {
+					Matcher matcher = pattern.matcher(content);
+					if (matcher.find()) {
+						String replacement = "";
+						LackrContentExchange exchange = rootRequest.fragmentsMap.get(matcher.group(1));
+						if (exchange.getResponseContentBytes() != null) {
+							replacement = new String(exchange.getResponseContentBytes(), "UTF-8");
+						}
+						content.replace(matcher.start(0), matcher.end(0), replacement);
+						replacedSome = true;
 					}
-					content.replace(matcher.start(0), matcher.end(0), replacement);
-					replacedSome = true;
 				}
 			} while (replacedSome);
 			return content.toString().getBytes("UTF-8");
