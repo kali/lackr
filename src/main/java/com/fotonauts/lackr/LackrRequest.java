@@ -247,7 +247,9 @@ public class LackrRequest {
 			} else {
 				logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 				response.setContentLength(content.length);
-				response.getOutputStream().write(content);
+				if(request.getMethod() != "HEAD")
+					response.getOutputStream().write(content);
+				response.flushBuffer();
 			}
 			logLine.put(SIZE.getPrettyName(), content.length);
 		} else {
@@ -273,7 +275,10 @@ public class LackrRequest {
 			byte[] body = null;
 			if (request.getContentLength() > 0)
 				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
+			if(request.getMethod() == "HEAD")
+				scheduleUpstreamRequest(rootUrl, "GET", body);
+			else
+				scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
 		} catch (Throwable e) {
 			log.debug("in kick() error handler");
 			backendExceptions.add(e);
