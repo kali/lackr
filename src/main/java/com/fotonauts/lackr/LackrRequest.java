@@ -79,6 +79,8 @@ public class LackrRequest {
 
 	protected long startTimestamp;
 
+	private UserAgent userAgent;
+
 	LackrRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
 		this.request = request;
@@ -102,6 +104,8 @@ public class LackrRequest {
 		logLine.put(METHOD.getPrettyName(), request.getMethod());
 		logLine.put(PATH.getPrettyName(), request.getPathInfo());
 		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
+		
+		this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
 		continuation.suspend();
 	}
@@ -119,6 +123,7 @@ public class LackrRequest {
 		exchange.setURL(service.getBackend() + uri);
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
 		exchange.addRequestHeader("X-SSI-ROOT", getRequest().getRequestURI());
+		exchange.addRequestHeader("X-FTN-NORM-USER-AGENT", getUserAgent().toString());
 		if (parent != null)
 			exchange.addRequestHeader("X-SSI-PARENT", parent);
 		this.pendingCount.incrementAndGet();
@@ -134,6 +139,10 @@ public class LackrRequest {
 			exchange.setRequestHeader("Content-Length", Integer.toString(body.length));
 		}
 		exchange.start();
+	}
+
+	private UserAgent getUserAgent() {
+		return userAgent;
 	}
 
 	public void processIncomingResponse(LackrContentExchange lackrContentExchange) throws IOException {
@@ -247,7 +256,7 @@ public class LackrRequest {
 			} else {
 				logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 				response.setContentLength(content.length);
-				if(request.getMethod() != "HEAD")
+				if (request.getMethod() != "HEAD")
 					response.getOutputStream().write(content);
 				response.flushBuffer();
 			}
@@ -275,7 +284,7 @@ public class LackrRequest {
 			byte[] body = null;
 			if (request.getContentLength() > 0)
 				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			if(request.getMethod() == "HEAD")
+			if (request.getMethod() == "HEAD")
 				scheduleUpstreamRequest(rootUrl, "GET", body);
 			else
 				scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
