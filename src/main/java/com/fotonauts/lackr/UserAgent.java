@@ -13,8 +13,8 @@ public class UserAgent {
 		IPAD, IPHONE, ANDROID, DESKTOP
 	};
 
-	private static Pattern IE_VERSION_PATTERN = Pattern.compile("(?i)msie (\\d)+\\.(\\d+)");
-	private static Pattern FIREFOX_VERSION_PATTERN = Pattern.compile("(?i)firefox/(\\d)+\\.(\\d+)");
+	private static Pattern IE_VERSION_PATTERN = Pattern.compile("(?i)msie (\\d+)\\.(\\d+)");
+	private static Pattern FIREFOX_VERSION_PATTERN = Pattern.compile("(?i)firefox/(\\d+)\\.(\\d+)");
 
 	private BrowserName browserName;
 	private DeviceName deviceName;
@@ -46,7 +46,7 @@ public class UserAgent {
 			if (matcher.find()) {
 				try {
 					majorVersion = Integer.parseInt(matcher.group(1));
-					majorVersion = Integer.parseInt(matcher.group(2));
+					minorVersion = Integer.parseInt(matcher.group(2));
 				} catch (NumberFormatException exception) {
 					/* do nothing */
 				}
