@@ -24,7 +24,7 @@ public class UserAgent {
 	private String normalized;
 
 	public UserAgent(String header) {
-		String downcase = header.toLowerCase();
+		String downcase = header == null ? "" : header.toLowerCase();
 		browserName = BrowserName.UNKNOWN;
 		if (downcase.indexOf("msie") >= 0 && downcase.indexOf("opera") == -1 && downcase.indexOf("webtv") == -1)
 			browserName = BrowserName.IE;
