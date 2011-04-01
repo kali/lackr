@@ -104,7 +104,7 @@ public class LackrRequest {
 		logLine.put(METHOD.getPrettyName(), request.getMethod());
 		logLine.put(PATH.getPrettyName(), request.getPathInfo());
 		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
-		
+
 		this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
 		continuation.suspend();
@@ -124,6 +124,7 @@ public class LackrRequest {
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
 		exchange.addRequestHeader("X-SSI-ROOT", getRequest().getRequestURI());
 		exchange.addRequestHeader("X-FTN-NORM-USER-AGENT", getUserAgent().toString());
+		exchange.addRequestHeader("X-FTN-INLINE-IMAGES", getUserAgent().supportsInlineImages() ? "yes" : "no");
 		if (parent != null)
 			exchange.addRequestHeader("X-SSI-PARENT", parent);
 		this.pendingCount.incrementAndGet();

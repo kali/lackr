@@ -64,6 +64,10 @@ public class UserAgent {
 		normalized = (browserName + " " + majorVersion + " " + minorVersion + " " + deviceName).toLowerCase();
 	}
 
+	public boolean supportsInlineImages() {
+		return !(browserName == BrowserName.UNKNOWN || (browserName == BrowserName.IE && majorVersion < 8));  
+	}
+	
 	@Override
 	public String toString() {
 		return normalized;

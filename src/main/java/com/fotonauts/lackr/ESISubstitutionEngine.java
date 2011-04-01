@@ -8,8 +8,6 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jetty.http.HttpHeaders;
 import org.json.JSONObject;
-import org.json.JSONWriter;
-import org.omg.CORBA.PRIVATE_MEMBER;
 
 public class ESISubstitutionEngine extends TextSubstitutionEngine implements SubstitutionEngine {
 
@@ -49,15 +47,45 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		public String translate(String content, String mimeType) {
 			if (MimeType.isML(mimeType))
 				return content;
-			return "<!-- unsupported ESI type -->";
+			throw new RuntimeException("unsupported ESI type (js* in *ML context)");
 		}
+	}
+
+	private static class JSMLESIInclude extends ESIIncludePattern {
+
+		public JSMLESIInclude() {
+			pattern = Pattern.compile("\\\\u003C!--# include virtual=\\\\\"(.*?)\\\\\" --\\\\u003E");
+		}
+
+		@Override
+		public String translate(String content, String mimeType) {
+			if (MimeType.isML(mimeType)) {
+				String json = JSONObject.quote(content);
+				return json.substring(1, json.length() - 1);
+			}
+			throw new RuntimeException("unsupported ESI type (js* in js(*ML) context)");
+		}
+	}
+	
+	private static class HttpESIInclude extends ESIIncludePattern {
+		public HttpESIInclude() {
+			pattern = Pattern.compile("http://esi\\.include\\.virtual(/.*)#");
+		}
+
+		@Override
+        public String translate(String content, String mimeType) {
+			return content;
+        }
+		
 	}
 
 	static ESIIncludePattern[] patterns;
 	static {
-		patterns = new ESIIncludePattern[2];
+		patterns = new ESIIncludePattern[4];
 		patterns[0] = new MLESIInclude();
 		patterns[1] = new JSESIInclude();
+		patterns[2] = new JSMLESIInclude();
+		patterns[3] = new HttpESIInclude();
 	}
 
 	@Override
