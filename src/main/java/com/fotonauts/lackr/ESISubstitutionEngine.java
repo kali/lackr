@@ -69,7 +69,7 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 	
 	private static class HttpESIInclude extends ESIIncludePattern {
 		public HttpESIInclude() {
-			pattern = Pattern.compile("http://esi\\.include\\.virtual(/.*)#");
+			pattern = Pattern.compile("http://esi\\.include\\.virtual(/.*?)#");
 		}
 
 		@Override
