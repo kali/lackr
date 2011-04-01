@@ -24,7 +24,7 @@
 		<property name="connectors">
 			<list>
 				<bean class="org.eclipse.jetty.server.nio.SelectChannelConnector"
-					p:port="8888" />
+					p:port="${lackr.port}" />
 			</list>
 		</property>
 

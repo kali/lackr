@@ -64,7 +64,7 @@ public class TestESI extends TestCase {
 			}
 		});
 
-		System.setProperty("lackr.properties", "classpath:/lackr.eclipse.properties");
+		System.setProperty("lackr.properties", "classpath:/lackr.test.properties");
 
 		backend.start();
 		backend.getConnectors()[0].getLocalPort();
@@ -80,24 +80,6 @@ public class TestESI extends TestCase {
 		client.setConnectTimeout(5);
 		client.start();
 	}
-
-	/*
-	 * response .getWriter() .print( "<html>\n" + "<body>\n" +
-	 * "<h1>Hello, world!</h1>\n" +
-	 * "*** include syntax html, html mimetype ***\n" +
-	 * "a:<!--# include virtual=\"/esi.html\" -->\n" +
-	 * "*** include syntax html, json mimetype (should not be visible) **\n" +
-	 * "b:<!--# include virtual=\"/esi.json\" -->\n" +
-	 * "*** include syntax json, json mimemtype ***\n" +
-	 * "c:\"ssi:include:virtual:/esi.json\"\n" +
-	 * "*** include syntax json, html mimetype (should look like a fine js string) ***\n"
-	 * + "e:\"ssi:include:virtual:/esi.html\"\n" +
-	 * "*** include syntax html, embedded inside a json string (with \" escaped) (should look like correct js) ***\n"
-	 * +
-	 * "f:{ \"some\" : \"<p>crap <!--# include virtual=\\\"/esi.html\\\" --> crop</p>\" }\n"
-	 * + "</body>\n" + "</html>\n"); response.getWriter().flush();
-	 * response.flushBuffer();
-	 */
 	
 	public String expand(String testPage) throws IOException, InterruptedException {
 		ContentExchange e = new ContentExchange(true);
