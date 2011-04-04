@@ -161,6 +161,8 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 						        .getResponseContentBytes(), "UTF-8");
 						replacement = pattern.translate(fragment, exchange.getResponseFields().getStringField(
 						        HttpHeaders.CONTENT_TYPE));
+						if (replacement == null)
+							replacement = "";
 						content.replace(matcher.start(0), matcher.end(0), replacement);
 						replacedSome = true;
 					}
