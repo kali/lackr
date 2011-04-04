@@ -72,6 +72,8 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		@Override
 		public String translate(String content, String mimeType) {
 			if (MimeType.isML(mimeType)) {
+				if(content == "")
+					return "null";
 				String json = JSONObject.quote(content);
 				return json.substring(1, json.length() - 1);
 			}
