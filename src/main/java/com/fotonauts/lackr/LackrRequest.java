@@ -34,7 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.continuation.Continuation;
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.http.HttpMethods;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.slf4j.Logger;
@@ -111,10 +110,10 @@ public class LackrRequest {
 	}
 
 	public void scheduleUpstreamRequest(String uri, String method, byte[] body) throws IOException {
-		scheduleUpstreamRequest(uri, method, body, null);
+		scheduleUpstreamRequest(uri, method, body, null, null);
 	}
 
-	public void scheduleUpstreamRequest(String uri, String method, byte[] body, String parent) throws IOException {
+	public void scheduleUpstreamRequest(String uri, String method, byte[] body, String parent, String includeSyntax) throws IOException {
 		LackrContentExchange exchange = new LackrContentExchange(this);
 		if (rootExchange == null)
 			rootExchange = exchange;
@@ -127,6 +126,8 @@ public class LackrRequest {
 		exchange.addRequestHeader("X-FTN-INLINE-IMAGES", getUserAgent().supportsInlineImages() ? "yes" : "no");
 		if (parent != null)
 			exchange.addRequestHeader("X-SSI-PARENT", parent);
+		if(includeSyntax != null)
+			exchange.addRequestHeader("X-SSI-INCLUDE-SYNTAX", includeSyntax);
 		this.pendingCount.incrementAndGet();
 		for (@SuppressWarnings("unchecked")
 		Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
@@ -158,8 +159,7 @@ public class LackrRequest {
 		fragmentsMap.put(lackrContentExchange.getURI(), lackrContentExchange);
 		try {
 			for (SubstitutionEngine s : service.getSubstituers())
-				for (String sub : s.lookForSubqueries(lackrContentExchange))
-					scheduleUpstreamRequest(sub, HttpMethods.GET, null, lackrContentExchange.getURI());
+				s.scheduleSubQueries(lackrContentExchange, this);
 		} catch (Throwable e) {
 			e.printStackTrace();
 			addBackendExceptions(e);

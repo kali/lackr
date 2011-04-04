@@ -1,5 +1,6 @@
 package com.fotonauts.lackr;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
@@ -25,10 +26,6 @@ public class SimpleSubstitutionEngine extends TextSubstitutionEngine {
 
 	}
 
-	public String[] lookForSubqueries(LackrContentExchange exchange) {
-		return new String[0];
-	}
-
 	public void setSubstitutions(Map<String, String> substitutions) {
 		this.substitutions = substitutions;
 	}
@@ -36,5 +33,11 @@ public class SimpleSubstitutionEngine extends TextSubstitutionEngine {
 	public Map<String, String> getSubstitutions() {
 		return substitutions;
 	}
+
+	@Override
+    public void scheduleSubQueries(LackrContentExchange lackrContentExchange, LackrRequest lackrRequest)
+            throws IOException {
+		/* DO NOTHING */
+    }
 
 }

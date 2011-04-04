@@ -1,17 +1,17 @@
 package com.fotonauts.lackr;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpMethods;
 import org.json.JSONObject;
 
 public class ESISubstitutionEngine extends TextSubstitutionEngine implements SubstitutionEngine {
 
-	abstract private static class ESIIncludePattern {
+	abstract public static class ESIIncludePattern {
 		protected Pattern pattern;
 
 		public abstract String translate(String content, String mimeType);
@@ -19,12 +19,14 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		public Pattern getPattern() {
 			return pattern;
 		}
+
+		public abstract String getSyntaxIdentifier();
 	}
 
 	private static class JSESIInclude extends ESIIncludePattern {
 
 		public JSESIInclude() {
-			pattern = Pattern.compile("\"ssi:include:virtual:(.*)\"");
+			pattern = Pattern.compile("\"ssi:include:virtual:(.*?)\"");
 		}
 
 		@Override
@@ -35,6 +37,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				return JSONObject.quote(content);
 			return "{}";
 		}
+
+		@Override
+        public String getSyntaxIdentifier() {
+	        return "JS";
+        }
 	}
 
 	private static class MLESIInclude extends ESIIncludePattern {
@@ -49,6 +56,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				return content;
 			throw new RuntimeException("unsupported ESI type (js* in *ML context)");
 		}
+		
+		@Override
+        public String getSyntaxIdentifier() {
+	        return "ML";
+        }
 	}
 
 	private static class JSMLESIInclude extends ESIIncludePattern {
@@ -65,6 +77,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 			}
 			throw new RuntimeException("unsupported ESI type (js* in js(*ML) context)");
 		}
+
+		@Override
+        public String getSyntaxIdentifier() {
+	        return "JS(ML)";
+        }
 	}
 	
 	private static class HttpESIInclude extends ESIIncludePattern {
@@ -77,6 +94,10 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 			return content;
         }
 		
+		@Override
+        public String getSyntaxIdentifier() {
+	        return "URL";
+        }
 	}
 
 	static ESIIncludePattern[] patterns;
@@ -89,11 +110,10 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 	}
 
 	@Override
-	public String[] lookForSubqueries(LackrContentExchange lackrContentExchange) {
+    public void scheduleSubQueries(LackrContentExchange lackrContentExchange, LackrRequest lackrRequest) throws IOException {
 		if (!parseable(lackrContentExchange.lackrRequest))
-			return new String[0];
+			return;
 
-		List<String> subs = new ArrayList<String>();
 		if (lackrContentExchange.getResponseContentBytes() != null
 		        && lackrContentExchange.getResponseContentBytes().length > 0) {
 			String content;
@@ -106,11 +126,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 			for (ESIIncludePattern pattern : patterns) {
 				Matcher matcher = pattern.getPattern().matcher(content);
 				while (matcher.find()) {
-					subs.add(matcher.group(1));
+					lackrRequest.log.debug("scheduling " + matcher.group(1));
+					lackrRequest.scheduleUpstreamRequest(matcher.group(1), HttpMethods.GET, null, lackrContentExchange.getURI(), pattern.getSyntaxIdentifier());
 				}
 			}
 		}
-		return (String[]) subs.toArray(new String[subs.size()]);
 	}
 
 	@Override
@@ -145,5 +165,4 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 			throw new RuntimeException(e);
 		}
 	}
-
 }
