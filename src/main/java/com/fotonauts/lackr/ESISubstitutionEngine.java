@@ -33,15 +33,19 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		public String translate(String content, String mimeType) {
 			if (MimeType.isJS(mimeType))
 				return content;
-			else if (MimeType.isML(mimeType))
-				return JSONObject.quote(content);
+			else if (MimeType.isML(mimeType)) {
+				if (content == null || content.equals(""))
+					return "null";
+				else
+					return JSONObject.quote(content);
+			}
 			return "{}";
 		}
 
 		@Override
-        public String getSyntaxIdentifier() {
-	        return "JS";
-        }
+		public String getSyntaxIdentifier() {
+			return "JS";
+		}
 	}
 
 	private static class MLESIInclude extends ESIIncludePattern {
@@ -56,11 +60,11 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				return content;
 			throw new RuntimeException("unsupported ESI type (js* in *ML context)");
 		}
-		
+
 		@Override
-        public String getSyntaxIdentifier() {
-	        return "ML";
-        }
+		public String getSyntaxIdentifier() {
+			return "ML";
+		}
 	}
 
 	private static class JSMLESIInclude extends ESIIncludePattern {
@@ -72,7 +76,7 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		@Override
 		public String translate(String content, String mimeType) {
 			if (MimeType.isML(mimeType)) {
-				if(content == "")
+				if (content == null || content.equals(""))
 					return "null";
 				String json = JSONObject.quote(content);
 				return json.substring(1, json.length() - 1);
@@ -81,25 +85,25 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		}
 
 		@Override
-        public String getSyntaxIdentifier() {
-	        return "JS(ML)";
-        }
+		public String getSyntaxIdentifier() {
+			return "JS(ML)";
+		}
 	}
-	
+
 	private static class HttpESIInclude extends ESIIncludePattern {
 		public HttpESIInclude() {
 			pattern = Pattern.compile("http://esi\\.include\\.virtual(/.*?)#");
 		}
 
 		@Override
-        public String translate(String content, String mimeType) {
+		public String translate(String content, String mimeType) {
 			return content;
-        }
-		
+		}
+
 		@Override
-        public String getSyntaxIdentifier() {
-	        return "URL";
-        }
+		public String getSyntaxIdentifier() {
+			return "URL";
+		}
 	}
 
 	static ESIIncludePattern[] patterns;
@@ -112,7 +116,8 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 	}
 
 	@Override
-    public void scheduleSubQueries(LackrContentExchange lackrContentExchange, LackrRequest lackrRequest) throws IOException {
+	public void scheduleSubQueries(LackrContentExchange lackrContentExchange, LackrRequest lackrRequest)
+	        throws IOException {
 		if (!parseable(lackrContentExchange.lackrRequest))
 			return;
 
@@ -129,7 +134,8 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 				Matcher matcher = pattern.getPattern().matcher(content);
 				while (matcher.find()) {
 					lackrRequest.log.debug("scheduling " + matcher.group(1));
-					lackrRequest.scheduleUpstreamRequest(matcher.group(1), HttpMethods.GET, null, lackrContentExchange.getURI(), pattern.getSyntaxIdentifier());
+					lackrRequest.scheduleUpstreamRequest(matcher.group(1), HttpMethods.GET, null, lackrContentExchange
+					        .getURI(), pattern.getSyntaxIdentifier());
 				}
 			}
 		}
@@ -151,10 +157,10 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 					if (matcher.find()) {
 						String replacement = "";
 						LackrContentExchange exchange = rootRequest.fragmentsMap.get(matcher.group(1));
-						if (exchange.getResponseContentBytes() != null) {
-							replacement = pattern.translate(new String(exchange.getResponseContentBytes(), "UTF-8"),
-							        exchange.getResponseFields().getStringField(HttpHeaders.CONTENT_TYPE));
-						}
+						String fragment = exchange.getResponseContentBytes() == null ? null : new String(exchange
+						        .getResponseContentBytes(), "UTF-8");
+						replacement = pattern.translate(fragment, exchange.getResponseFields().getStringField(
+						        HttpHeaders.CONTENT_TYPE));
 						content.replace(matcher.start(0), matcher.end(0), replacement);
 						replacedSome = true;
 					}

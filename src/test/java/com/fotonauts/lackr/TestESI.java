@@ -55,6 +55,11 @@ public class TestESI extends TestCase {
 					response.getWriter().print(ESI_JSON);
 					response.getWriter().flush();
 					response.flushBuffer();
+				} else if (request.getPathInfo().equals("/empty.html")) {
+					response.setContentType(MimeType.TEXT_HTML);
+					response.getWriter().print("");
+					response.getWriter().flush();
+					response.flushBuffer();
 				} else if (request.getPathInfo().equals("/esi.html")) {
 					response.setContentType(MimeType.TEXT_HTML);
 					response.getWriter().print(ESI_HTML);
@@ -126,6 +131,11 @@ public class TestESI extends TestCase {
 	public void testHttp() throws Exception {
 		String result = expand("before\nhttp://esi.include.virtual/esi.html#\nafter\n");
 		assertEquals("before\n" + ESI_HTML + "\nafter\n", result);
+	}
+
+	public void testEmptyJS() throws Exception {
+		String result = expand("{ something_empty: \"ssi:include:virtual:/empty.html\" }");
+		assertEquals("{ something_empty: null }", result);
 	}
 
 	@Override
