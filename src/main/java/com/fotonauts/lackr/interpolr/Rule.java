@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface Rule {
 	
-	List<Chunk> parse(DataChunk chunk);
+	List<Chunk> parse(DataChunk chunk, Object context);
 	
 }

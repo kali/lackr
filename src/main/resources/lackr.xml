@@ -53,7 +53,7 @@
 		<property name="rules">
 			<list>
 				<bean class="com.fotonauts.lackr.interpolr.SimpleSubstitutionRule"
-					p:needle="http://_A_S_S_E_T_S___P_A_T_H_" p:replacement="${lackr.assets_prefix}" />
+					p:placeholder="http://_A_S_S_E_T_S___P_A_T_H_" p:replacement="${lackr.assets_prefix}" />
 			</list>
 		</property>
 	</bean>

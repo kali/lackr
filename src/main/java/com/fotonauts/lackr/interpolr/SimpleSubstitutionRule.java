@@ -4,23 +4,13 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.eaio.stringsearch.BoyerMooreHorspool;
-
 public class SimpleSubstitutionRule implements Rule {
 
-	private static BoyerMooreHorspool boyerMooreHorspool = new BoyerMooreHorspool();
-
-	private byte[] needle;
-	private Object processedNeedle;
+	private BMHPattern placeholder;
 	private Chunk replacement;
 
-	public void setNeedle(String needle) {
-		try {
-			this.needle = needle.getBytes("UTF-8");
-			processedNeedle = boyerMooreHorspool.processBytes(this.needle);
-		} catch (UnsupportedEncodingException e) {
-			// no way
-		}
+	public void setPlaceholder(String placeholder) {
+		this.placeholder = new BMHPattern(placeholder);
 	}
 
 	public void setReplacement(String replacement) {
@@ -30,24 +20,21 @@ public class SimpleSubstitutionRule implements Rule {
 			// no way
 		}
 	}
+
 	public SimpleSubstitutionRule() {
 	}
 
-	public SimpleSubstitutionRule(String needle, String replacement) {
-		setNeedle(needle);
+	public SimpleSubstitutionRule(String placeholder, String replacement) {
+		setPlaceholder(placeholder);
 		setReplacement(replacement);
 	}
 
-	protected int searchNext(byte[] buffer, int start, int stop) {
-		return boyerMooreHorspool.searchBytes(buffer, start, stop, needle, processedNeedle);
-	}
-
 	@Override
-	public List<Chunk> parse(DataChunk chunk) {
+	public List<Chunk> parse(DataChunk chunk, Object context) {
 		List<Chunk> result = new ArrayList<Chunk>();
 		int current = chunk.getStart();
 		while (current < chunk.getStop()) {
-			int found = searchNext(chunk.getBuffer(), current, chunk.getStop());
+			int found = placeholder.searchNext(chunk.getBuffer(), current, chunk.getStop());
 			if (found == -1) {
 				result.add(new DataChunk(chunk.getBuffer(), current, chunk.getStop()));
 				current = chunk.getStop();
@@ -56,7 +43,7 @@ public class SimpleSubstitutionRule implements Rule {
 					result.add(new DataChunk(chunk.getBuffer(), current, found));
 				}
 				result.add(replacement);
-				current = found + needle.length;
+				current = found + placeholder.length();
 			}
 		}
 		return result;

@@ -84,7 +84,7 @@ public class LackrContentExchange extends ContentExchange {
 			if (rawResponseContent != null && rawResponseContent.length > 0) {
 				String mimeType = getResponseFields().getStringField(HttpHeaders.CONTENT_TYPE);
 				if(MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-					parsedDocument = lackrRequest.getService().getInterpolr().parse(rawResponseContent);
+					parsedDocument = lackrRequest.getService().getInterpolr().parse(rawResponseContent, this);
 				else
 					parsedDocument = new Document(new DataChunk(rawResponseContent));	
 			}
