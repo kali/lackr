@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.lackr.SubstitutionEngine.IncludeException;
 import com.mongodb.BasicDBObject;
 
 public class LackrRequest {
@@ -79,6 +80,10 @@ public class LackrRequest {
 	protected long startTimestamp;
 
 	private UserAgent userAgent;
+	
+	protected byte[] generatedResponse;
+	
+	protected String etag;
 
 	LackrRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
@@ -147,7 +152,7 @@ public class LackrRequest {
 		return userAgent;
 	}
 
-	public void processIncomingResponse(LackrContentExchange lackrContentExchange) throws IOException {
+	public void processIncomingResponse(LackrContentExchange lackrContentExchange) {
 		log.debug("processing response for " + lackrContentExchange.getURI());
 
 		if (lackrContentExchange != rootExchange
@@ -168,6 +173,11 @@ public class LackrRequest {
 			if (log.isDebugEnabled())
 				log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
 				        + " exceptions.");
+			byte[] content = rootExchange.getResponseContentBytes();
+			if (content != null) {
+				generatedResponse = processContent(content);
+				etag = generateEtag(generatedResponse);
+			}
 			continuation.resume();
 		}
 	}
@@ -231,7 +241,11 @@ public class LackrRequest {
 		while (previousContent == null || !Arrays.equals(content, previousContent)) {
 			previousContent = content.clone();
 			for (SubstitutionEngine s : service.getSubstituers())
-				content = s.generateContent(this, content);
+	            try {
+	                content = s.generateContent(this, content);
+                } catch (IncludeException e) {
+                	addBackendExceptions(e);
+                }
 			if (content == null)
 				throw new RuntimeException("WTF just happened ?");
 		}
@@ -242,10 +256,7 @@ public class LackrRequest {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
 		log.debug("writing response for " + rootExchange.getURI());
-		byte[] content = rootExchange.getResponseContentBytes();
-		if (content != null) {
-			content = processContent(content);
-			String etag = generateEtag(content);
+		if (generatedResponse != null) {
 			response.setHeader(HttpHeaders.ETAG, etag);
 			log.debug("etag: " + etag);
 			log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
@@ -256,12 +267,12 @@ public class LackrRequest {
 				logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
 			} else {
 				logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
-				response.setContentLength(content.length);
+				response.setContentLength(generatedResponse.length);
 				if (request.getMethod() != "HEAD")
-					response.getOutputStream().write(content);
+					response.getOutputStream().write(generatedResponse);
 				response.flushBuffer();
 			}
-			logLine.put(SIZE.getPrettyName(), content.length);
+			logLine.put(SIZE.getPrettyName(), generatedResponse.length);
 		} else {
 			logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 			response.flushBuffer(); // force commiting
@@ -307,4 +318,14 @@ public class LackrRequest {
 	public Service getService() {
 		return service;
 	}
+
+	public void enqueueIncomingResponse(final LackrContentExchange lackrContentExchange) {
+		service.getExecutor().execute(new Runnable() {
+			
+			@Override
+			public void run() {
+				processIncomingResponse(lackrContentExchange);
+			}
+		});
+    }
 }

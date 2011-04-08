@@ -9,12 +9,14 @@ import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 import org.json.JSONObject;
 
+import com.fotonauts.lackr.SubstitutionEngine.IncludeException;
+
 public class ESISubstitutionEngine extends TextSubstitutionEngine implements SubstitutionEngine {
 
 	abstract public static class ESIIncludePattern {
 		protected Pattern pattern;
 
-		public abstract String translate(String content, String mimeType);
+		public abstract String translate(String content, String mimeType) throws IncludeException;
 
 		public Pattern getPattern() {
 			return pattern;
@@ -55,10 +57,10 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		}
 
 		@Override
-		public String translate(String content, String mimeType) {
+		public String translate(String content, String mimeType) throws IncludeException {
 			if (MimeType.isML(mimeType))
 				return content;
-			throw new RuntimeException("unsupported ESI type (js* in *ML context)");
+			throw new IncludeException("unsupported ESI type (js* in *ML context)");
 		}
 
 		@Override
@@ -74,14 +76,14 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 		}
 
 		@Override
-		public String translate(String content, String mimeType) {
+		public String translate(String content, String mimeType) throws IncludeException {
 			if (MimeType.isML(mimeType)) {
 				if (content == null || content.equals(""))
 					return "null";
 				String json = JSONObject.quote(content);
 				return json.substring(1, json.length() - 1);
 			}
-			throw new RuntimeException("unsupported ESI type (js* in js(*ML) context)");
+			throw new IncludeException("unsupported ESI type (js* in js(*ML) context)");
 		}
 
 		@Override
@@ -133,7 +135,6 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 			for (ESIIncludePattern pattern : patterns) {
 				Matcher matcher = pattern.getPattern().matcher(content);
 				while (matcher.find()) {
-					lackrRequest.log.debug("scheduling " + matcher.group(1));
 					lackrRequest.scheduleUpstreamRequest(matcher.group(1), HttpMethods.GET, null, lackrContentExchange
 					        .getURI(), pattern.getSyntaxIdentifier());
 				}
@@ -142,7 +143,7 @@ public class ESISubstitutionEngine extends TextSubstitutionEngine implements Sub
 	}
 
 	@Override
-	public byte[] generateContent(LackrRequest rootRequest, byte[] byteContent) {
+	public byte[] generateContent(LackrRequest rootRequest, byte[] byteContent) throws IncludeException {
 		if (!parseable(rootRequest))
 			return rootRequest.rootExchange.getResponseContentBytes();
 

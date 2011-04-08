@@ -57,7 +57,7 @@ public class LackrContentExchange extends ContentExchange {
 		logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
 		lackrRequest.getService().logCollection.save(logLine);
 		log.debug(getURI() + " => " + getResponseStatus());
-		lackrRequest.processIncomingResponse(this);
+		lackrRequest.enqueueIncomingResponse(this);
 	}
 
 	@Override

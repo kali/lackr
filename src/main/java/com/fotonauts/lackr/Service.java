@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
@@ -43,6 +45,14 @@ public class Service extends AbstractHandler {
 	private List<SubstitutionEngine> substituers = new ArrayList<SubstitutionEngine>();
 	protected Mongo logConnection;
 	protected DBCollection logCollection;
+	private Executor executor;
+
+	
+	@Override
+	protected void doStart() throws Exception {
+		setExecutor(Executors.newFixedThreadPool(16));
+	    super.doStart();
+	}
 
 	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, MongoLoggingKeys key,
 	        String headerName) {
@@ -153,10 +163,6 @@ public class Service extends AbstractHandler {
 		}
 	}
 
-	public void logInMongo() {
-
-	}
-
 	/**
 	 * @return the logCollection
 	 */
@@ -171,5 +177,13 @@ public class Service extends AbstractHandler {
 	public void setLogCollection(DBCollection logCollection) {
 		this.logCollection = logCollection;
 	}
+
+	public void setExecutor(Executor executor) {
+	    this.executor = executor;
+    }
+
+	public Executor getExecutor() {
+	    return executor;
+    }
 
 }
