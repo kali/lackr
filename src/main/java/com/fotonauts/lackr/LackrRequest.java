@@ -76,7 +76,7 @@ public class LackrRequest {
 	protected long startTimestamp;
 
 	private UserAgent userAgent;
-	
+
 	protected String etag;
 
 	LackrRequest(Service service, HttpServletRequest request) throws IOException {
@@ -107,11 +107,12 @@ public class LackrRequest {
 		continuation.suspend();
 	}
 
-	public void scheduleUpstreamRequest(String uri, String method, byte[] body) throws IOException {
-		scheduleUpstreamRequest(uri, method, body, null, null);
+	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body) {
+		return scheduleUpstreamRequest(uri, method, body, null, null);
 	}
 
-	public void scheduleUpstreamRequest(String uri, String method, byte[] body, String parent, String includeSyntax) throws IOException {
+	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body, String parent,
+	        String includeSyntax) {
 		LackrContentExchange exchange = new LackrContentExchange(this);
 		if (rootExchange == null)
 			rootExchange = exchange;
@@ -124,7 +125,7 @@ public class LackrRequest {
 		exchange.addRequestHeader("X-FTN-INLINE-IMAGES", getUserAgent().supportsInlineImages() ? "yes" : "no");
 		if (parent != null)
 			exchange.addRequestHeader("X-SSI-PARENT", parent);
-		if(includeSyntax != null)
+		if (includeSyntax != null)
 			exchange.addRequestHeader("X-SSI-INCLUDE-SYNTAX", includeSyntax);
 		this.pendingCount.incrementAndGet();
 		for (@SuppressWarnings("unchecked")
@@ -138,7 +139,12 @@ public class LackrRequest {
 			exchange.setRequestContent(new ByteArrayBuffer(body));
 			exchange.setRequestHeader("Content-Length", Integer.toString(body.length));
 		}
-		exchange.start();
+		try {
+			exchange.start();
+		} catch (IOException e) {
+			addBackendExceptions(e);
+		}
+		return exchange;
 	}
 
 	private UserAgent getUserAgent() {
@@ -205,23 +211,15 @@ public class LackrRequest {
 	}
 
 	/*
-	public byte[] processContent(byte[] content) {
-		byte[] previousContent = null;
-		while (previousContent == null || !Arrays.equals(content, previousContent)) {
-			previousContent = content.clone();
-			for (SubstitutionEngine s : service.getSubstituers())
-	            try {
-	                content = s.generateContent(this, content);
-                } catch (IncludeException e) {
-                	addBackendExceptions(e);
-                }
-			if (content == null)
-				throw new RuntimeException("WTF just happened ?");
-		}
-		return content;
-	}
-	*/
-	
+	 * public byte[] processContent(byte[] content) { byte[] previousContent =
+	 * null; while (previousContent == null || !Arrays.equals(content,
+	 * previousContent)) { previousContent = content.clone(); for
+	 * (SubstitutionEngine s : service.getSubstituers()) try { content =
+	 * s.generateContent(this, content); } catch (IncludeException e) {
+	 * addBackendExceptions(e); } if (content == null) throw new
+	 * RuntimeException("WTF just happened ?"); } return content; }
+	 */
+
 	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
@@ -260,11 +258,11 @@ public class LackrRequest {
 		DigestOutputStream dos = new DigestOutputStream(baos, m);
 		dos.on(false);
 		try {
-	        content.writeTo(dos);
+			content.writeTo(dos);
 			dos.flush();
-        } catch (IOException e) {
-        	// not possible with these streams
-        }
+		} catch (IOException e) {
+			// not possible with these streams
+		}
 		return '"' + new BigInteger(1, m.digest()).toString(16) + '"';
 	}
 
@@ -299,23 +297,28 @@ public class LackrRequest {
 
 	public void enqueueIncomingResponse(final LackrContentExchange lackrContentExchange) {
 		service.getExecutor().execute(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				processIncomingResponse(lackrContentExchange);
 			}
 		});
-    }
+	}
 
 	public void notifySubRequestDone() {
 		if (pendingCount.decrementAndGet() <= 0) {
-			if (log.isDebugEnabled())
-				log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
-				        + " exceptions.");
-			if (rootExchange.getParsedDocument() != null) {
-				etag = generateEtag(rootExchange.getParsedDocument());
+			try {
+				if (log.isDebugEnabled())
+					log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
+					        + " exceptions.");
+				if (rootExchange.getParsedDocument() != null) {
+					etag = generateEtag(rootExchange.getParsedDocument());
+				}
+			} catch (RuntimeException e) {
+				addBackendExceptions(e);
+			} finally {
+				continuation.resume();
 			}
-			continuation.resume();
 		}
-    }
+	}
 }

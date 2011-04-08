@@ -10,7 +10,7 @@ public class TestMarkupDetection extends BaseTestSubstitution {
 		inter.addRule(new MarkupDetectingRule("{*}") {
 
 			@Override
-			public Chunk substitute(byte[] buffer, int start, int stop) {
+			public Chunk substitute(byte[] buffer, int start, int stop, Object blah) {
 				return new ConstantChunk(("'" + new String(buffer, start, stop-start) + "'").getBytes());
 			}
 		});

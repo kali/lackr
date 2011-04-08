@@ -29,6 +29,7 @@ public class BMHPattern {
     }
 
 	protected final int searchNext(byte[] buffer, int start, int stop) {
+		//System.err.format("search (%s) in %s\n", new String(needle), new String(buffer, start, stop-start));
 		return boyerMooreHorspool.searchBytes(buffer, start, stop, needle, processedNeedle);
 	}
 

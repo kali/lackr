@@ -87,7 +87,8 @@ public class LackrContentExchange extends ContentExchange {
 					parsedDocument = lackrRequest.getService().getInterpolr().parse(rawResponseContent, this);
 				else
 					parsedDocument = new Document(new DataChunk(rawResponseContent));	
-			}
+			} else
+				parsedDocument = new Document(new DataChunk(new byte[0]));
 		} catch (Throwable e) {
 			e.printStackTrace();
 			lackrRequest.addBackendExceptions(e);
@@ -114,5 +115,9 @@ public class LackrContentExchange extends ContentExchange {
 
 	public Document getParsedDocument() {
 	    return parsedDocument;
+    }
+
+	public LackrRequest getLackrRequest() {
+		return lackrRequest;
     }
 }

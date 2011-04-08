@@ -21,7 +21,7 @@ public abstract class MarkupDetectingRule implements Rule {
 		setMarkup(markup);
 	}
 
-	public abstract Chunk substitute(byte[] buffer, int start, int stop);
+	public abstract Chunk substitute(byte[] buffer, int start, int stop, Object context);
 	
 	@Override
 	public List<Chunk> parse(DataChunk chunk, Object context) {
@@ -42,7 +42,7 @@ public abstract class MarkupDetectingRule implements Rule {
 					if (startFound > 0) {
 						result.add(new DataChunk(chunk.getBuffer(), current, startFound));
 					}
-					result.add(substitute(chunk.getBuffer(), startFound + startPlaceholder.length(), stopFound));
+					result.add(substitute(chunk.getBuffer(), startFound + startPlaceholder.length(), stopFound, context));
 					current = stopFound + stopPlaceholder.length();				
 				}
 			}
