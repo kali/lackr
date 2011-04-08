@@ -9,8 +9,6 @@ import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 import org.json.JSONObject;
 
-import com.fotonauts.lackr.SubstitutionEngine.IncludeException;
-
 public class ESISubstitutionEngine extends TextSubstitutionEngine implements SubstitutionEngine {
 
 	abstract public static class ESIIncludePattern {
