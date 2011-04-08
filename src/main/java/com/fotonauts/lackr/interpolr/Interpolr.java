@@ -33,13 +33,13 @@ public class Interpolr {
 	}
 
 	public List<Rule> getRules() {
+		if (rules == null)
+			rules = new LinkedList<Rule>();
 		return rules;
 	}
 
 	public void addRule(Rule rule) {
-		if (rules == null)
-			rules = new LinkedList<Rule>();
-		rules.add(rule);
+		getRules().add(rule);
 	}
 
 }
