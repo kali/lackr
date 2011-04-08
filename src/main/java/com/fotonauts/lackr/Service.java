@@ -12,8 +12,6 @@ import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -29,7 +27,9 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
 
+import com.fotonauts.lackr.interpolr.Interpolr;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
@@ -42,9 +42,19 @@ public class Service extends AbstractHandler {
 	protected String backend = "http://localhost";
 	protected String mongoLoggingPath = "127.0.0.1:27017/logs/logs";
 	protected HttpClient client;
-	private List<SubstitutionEngine> substituers = new ArrayList<SubstitutionEngine>();
 	protected Mongo logConnection;
 	protected DBCollection logCollection;
+	
+	protected Interpolr interpolr;
+	public Interpolr getInterpolr() {
+    	return interpolr;
+    }
+
+	@Required
+	public void setInterpolr(Interpolr interpolr) {
+    	this.interpolr = interpolr;
+    }
+
 	private Executor executor;
 
 	
@@ -104,14 +114,6 @@ public class Service extends AbstractHandler {
 
 	public void setClient(HttpClient client) {
 		this.client = client;
-	}
-
-	public List<SubstitutionEngine> getSubstituers() {
-		return substituers;
-	}
-
-	public void setSubstituers(List<SubstitutionEngine> substituers) {
-		this.substituers = substituers;
 	}
 
 	/**

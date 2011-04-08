@@ -9,6 +9,14 @@ public class Document implements Chunk {
 
 	List<Chunk> chunks;
 	
+	public Document() {
+		
+	}
+	
+	public Document(DataChunk dataChunk) {
+		getChunks().add(dataChunk);
+    }
+
 	public String toDebugString() {
 		StringBuilder builder = new StringBuilder();
 		for(Chunk chunk: chunks) {

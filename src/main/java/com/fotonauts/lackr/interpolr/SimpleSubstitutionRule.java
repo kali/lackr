@@ -7,21 +7,35 @@ import java.util.List;
 import com.eaio.stringsearch.BoyerMooreHorspool;
 
 public class SimpleSubstitutionRule implements Rule {
-	
+
 	private static BoyerMooreHorspool boyerMooreHorspool = new BoyerMooreHorspool();
-	
+
 	private byte[] needle;
 	private Object processedNeedle;
 	private Chunk replacement;
 
-	public SimpleSubstitutionRule(String needle, String replacement) {
+	public void setNeedle(String needle) {
 		try {
 			this.needle = needle.getBytes("UTF-8");
+			processedNeedle = boyerMooreHorspool.processBytes(this.needle);
+		} catch (UnsupportedEncodingException e) {
+			// no way
+		}
+	}
+
+	public void setReplacement(String replacement) {
+		try {
 			this.replacement = new ConstantChunk(replacement.getBytes("UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			// no way
 		}
-		processedNeedle = boyerMooreHorspool.processBytes(this.needle);
+	}
+	public SimpleSubstitutionRule() {
+	}
+
+	public SimpleSubstitutionRule(String needle, String replacement) {
+		setNeedle(needle);
+		setReplacement(replacement);
 	}
 
 	protected int searchNext(byte[] buffer, int start, int stop) {

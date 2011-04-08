@@ -32,7 +32,8 @@
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
 		p:client-ref="httpClient" p:backend="${lackr.backend}"
-		p:mongoLoggingPath="${lackr.mongologgingpath}">
+		p:mongoLoggingPath="${lackr.mongologgingpath}" p:interpolr-ref="interpolr">
+		<!-- 
 		<property name="substituers">
 			<list>
 				<bean class="com.fotonauts.lackr.ESISubstitutionEngine" />
@@ -43,6 +44,16 @@
 						</map>
 					</property>
 				</bean>
+			</list>
+		</property>
+		-->
+	</bean>
+
+	<bean id="interpolr" class="com.fotonauts.lackr.interpolr.Interpolr">
+		<property name="rules">
+			<list>
+				<bean class="com.fotonauts.lackr.interpolr.SimpleSubstitutionRule"
+					p:needle="http://_A_S_S_E_T_S___P_A_T_H_" p:replacement="${lackr.assets_prefix}" />
 			</list>
 		</property>
 	</bean>

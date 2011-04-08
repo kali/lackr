@@ -13,10 +13,13 @@ import java.io.IOException;
 import java.util.Date;
 
 import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.io.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fotonauts.lackr.interpolr.DataChunk;
+import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
 
 public class LackrContentExchange extends ContentExchange {
@@ -27,6 +30,10 @@ public class LackrContentExchange extends ContentExchange {
 	protected BasicDBObject logLine;
 
 	private long startTimestamp;
+
+	private byte[] rawResponseContent;
+
+	private Document parsedDocument;
 
 	public LackrContentExchange(LackrRequest lackrRequest) {
 		super(true);
@@ -49,15 +56,43 @@ public class LackrContentExchange extends ContentExchange {
 	@Override
 	protected void onResponseComplete() throws IOException {
 		super.onResponseComplete();
+		rawResponseContent = getResponseContentBytes();
 		long endTimestamp = System.currentTimeMillis();
 		logLine.put(STATUS.getPrettyName(), getResponseStatus());
-		if (getResponseContentBytes() != null)
-			logLine.put(SIZE.getPrettyName(), getResponseContentBytes().length);
+		if (rawResponseContent != null)
+			logLine.put(SIZE.getPrettyName(), rawResponseContent.length);
 		logLine.put(DATE.getPrettyName(), new Date().getTime());
 		logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
 		lackrRequest.getService().logCollection.save(logLine);
-		log.debug(getURI() + " => " + getResponseStatus());
-		lackrRequest.enqueueIncomingResponse(this);
+		final LackrContentExchange exchange = this;
+		lackrRequest.getService().getExecutor().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				exchange.postProcess();
+			}
+		});
+	}
+
+	protected void postProcess() {
+		if (this != lackrRequest.rootExchange && (getResponseStatus() / 100 == 4 || getResponseStatus() / 100 == 5)
+		        && !getResponseFields().containsKey("X-SSI-AWARE"))
+			lackrRequest.addBackendExceptions(new Exception("Fragment " + getURI() + " returned code "
+			        + getResponseStatus()));
+
+		try {
+			if (rawResponseContent != null && rawResponseContent.length > 0) {
+				String mimeType = getResponseFields().getStringField(HttpHeaders.CONTENT_TYPE);
+				if(MimeType.isML(mimeType) || MimeType.isJS(mimeType))
+					parsedDocument = lackrRequest.getService().getInterpolr().parse(rawResponseContent);
+				else
+					parsedDocument = new Document(new DataChunk(rawResponseContent));	
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			lackrRequest.addBackendExceptions(e);
+		}
+		lackrRequest.notifySubRequestDone();
 	}
 
 	@Override
@@ -76,4 +111,8 @@ public class LackrContentExchange extends ContentExchange {
 	protected synchronized void onResponseHeader(Buffer name, Buffer value) throws IOException {
 		super.onResponseHeader(name, value);
 	}
+
+	public Document getParsedDocument() {
+	    return parsedDocument;
+    }
 }
