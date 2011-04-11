@@ -12,6 +12,7 @@ import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.URI;
@@ -217,6 +218,7 @@ public class LackrRequest {
 			if (rootExchange.getResponseStatus() == HttpStatus.OK_200
 			        && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
 				response.setStatus(HttpStatus.NOT_MODIFIED_304);
+				response.setHeader("Status", "304 Not Modified");
 				response.flushBuffer(); // force commiting
 				logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
 			} else {
@@ -240,9 +242,14 @@ public class LackrRequest {
 		} catch (NoSuchAlgorithmException e) {
 			// nope.
 		}
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		DigestOutputStream dos = new DigestOutputStream(baos, m);
-		dos.on(false);
+		DigestOutputStream dos = new DigestOutputStream(new OutputStream() {
+
+			@Override
+			public void write(int arg0) throws IOException {
+				// noop
+			}
+		}, m);
+		dos.on(true);
 		try {
 			content.writeTo(dos);
 			dos.flush();
