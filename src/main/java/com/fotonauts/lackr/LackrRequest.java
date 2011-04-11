@@ -77,8 +77,6 @@ public class LackrRequest {
 
 	private UserAgent userAgent;
 
-	protected String etag;
-
 	LackrRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
 		this.request = request;
@@ -151,11 +149,6 @@ public class LackrRequest {
 		return userAgent;
 	}
 
-	public void processIncomingResponse(LackrContentExchange lackrContentExchange) {
-		log.debug("processing response for " + lackrContentExchange.getURI());
-
-	}
-
 	public void copyHeaders(HttpServletResponse response) {
 		for (@SuppressWarnings("unchecked")
 		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names.hasMoreElements();) {
@@ -210,24 +203,17 @@ public class LackrRequest {
 		logLine.put(DATA.getPrettyName(), baos.toByteArray());
 	}
 
-	/*
-	 * public byte[] processContent(byte[] content) { byte[] previousContent =
-	 * null; while (previousContent == null || !Arrays.equals(content,
-	 * previousContent)) { previousContent = content.clone(); for
-	 * (SubstitutionEngine s : service.getSubstituers()) try { content =
-	 * s.generateContent(this, content); } catch (IncludeException e) {
-	 * addBackendExceptions(e); } if (content == null) throw new
-	 * RuntimeException("WTF just happened ?"); } return content; }
-	 */
-
 	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
 		log.debug("writing response for " + rootExchange.getURI());
-		if (rootExchange.getParsedDocument() != null) {
+		if (rootExchange.getParsedDocument().length() > 0) {
+			String etag = generateEtag(rootExchange.getParsedDocument());
 			response.setHeader(HttpHeaders.ETAG, etag);
-			log.debug("etag: " + etag);
-			log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
+			if (log.isDebugEnabled()) {
+				log.debug("etag: " + etag);
+				log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
+			}
 			if (rootExchange.getResponseStatus() == HttpStatus.OK_200
 			        && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
 				response.setStatus(HttpStatus.NOT_MODIFIED_304);
@@ -295,30 +281,12 @@ public class LackrRequest {
 		return service;
 	}
 
-	public void enqueueIncomingResponse(final LackrContentExchange lackrContentExchange) {
-		service.getExecutor().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				processIncomingResponse(lackrContentExchange);
-			}
-		});
-	}
-
 	public void notifySubRequestDone() {
 		if (pendingCount.decrementAndGet() <= 0) {
-			try {
-				if (log.isDebugEnabled())
-					log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
-					        + " exceptions.");
-				if (rootExchange.getParsedDocument() != null) {
-					etag = generateEtag(rootExchange.getParsedDocument());
-				}
-			} catch (RuntimeException e) {
-				addBackendExceptions(e);
-			} finally {
-				continuation.resume();
-			}
+			if (log.isDebugEnabled())
+				log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
+				        + " exceptions.");
+			continuation.resume();
 		}
 	}
 }

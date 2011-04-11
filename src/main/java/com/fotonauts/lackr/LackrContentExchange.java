@@ -83,10 +83,10 @@ public class LackrContentExchange extends ContentExchange {
 		try {
 			if (rawResponseContent != null && rawResponseContent.length > 0) {
 				String mimeType = getResponseFields().getStringField(HttpHeaders.CONTENT_TYPE);
-				if(MimeType.isML(mimeType) || MimeType.isJS(mimeType))
+				if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
 					parsedDocument = lackrRequest.getService().getInterpolr().parse(rawResponseContent, this);
 				else
-					parsedDocument = new Document(new DataChunk(rawResponseContent));	
+					parsedDocument = new Document(new DataChunk(rawResponseContent));
 			} else
 				parsedDocument = new Document(new DataChunk(new byte[0]));
 		} catch (Throwable e) {
@@ -114,10 +114,10 @@ public class LackrContentExchange extends ContentExchange {
 	}
 
 	public Document getParsedDocument() {
-	    return parsedDocument;
-    }
+		return parsedDocument;
+	}
 
 	public LackrRequest getLackrRequest() {
 		return lackrRequest;
-    }
+	}
 }
