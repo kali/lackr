@@ -31,6 +31,11 @@ public class Host {
 		this.hostname = backend;
 	}
 
+	public Host(String hostname, String probeUrl) {
+		this.hostname = hostname;
+		this.probeString = probeUrl;
+    }
+
 	public String getHostname() {
 		return hostname;
 	}

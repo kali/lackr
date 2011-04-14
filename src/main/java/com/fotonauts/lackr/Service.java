@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import com.fotonauts.lackr.hashring.HashRing;
+import com.fotonauts.lackr.hashring.Host;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -45,25 +46,27 @@ public class Service extends AbstractHandler {
 	protected HttpClient client;
 	protected Mongo logConnection;
 	protected DBCollection logCollection;
-	
+
 	protected Interpolr interpolr;
+
 	public Interpolr getInterpolr() {
-    	return interpolr;
-    }
+		return interpolr;
+	}
 
 	@Required
 	public void setInterpolr(Interpolr interpolr) {
-    	this.interpolr = interpolr;
-    }
+		this.interpolr = interpolr;
+	}
 
 	private Executor executor;
 	private HashRing ring;
+	private String backends;
+	private String probeUrl;
 
-	
 	@Override
 	protected void doStart() throws Exception {
 		setExecutor(Executors.newFixedThreadPool(16));
-	    super.doStart();
+		super.doStart();
 	}
 
 	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, MongoLoggingKeys key,
@@ -167,9 +170,24 @@ public class Service extends AbstractHandler {
 	}
 
 	public void setBackends(String backends) {
-		ring = new HashRing(backends.split(","));
+		this.backends = backends;
 	}
-	
+
+	public void setProbeUrl(String probeUrl) {
+		this.probeUrl = probeUrl;
+	}
+
+	@PostConstruct
+	public void buildRing() {
+		if(ring == null && backends != null && !backends.equals("")) {
+			String[] hostnames = backends.split(",");
+			Host[] hosts = new Host[hostnames.length];
+			for(int i = 0; i < hostnames.length; i++)
+				hosts[i] = new Host(hostnames[i], probeUrl);
+			ring = new HashRing(hosts);
+		}
+	}
+
 	/**
 	 * @param logCollection
 	 *            the logCollection to set
@@ -179,18 +197,18 @@ public class Service extends AbstractHandler {
 	}
 
 	public void setExecutor(Executor executor) {
-	    this.executor = executor;
-    }
+		this.executor = executor;
+	}
 
 	public Executor getExecutor() {
-	    return executor;
-    }
+		return executor;
+	}
 
 	public HashRing getRing() {
 		return ring;
-    }
+	}
 
 	public void setRing(HashRing ring) {
 		this.ring = ring;
-    }
+	}
 }

@@ -31,7 +31,7 @@
 	</bean>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
-		p:client-ref="httpClient" p:backends="${lackr.backends}"
+		p:client-ref="httpClient" p:backends="${lackr.backends}" p:probeUrl="${lackr.probeUrl}"
 		p:mongoLoggingPath="${lackr.mongologgingpath}" p:interpolr-ref="interpolr">
 	</bean>
 

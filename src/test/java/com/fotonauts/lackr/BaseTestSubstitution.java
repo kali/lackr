@@ -81,6 +81,7 @@ public abstract class BaseTestSubstitution extends TestCase {
     	ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
     	Service service = (Service) ctx.getBean("proxyService");
     	service.setBackends("http://localhost:" + backend.getConnectors()[0].getLocalPort());
+    	service.buildRing();
     	lackrServer = (Server) ctx.getBean("Server");
     	lackrServer.start();
     
