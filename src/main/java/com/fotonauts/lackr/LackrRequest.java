@@ -107,7 +107,8 @@ public class LackrRequest {
 		continuation.suspend();
 	}
 
-	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body) throws NotAvailableException {
+	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body)
+	        throws NotAvailableException {
 		return scheduleUpstreamRequest(uri, method, body, null, null);
 	}
 
@@ -165,9 +166,17 @@ public class LackrRequest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	private void preflightCheck() {
+		if (rootExchange.getParsedDocument() != null) {
+			rootExchange.getParsedDocument().check((List) backendExceptions);
+		}
+	}
+
 	public void writeResponse(HttpServletResponse response) throws IOException {
 		if (request.getHeader("X-Ftn-OperationId") != null)
 			response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
+		preflightCheck();
 		try {
 			if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
 				writeErrorResponse(response);
@@ -208,7 +217,7 @@ public class LackrRequest {
 	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
-		log.debug("writing response for " + rootExchange.getURI());
+		log.debug("writing success response for " + rootExchange.getURI());
 		if (rootExchange.getParsedDocument().length() > 0) {
 			String etag = generateEtag(rootExchange.getParsedDocument());
 			response.setHeader(HttpHeaders.ETAG, etag);

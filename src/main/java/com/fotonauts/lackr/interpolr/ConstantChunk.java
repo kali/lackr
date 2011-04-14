@@ -3,6 +3,9 @@ package com.fotonauts.lackr.interpolr;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 
 public class ConstantChunk implements Chunk {
 	private byte[] constant;
@@ -31,5 +34,9 @@ public class ConstantChunk implements Chunk {
         }
         return null;
 	}
+
+	@Override
+    public void check(List<InterpolrException> exceptions) {
+    }
 }
 

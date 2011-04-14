@@ -1,5 +1,7 @@
 package com.fotonauts.lackr.esi;
 
+import java.util.List;
+
 import com.fotonauts.lackr.LackrContentExchange;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.interpolr.Chunk;
@@ -23,7 +25,14 @@ public class JSEscapedMLESIRule extends ESIIncludeRule {
 				return NULL_CHUNK;
 			return new JsonQuotingChunk(exchange.getParsedDocument(), false);
 		}
-		throw new RuntimeException("unsupported ESI type (js* in js(*ML) context)");
+		throw new RuntimeException("unsupported ESI type (js* in js(*ML) context) for " + exchange.getURI());
 	}
+
+	@Override
+    public void check(LackrContentExchange exchange, List<InterpolrException> exceptions) {
+		String mimeType = getMimeType(exchange);
+		if (MimeType.isJS(mimeType))
+			exceptions.add(new InterpolrException("unsupported ESI type (js* in js(*ML) context)", exchange));
+    }
 
 }

@@ -3,6 +3,9 @@ package com.fotonauts.lackr.interpolr;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
+
+import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 
 public class DataChunk implements Chunk {
 
@@ -53,5 +56,9 @@ public class DataChunk implements Chunk {
 	@Override
     public void writeTo(OutputStream stream) throws IOException {
 		stream.write(buffer, start, stop-start);
+    }
+
+	@Override
+    public void check(List<InterpolrException> exceptions) {
     }
 }

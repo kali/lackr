@@ -5,6 +5,8 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
+
 public class Document implements Chunk {
 
 	List<Chunk> chunks;
@@ -36,6 +38,12 @@ public class Document implements Chunk {
 		for (Chunk chunk : chunks) {
 			chunk.writeTo(stream);
 		}
+	}
+	
+	public void check(List<InterpolrException> exceptions) {
+		for (Chunk chunk : chunks) {
+			chunk.check(exceptions);
+		}		
 	}
 
 	public void addAll(List<Chunk> added) {

@@ -1,6 +1,7 @@
 package com.fotonauts.lackr.esi;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
@@ -37,7 +38,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
         try {
 	        sub = exchange.getLackrRequest().scheduleUpstreamRequest(url, HttpMethods.GET, null, exchange.getURI(), getSyntaxIdentifier());
         } catch (NotAvailableException e) {
-        	throw new RuntimeException("no backend available");
+        	throw new RuntimeException("no backend available for fragment: " + exchange.getURI());
         }
         return new ExchangeChunk(sub, this);        
     }
@@ -45,4 +46,6 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 	public abstract String getSyntaxIdentifier();
 
 	public abstract Chunk filterDocumentAsChunk(LackrContentExchange exchange);
-}
+
+	public abstract void check(LackrContentExchange exchange, List<InterpolrException> exceptions);
+	}
