@@ -6,6 +6,7 @@ import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 
 import com.fotonauts.lackr.LackrContentExchange;
+import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
@@ -15,7 +16,6 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 
 	protected static ConstantChunk NULL_CHUNK = new ConstantChunk("null".getBytes());
 	
-
 	public ESIIncludeRule(String markup) {
 		super(markup);
     }
@@ -33,7 +33,12 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
         } catch (UnsupportedEncodingException e) {
         	// nope, thank you
         }
-        LackrContentExchange sub = exchange.getLackrRequest().scheduleUpstreamRequest(url, HttpMethods.GET, null, exchange.getURI(), getSyntaxIdentifier());
+        LackrContentExchange sub;
+        try {
+	        sub = exchange.getLackrRequest().scheduleUpstreamRequest(url, HttpMethods.GET, null, exchange.getURI(), getSyntaxIdentifier());
+        } catch (NotAvailableException e) {
+        	throw new RuntimeException("no backend available");
+        }
         return new ExchangeChunk(sub, this);        
     }
 

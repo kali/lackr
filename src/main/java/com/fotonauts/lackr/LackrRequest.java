@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
 
@@ -106,18 +107,18 @@ public class LackrRequest {
 		continuation.suspend();
 	}
 
-	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body) {
+	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body) throws NotAvailableException {
 		return scheduleUpstreamRequest(uri, method, body, null, null);
 	}
 
 	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body, String parent,
-	        String includeSyntax) {
+	        String includeSyntax) throws NotAvailableException {
 		LackrContentExchange exchange = new LackrContentExchange(this);
 		if (rootExchange == null)
 			rootExchange = exchange;
 
 		exchange.setMethod(method);
-		exchange.setURL(service.getBackend() + uri);
+		exchange.setURL(service.getRing().getHostFor(uri).getHostname() + uri);
 		exchange.addRequestHeader("X-NGINX-SSI", "yes");
 		exchange.addRequestHeader("X-SSI-ROOT", getRequest().getRequestURI());
 		exchange.addRequestHeader("X-FTN-NORM-USER-AGENT", getUserAgent().toString());

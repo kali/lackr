@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
+import com.fotonauts.lackr.hashring.HashRing;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -39,7 +40,7 @@ public class Service extends AbstractHandler {
 
 	private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
 	static Logger log = LoggerFactory.getLogger(Service.class);
-	protected String backend = "http://localhost";
+
 	protected String mongoLoggingPath = "127.0.0.1:27017/logs/logs";
 	protected HttpClient client;
 	protected Mongo logConnection;
@@ -56,6 +57,7 @@ public class Service extends AbstractHandler {
     }
 
 	private Executor executor;
+	private HashRing ring;
 
 	
 	@Override
@@ -98,14 +100,6 @@ public class Service extends AbstractHandler {
 		}
 
 		return logLine;
-	}
-
-	public String getBackend() {
-		return backend;
-	}
-
-	public void setBackend(String backend) {
-		this.backend = backend;
 	}
 
 	public HttpClient getClient() {
@@ -172,6 +166,10 @@ public class Service extends AbstractHandler {
 		return logCollection;
 	}
 
+	public void setBackends(String backends) {
+		ring = new HashRing(backends.split(","));
+	}
+	
 	/**
 	 * @param logCollection
 	 *            the logCollection to set
@@ -188,4 +186,11 @@ public class Service extends AbstractHandler {
 	    return executor;
     }
 
+	public HashRing getRing() {
+		return ring;
+    }
+
+	public void setRing(HashRing ring) {
+		this.ring = ring;
+    }
 }
