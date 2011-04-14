@@ -4,10 +4,10 @@ import com.fotonauts.lackr.LackrContentExchange;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.interpolr.Chunk;
 
-public class JSMLESIRule extends ESIIncludeRule {
+public class JSEscapedMLESIRule extends ESIIncludeRule {
 
-	public JSMLESIRule() {
-		super("<!--# include virtual=\\\"*\\\" -->");
+	public JSEscapedMLESIRule() {
+		super("\\u003C!--# include virtual=\\\"*\\\" --\\u003E");
 	}
 
 	@Override

@@ -24,14 +24,25 @@ public class TestESI extends BaseTestSubstitution {
 	}
 
 	public void testHtmlInMlJs() throws Exception {
-		String result = expand("before\n\\u003C!--# include virtual=\\\"/esi.html\\\" --\\u003E\nafter\n");
+		String result = expand("before\n<!--# include virtual=\\\"/esi.html\\\" -->\nafter\n");
 		String json = JSONObject.quote(ESI_HTML);
 		assertEquals("before\n" + json.substring(1, json.length() - 1) + "\nafter\n", result);
 	}
 
 	public void testJInMlJsShouldCrash() throws Exception {
+		assertNull(expand("before\n<!--# include virtual=\\\"/esi.json\\\" -->\nafter\n"));
+	}
+	
+	public void testEscapedHtmlInMlJs() throws Exception {
+		String result = expand("before\n\\u003C!--# include virtual=\\\"/esi.html\\\" --\\u003E\nafter\n");
+		String json = JSONObject.quote(ESI_HTML);
+		assertEquals("before\n" + json.substring(1, json.length() - 1) + "\nafter\n", result);
+	}
+
+	public void testJInEscapedMlJsShouldCrash() throws Exception {
 		assertNull(expand("before\n\\u003C!--# include virtual=\\\"/esi.json\\\" --\\u003E\nafter\n"));
 	}
+
 
 	public void testHttp() throws Exception {
 		String result = expand("before\nhttp://esi.include.virtual/esi.html#\nafter\n");
