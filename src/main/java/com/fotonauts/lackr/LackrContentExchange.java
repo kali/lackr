@@ -4,6 +4,7 @@ import static com.fotonauts.lackr.MongoLoggingKeys.DATE;
 import static com.fotonauts.lackr.MongoLoggingKeys.ELAPSED;
 import static com.fotonauts.lackr.MongoLoggingKeys.HTTP_HOST;
 import static com.fotonauts.lackr.MongoLoggingKeys.METHOD;
+import static com.fotonauts.lackr.MongoLoggingKeys.PARENT;
 import static com.fotonauts.lackr.MongoLoggingKeys.PATH;
 import static com.fotonauts.lackr.MongoLoggingKeys.QUERY_PARMS;
 import static com.fotonauts.lackr.MongoLoggingKeys.SIZE;
@@ -40,17 +41,20 @@ public class LackrContentExchange extends ContentExchange {
 		this.lackrRequest = lackrRequest;
 	}
 
-	protected void start() throws IOException {
+	protected void start(String parent) throws IOException {
 		String path = getURI().indexOf('?') == -1 ? getURI() : getURI().substring(0, getURI().indexOf('?'));
 		String query = getURI().indexOf('?') == -1 ? null : getURI().substring(getURI().indexOf('?') + 1);
+		startTimestamp = System.currentTimeMillis();
+		lackrRequest.getService().getClient().send(this);
 		logLine = Service.standardLogLine(lackrRequest.getRequest(), "lackr-back");
 		logLine.put(HTTP_HOST.getPrettyName(), getRequestFields().getStringField("Host"));
 		logLine.put(METHOD.getPrettyName(), getMethod());
 		logLine.put(PATH.getPrettyName(), path);
+		if(parent != null) {
+			logLine.put(PARENT.getPrettyName(), parent);
+		}
 		if (query != null)
 			logLine.put(QUERY_PARMS.getPrettyName(), query);
-		startTimestamp = System.currentTimeMillis();
-		lackrRequest.getService().getClient().send(this);
 	}
 
 	@Override
@@ -59,11 +63,6 @@ public class LackrContentExchange extends ContentExchange {
 		rawResponseContent = getResponseContentBytes();
 		long endTimestamp = System.currentTimeMillis();
 		logLine.put(STATUS.getPrettyName(), getResponseStatus());
-		if (rawResponseContent != null)
-			logLine.put(SIZE.getPrettyName(), rawResponseContent.length);
-		logLine.put(DATE.getPrettyName(), new Date().getTime());
-		logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
-		lackrRequest.getService().logCollection.save(logLine);
 		final LackrContentExchange exchange = this;
 		lackrRequest.getService().getExecutor().execute(new Runnable() {
 
@@ -72,6 +71,11 @@ public class LackrContentExchange extends ContentExchange {
 				exchange.postProcess();
 			}
 		});
+		if (rawResponseContent != null)
+			logLine.put(SIZE.getPrettyName(), rawResponseContent.length);
+		logLine.put(DATE.getPrettyName(), new Date().getTime());
+		logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
+		lackrRequest.getService().logCollection.save(logLine);
 	}
 
 	protected void postProcess() {

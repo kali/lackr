@@ -16,7 +16,7 @@ public enum MongoLoggingKeys {
 	SSL("ssl"), HTTP_HOST("http_host"), REMOTE_ADDR("remote_addr"), USER_AGENT("user_agent"), USERNAME("username"), CLIENT_ID(
 	        "client_id"), USER_ID("user_id"), SESSION_ID("session_id"), LOGIN_SESSION("login_session"),
 	// Current Request
-	METHOD("method"), PATH("path"), QUERY_PARMS("query_parms"), REFERER("referer"),
+	METHOD("method"), PATH("path"), QUERY_PARMS("query_parms"), REFERER("referer"), PARENT("parent"),
 	// Result about the request
 	STATUS("status"), SIZE("size"), ELAPSED("elapsed"), DATE("date"), DATA("data");
 

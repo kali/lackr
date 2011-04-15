@@ -141,7 +141,7 @@ public class LackrRequest {
 			exchange.setRequestHeader("Content-Length", Integer.toString(body.length));
 		}
 		try {
-			exchange.start();
+			exchange.start(parent);
 		} catch (IOException e) {
 			addBackendExceptions(e);
 		}
