@@ -45,7 +45,6 @@ public class LackrContentExchange extends ContentExchange {
 		String path = getURI().indexOf('?') == -1 ? getURI() : getURI().substring(0, getURI().indexOf('?'));
 		String query = getURI().indexOf('?') == -1 ? null : getURI().substring(getURI().indexOf('?') + 1);
 		startTimestamp = System.currentTimeMillis();
-		lackrRequest.getService().getClient().send(this);
 		logLine = Service.standardLogLine(lackrRequest.getRequest(), "lackr-back");
 		logLine.put(HTTP_HOST.getPrettyName(), getRequestFields().getStringField("Host"));
 		logLine.put(METHOD.getPrettyName(), getMethod());
@@ -55,6 +54,7 @@ public class LackrContentExchange extends ContentExchange {
 		}
 		if (query != null)
 			logLine.put(QUERY_PARMS.getPrettyName(), query);
+		lackrRequest.getService().getClient().send(this);
 	}
 
 	@Override
@@ -64,6 +64,11 @@ public class LackrContentExchange extends ContentExchange {
 		long endTimestamp = System.currentTimeMillis();
 		logLine.put(STATUS.getPrettyName(), getResponseStatus());
 		final LackrContentExchange exchange = this;
+		if (rawResponseContent != null)
+			logLine.put(SIZE.getPrettyName(), rawResponseContent.length);
+		logLine.put(DATE.getPrettyName(), new Date().getTime());
+		logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
+		lackrRequest.getService().logCollection.save(logLine);
 		lackrRequest.getService().getExecutor().execute(new Runnable() {
 
 			@Override
@@ -71,11 +76,6 @@ public class LackrContentExchange extends ContentExchange {
 				exchange.postProcess();
 			}
 		});
-		if (rawResponseContent != null)
-			logLine.put(SIZE.getPrettyName(), rawResponseContent.length);
-		logLine.put(DATE.getPrettyName(), new Date().getTime());
-		logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
-		lackrRequest.getService().logCollection.save(logLine);
 	}
 
 	protected void postProcess() {
