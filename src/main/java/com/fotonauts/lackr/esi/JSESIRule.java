@@ -2,7 +2,7 @@ package com.fotonauts.lackr.esi;
 
 import java.util.List;
 
-import com.fotonauts.lackr.LackrContentExchange;
+import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.interpolr.Chunk;
 
@@ -13,7 +13,7 @@ public class JSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public Chunk filterDocumentAsChunk(LackrContentExchange exchange) {
+    public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
 		String mimeType = getMimeType(exchange);
 		if (MimeType.isJS(mimeType))
 			return exchange.getParsedDocument();
@@ -32,7 +32,7 @@ public class JSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public void check(LackrContentExchange exchange, List<InterpolrException> exceptions) {
+    public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
     }
 
 }

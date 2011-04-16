@@ -49,7 +49,10 @@
 		</property>
 	</bean>
 
-	<bean id="httpClient" class="org.eclipse.jetty.client.HttpClient"
+	<bean id="httpClient" class="com.fotonauts.lackr.client.JettyClient"
+		p:actualClient-ref="jettyHttpClient"/>
+
+	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
 		init-method="start" destroy-method="stop" p:connectTimeout="5">
 		<property name="connectorType">
 			<util:constant

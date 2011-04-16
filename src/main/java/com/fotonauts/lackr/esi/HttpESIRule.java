@@ -2,7 +2,7 @@ package com.fotonauts.lackr.esi;
 
 import java.util.List;
 
-import com.fotonauts.lackr.LackrContentExchange;
+import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.interpolr.Chunk;
 
 public class HttpESIRule extends ESIIncludeRule {
@@ -17,12 +17,12 @@ public class HttpESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public Chunk filterDocumentAsChunk(LackrContentExchange exchange) {
+    public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
 		return exchange.getParsedDocument();
     }
 
 	@Override
-    public void check(LackrContentExchange exchange, List<InterpolrException> exceptions) {
+    public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
     }
 	
 }

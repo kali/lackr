@@ -6,7 +6,7 @@ import java.util.List;
 import org.eclipse.jetty.http.HttpHeaders;
 
 import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.LackrContentExchange;
+import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
@@ -24,38 +24,38 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 		super(markup);
 	}
 
-	protected String getMimeType(LackrContentExchange exchange) {
+	protected String getMimeType(LackrBackendExchange exchange) {
 		return exchange.getResponseHeaderValue(HttpHeaders.CONTENT_TYPE);
 	}
 
 	@Override
 	public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
-		LackrContentExchange exchange = (LackrContentExchange) context;
+		LackrBackendExchange exchange = (LackrBackendExchange) context;
 		String url = null;
 		try {
 			url = new String(buffer, start, stop - start, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			// nope, thank you
 		}
-		LackrContentExchange sub;
+		LackrBackendExchange sub;
 		try {
-			LackrFrontendRequest front = exchange.getSpec()
+			LackrFrontendRequest front = exchange.getBackendRequest()
 					.getFrontendRequest();
 			BackendRequest esi = new BackendRequest(front, "GET", url, exchange
-					.getSpec().getQuery(), exchange.getSpec().hashCode(),
+					.getBackendRequest().getQuery(), exchange.getBackendRequest().hashCode(),
 					getSyntaxIdentifier(), null);
 			sub = front.scheduleUpstreamRequest(esi);
 		} catch (NotAvailableException e) {
 			throw new RuntimeException("no backend available for fragment: "
-					+ exchange.getSpec().getQuery());
+					+ exchange.getBackendRequest().getQuery());
 		}
 		return new ExchangeChunk(sub, this);
 	}
 
 	public abstract String getSyntaxIdentifier();
 
-	public abstract Chunk filterDocumentAsChunk(LackrContentExchange exchange);
+	public abstract Chunk filterDocumentAsChunk(LackrBackendExchange exchange);
 
-	public abstract void check(LackrContentExchange exchange,
+	public abstract void check(LackrBackendExchange exchange,
 			List<InterpolrException> exceptions);
 }

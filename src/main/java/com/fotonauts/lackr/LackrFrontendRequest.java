@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.lackr.client.JettyLackrBackendExchange;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
@@ -67,7 +68,7 @@ public class LackrFrontendRequest {
 
 	private String rootUrl;
 
-	protected LackrContentExchange rootExchange;
+	protected LackrBackendExchange rootExchange;
 
 	private Continuation continuation;
 
@@ -111,9 +112,9 @@ public class LackrFrontendRequest {
 		continuation.suspend();
 	}
 
-	public LackrContentExchange scheduleUpstreamRequest(BackendRequest spec)
+	public LackrBackendExchange scheduleUpstreamRequest(BackendRequest spec)
 			throws NotAvailableException {
-		LackrContentExchange exchange = new LackrContentExchange(spec);
+		LackrBackendExchange exchange = getService().getClient().createExchange(spec);
 		if (rootExchange == null)
 			rootExchange = exchange;
 		this.pendingCount.incrementAndGet();
@@ -202,7 +203,7 @@ public class LackrFrontendRequest {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
 		log.debug("writing success response for "
-				+ rootExchange.getSpec().getQuery());
+				+ rootExchange.getBackendRequest().getQuery());
 		if (rootExchange.getParsedDocument().length() > 0) {
 			String etag = generateEtag(rootExchange.getParsedDocument());
 			response.setHeader(HttpHeaders.ETAG, etag);
@@ -270,7 +271,7 @@ public class LackrFrontendRequest {
 			BackendRequest spec = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null, 0, null, body);
 			scheduleUpstreamRequest(spec);
 		} catch (Throwable e) {
-			log.debug("in kick() error handler");
+			log.debug("in kick() error handler: " + e);
 			backendExceptions.add(e);
 			continuation.resume();
 		}

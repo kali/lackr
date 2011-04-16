@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.bson.BasicBSONObject;
-import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
@@ -44,7 +43,7 @@ public class Service extends AbstractHandler {
 	static Logger log = LoggerFactory.getLogger(Service.class);
 
 	protected String mongoLoggingPath;
-	protected HttpClient client;
+	protected BackendClient client;
 	protected DBCollection logCollection;
 
 	protected Interpolr interpolr;
@@ -107,11 +106,11 @@ public class Service extends AbstractHandler {
 		return logLine;
 	}
 
-	public HttpClient getClient() {
+	public BackendClient getClient() {
 		return client;
 	}
 
-	public void setClient(HttpClient client) {
+	public void setClient(BackendClient client) {
 		this.client = client;
 	}
 

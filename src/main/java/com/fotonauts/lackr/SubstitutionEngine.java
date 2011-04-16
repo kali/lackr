@@ -16,5 +16,5 @@ public interface SubstitutionEngine {
 
 	public byte[] generateContent(LackrFrontendRequest rootRequest, byte[] byteContent) throws IncludeException;
 
-	public void scheduleSubQueries(LackrContentExchange lackrContentExchange, LackrFrontendRequest lackrRequest) throws IOException;
+	public void scheduleSubQueries(LackrBackendExchange lackrContentExchange, LackrFrontendRequest lackrRequest) throws IOException;
 }
