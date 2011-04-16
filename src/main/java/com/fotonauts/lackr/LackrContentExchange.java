@@ -27,7 +27,7 @@ public class LackrContentExchange extends ContentExchange {
 
 	static Logger log = LoggerFactory.getLogger(LackrContentExchange.class);
 
-	protected LackrRequest lackrRequest;
+	protected LackrFrontendRequest lackrRequest;
 	protected BasicDBObject logLine;
 
 	private long startTimestamp;
@@ -36,7 +36,7 @@ public class LackrContentExchange extends ContentExchange {
 
 	private Document parsedDocument;
 
-	public LackrContentExchange(LackrRequest lackrRequest) {
+	public LackrContentExchange(LackrFrontendRequest lackrRequest) {
 		super(true);
 		this.lackrRequest = lackrRequest;
 	}
@@ -121,7 +121,7 @@ public class LackrContentExchange extends ContentExchange {
 		return parsedDocument;
 	}
 
-	public LackrRequest getLackrRequest() {
+	public LackrFrontendRequest getLackrRequest() {
 		return lackrRequest;
 	}
 }

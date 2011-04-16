@@ -44,7 +44,7 @@ import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
 
-public class LackrRequest {
+public class LackrFrontendRequest {
 
 	static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te",
 	        "trailer", "proxy-authorization", "proxy-authenticate", "upgrade", "content-length" };
@@ -59,7 +59,7 @@ public class LackrRequest {
 
 	AtomicInteger pendingCount;
 
-	static Logger log = LoggerFactory.getLogger(LackrRequest.class);
+	static Logger log = LoggerFactory.getLogger(LackrFrontendRequest.class);
 
 	protected HttpServletRequest request;
 
@@ -79,7 +79,7 @@ public class LackrRequest {
 
 	private UserAgent userAgent;
 
-	LackrRequest(Service service, HttpServletRequest request) throws IOException {
+	LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
 		this.request = request;
 		this.continuation = ContinuationSupport.getContinuation(request);
