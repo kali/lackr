@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.http.HttpMethods;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrContentExchange;

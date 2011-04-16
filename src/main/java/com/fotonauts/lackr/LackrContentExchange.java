@@ -122,8 +122,7 @@ public class LackrContentExchange {
 			jettyContentExchange.addRequestHeader("X-SSI-INCLUDE-SYNTAX",
 					spec.getSyntax());
 
-		for (@SuppressWarnings("unchecked")
-		Enumeration e = spec.getFrontendRequest().getRequest().getHeaderNames(); e
+		for (@SuppressWarnings("unchecked") Enumeration e = spec.getFrontendRequest().getRequest().getHeaderNames(); e
 				.hasMoreElements();) {
 			String header = (String) e.nextElement();
 			if (!LackrFrontendRequest.skipHeader(header)) {
@@ -198,12 +197,6 @@ public class LackrContentExchange {
 	}
 
 	protected void start() throws IOException {
-		String path = jettyContentExchange.getURI().indexOf('?') == -1 ? jettyContentExchange
-				.getURI() : jettyContentExchange.getURI().substring(0,
-				jettyContentExchange.getURI().indexOf('?'));
-		String query = jettyContentExchange.getURI().indexOf('?') == -1 ? null
-				: jettyContentExchange.getURI().substring(
-						jettyContentExchange.getURI().indexOf('?') + 1);
 		startTimestamp = System.currentTimeMillis();
 		logLine = Service.standardLogLine(spec.getFrontendRequest()
 				.getRequest(), "lackr-back");
@@ -214,8 +207,8 @@ public class LackrContentExchange {
 		if (spec.getParent() != null) {
 			logLine.put(PARENT.getPrettyName(), spec.getParent());
 		}
-		if (query != null)
-			logLine.put(QUERY_PARMS.getPrettyName(), query);
+		if (spec.getParams() != null)
+			logLine.put(QUERY_PARMS.getPrettyName(), spec.getParams());
 		spec.getFrontendRequest().getService().getClient()
 				.send(jettyContentExchange);
 	}

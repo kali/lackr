@@ -58,6 +58,6 @@ public class BackendRequest {
 	}
 
 	public String getParams() {
-		return query.indexOf('?') == -1 ? "" : query.substring(query.indexOf('?') + 1);
+		return query.indexOf('?') == -1 ? null : query.substring(query.indexOf('?') + 1);
 	}
 }
