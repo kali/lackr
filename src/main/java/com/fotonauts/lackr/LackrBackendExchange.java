@@ -2,9 +2,11 @@ package com.fotonauts.lackr;
 
 import static com.fotonauts.lackr.MongoLoggingKeys.DATE;
 import static com.fotonauts.lackr.MongoLoggingKeys.ELAPSED;
+import static com.fotonauts.lackr.MongoLoggingKeys.FRAGMENT_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.HTTP_HOST;
 import static com.fotonauts.lackr.MongoLoggingKeys.METHOD;
 import static com.fotonauts.lackr.MongoLoggingKeys.PARENT;
+import static com.fotonauts.lackr.MongoLoggingKeys.PARENT_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.PATH;
 import static com.fotonauts.lackr.MongoLoggingKeys.QUERY_PARMS;
 import static com.fotonauts.lackr.MongoLoggingKeys.SIZE;
@@ -82,6 +84,10 @@ public abstract class LackrBackendExchange {
 		logLine.put(HTTP_HOST.getPrettyName(), getRequestField("Host"));
 		logLine.put(METHOD.getPrettyName(), backendRequest.getMethod());
 		logLine.put(PATH.getPrettyName(), backendRequest.getPath());
+		logLine.put(FRAGMENT_ID.getPrettyName(), backendRequest.hashCode());
+		if (backendRequest.getParentId() != 0) {
+			logLine.put(PARENT_ID.getPrettyName(), backendRequest.getParentId());
+		}
 		if (backendRequest.getParent() != null) {
 			logLine.put(PARENT.getPrettyName(), backendRequest.getParent());
 		}
