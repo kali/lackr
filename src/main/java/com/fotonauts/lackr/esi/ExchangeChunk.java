@@ -26,7 +26,7 @@ public class ExchangeChunk implements Chunk {
 
 	@Override
     public String toDebugString() {
-	    return "{{{" + rule.getClass().getSimpleName() + ":" + exchange.getURI() + "}}}";
+	    return "{{{" + rule.getClass().getSimpleName() + ":" + exchange.getSpec().getQuery() + "}}}";
     }
 
 	@Override

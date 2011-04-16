@@ -25,7 +25,7 @@ public class JSEscapedMLESIRule extends ESIIncludeRule {
 				return NULL_CHUNK;
 			return new JsonQuotingChunk(exchange.getParsedDocument(), false);
 		}
-		throw new RuntimeException("unsupported ESI type (js* in js(*ML) context) for " + exchange.getURI());
+		throw new RuntimeException("unsupported ESI type (js* in js(*ML) context) for " + exchange.getSpec().getQuery());
 	}
 
 	@Override

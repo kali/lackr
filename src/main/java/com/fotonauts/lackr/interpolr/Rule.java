@@ -13,7 +13,7 @@ public interface Rule {
         }
 
 		public InterpolrException(String message, LackrContentExchange exchange) {
-			super(message + " (for fragment: " + exchange.getURI() + " )");
+			super(message + " (for fragment: " + exchange.getSpec().getQuery() + " )");
         }
 	}
 	

@@ -6,46 +6,57 @@ import java.util.List;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 
+import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrContentExchange;
+import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
 import com.fotonauts.lackr.interpolr.Rule;
 
-abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule {
+abstract public class ESIIncludeRule extends MarkupDetectingRule implements
+		Rule {
 
-	protected static ConstantChunk NULL_CHUNK = new ConstantChunk("null".getBytes());
-	
+	protected static ConstantChunk NULL_CHUNK = new ConstantChunk(
+			"null".getBytes());
+
 	public ESIIncludeRule(String markup) {
 		super(markup);
-    }
+	}
 
 	protected String getMimeType(LackrContentExchange exchange) {
-		return exchange.getResponseFields().getStringField(HttpHeaders.CONTENT_TYPE);
+		return exchange.getResponseHeaderValue(HttpHeaders.CONTENT_TYPE);
 	}
 
 	@Override
-    public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
+	public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
 		LackrContentExchange exchange = (LackrContentExchange) context;
-		String url = null ;
-        try {
-	        url = new String(buffer, start, stop - start, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-        	// nope, thank you
-        }
-        LackrContentExchange sub;
-        try {
-	        sub = exchange.getLackrRequest().scheduleUpstreamRequest(url, HttpMethods.GET, null, exchange.getURI(), getSyntaxIdentifier());
-        } catch (NotAvailableException e) {
-        	throw new RuntimeException("no backend available for fragment: " + exchange.getURI());
-        }
-        return new ExchangeChunk(sub, this);        
-    }
+		String url = null;
+		try {
+			url = new String(buffer, start, stop - start, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// nope, thank you
+		}
+		LackrContentExchange sub;
+		try {
+			LackrFrontendRequest front = exchange.getSpec()
+					.getFrontendRequest();
+			BackendRequest esi = new BackendRequest(front, "GET", url, exchange
+					.getSpec().getQuery(), exchange.getSpec().hashCode(),
+					getSyntaxIdentifier(), null);
+			sub = front.scheduleUpstreamRequest(esi);
+		} catch (NotAvailableException e) {
+			throw new RuntimeException("no backend available for fragment: "
+					+ exchange.getSpec().getQuery());
+		}
+		return new ExchangeChunk(sub, this);
+	}
 
 	public abstract String getSyntaxIdentifier();
 
 	public abstract Chunk filterDocumentAsChunk(LackrContentExchange exchange);
 
-	public abstract void check(LackrContentExchange exchange, List<InterpolrException> exceptions);
-	}
+	public abstract void check(LackrContentExchange exchange,
+			List<InterpolrException> exceptions);
+}

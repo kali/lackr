@@ -22,7 +22,7 @@ public class MLESIRule extends ESIIncludeRule {
 		String mimeType = getMimeType(exchange);
 		if(MimeType.isML(mimeType))
 			return exchange.getParsedDocument();
-		throw new RuntimeException("unsupported ESI type (js* in *ML context) " + exchange.getURI());
+		throw new RuntimeException("unsupported ESI type (js* in *ML context) " + exchange.getSpec().getQuery());
 	}
 
 	@Override

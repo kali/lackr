@@ -45,11 +45,12 @@ import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
 
 public class LackrFrontendRequest {
+	static String[] headersToSkip = { "proxy-connection", "connection",
+			"keep-alive", "transfer-encoding", "te", "trailer",
+			"proxy-authorization", "proxy-authenticate", "upgrade",
+			"content-length" };
 
-	static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te",
-	        "trailer", "proxy-authorization", "proxy-authenticate", "upgrade", "content-length" };
-
-	private boolean skipHeader(String header) {
+	static boolean skipHeader(String header) {
 		for (String skip : headersToSkip) {
 			if (skip.equals(header.toLowerCase()))
 				return true;
@@ -71,7 +72,8 @@ public class LackrFrontendRequest {
 
 	private Continuation continuation;
 
-	protected List<Throwable> backendExceptions = Collections.synchronizedList(new ArrayList<Throwable>(5));
+	protected List<Throwable> backendExceptions = Collections
+			.synchronizedList(new ArrayList<Throwable>(5));
 
 	protected BasicDBObject logLine;
 
@@ -79,7 +81,8 @@ public class LackrFrontendRequest {
 
 	private UserAgent userAgent;
 
-	LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
+	LackrFrontendRequest(Service service, HttpServletRequest request)
+			throws IOException {
 		this.service = service;
 		this.request = request;
 		this.continuation = ContinuationSupport.getContinuation(request);
@@ -91,8 +94,9 @@ public class LackrFrontendRequest {
 		} catch (URISyntaxException e) {
 			throw new RuntimeException("invalid URL");
 		}
-		rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString()
-		        : uri.toASCIIString();
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? uri
+				.toASCIIString() + '?' + request.getQueryString() : uri
+				.toASCIIString();
 		rootUrl = rootUrl.replace(" ", "%20");
 
 		logLine = Service.standardLogLine(request, "lackr-front");
@@ -102,63 +106,38 @@ public class LackrFrontendRequest {
 		logLine.put(PATH.getPrettyName(), request.getPathInfo());
 		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
 
-		this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
+		this.userAgent = new UserAgent(
+				request.getHeader(HttpHeaders.USER_AGENT));
 
 		continuation.suspend();
 	}
 
-	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body)
-	        throws NotAvailableException {
-		return scheduleUpstreamRequest(uri, method, body, null, null);
-	}
-
-	public LackrContentExchange scheduleUpstreamRequest(String uri, String method, byte[] body, String parent,
-	        String includeSyntax) throws NotAvailableException {
-		LackrContentExchange exchange = new LackrContentExchange(this);
+	public LackrContentExchange scheduleUpstreamRequest(BackendRequest spec)
+			throws NotAvailableException {
+		LackrContentExchange exchange = new LackrContentExchange(spec);
 		if (rootExchange == null)
 			rootExchange = exchange;
-
-		exchange.setMethod(method);
-		exchange.setURL(service.getRing().getHostFor(uri).getHostname() + uri);
-		exchange.addRequestHeader("X-NGINX-SSI", "yes");
-		exchange.addRequestHeader("X-SSI-ROOT", getRequest().getRequestURI());
-		exchange.addRequestHeader("X-FTN-NORM-USER-AGENT", getUserAgent().toString());
-		exchange.addRequestHeader("X-FTN-INLINE-IMAGES", getUserAgent().supportsInlineImages() ? "yes" : "no");
-		if (parent != null)
-			exchange.addRequestHeader("X-SSI-PARENT", parent);
-		if (includeSyntax != null)
-			exchange.addRequestHeader("X-SSI-INCLUDE-SYNTAX", includeSyntax);
 		this.pendingCount.incrementAndGet();
-		for (@SuppressWarnings("unchecked")
-		Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
-			String header = (String) e.nextElement();
-			if (!skipHeader(header)) {
-				exchange.addRequestHeader(header, request.getHeader(header));
-			}
-		}
-		if (body != null) {
-			exchange.setRequestContent(new ByteArrayBuffer(body));
-			exchange.setRequestHeader("Content-Length", Integer.toString(body.length));
-		}
 		try {
-			exchange.start(parent);
+			exchange.start();
 		} catch (IOException e) {
 			addBackendExceptions(e);
 		}
 		return exchange;
 	}
 
-	private UserAgent getUserAgent() {
+	UserAgent getUserAgent() {
 		return userAgent;
 	}
 
 	public void copyHeaders(HttpServletResponse response) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration names = rootExchange.getResponseFields().getFieldNames(); names.hasMoreElements();) {
+		for (Enumeration<String> names = rootExchange.getResponseHeaderNames(); names
+				.hasMoreElements();) {
 			String name = (String) names.nextElement();
 			if (!skipHeader(name)) {
-				for (@SuppressWarnings("unchecked")
-				Enumeration values = rootExchange.getResponseFields().getValues(name); values.hasMoreElements();) {
+				for (Enumeration<String> values = rootExchange
+						.getResponseHeaderValues(name); values
+						.hasMoreElements();) {
 					String value = (String) values.nextElement();
 					response.addHeader(name, value);
 				}
@@ -175,7 +154,8 @@ public class LackrFrontendRequest {
 
 	public void writeResponse(HttpServletResponse response) throws IOException {
 		if (request.getHeader("X-Ftn-OperationId") != null)
-			response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
+			response.addHeader("X-Ftn-OperationId",
+					request.getHeader("X-Ftn-OperationId"));
 		preflightCheck();
 		try {
 			if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
@@ -185,12 +165,14 @@ public class LackrFrontendRequest {
 			}
 		} catch (IOException writeResponseException) {
 			logLine.put(STATUS.getPrettyName(), "500");
-			logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
+			logLine.put(DATA.getPrettyName(),
+					writeResponseException.getMessage());
 			throw writeResponseException;
 		} finally {
 			try {
 				long endTimestamp = System.currentTimeMillis();
-				logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
+				logLine.put(ELAPSED.getPrettyName(),
+						1.0 * (endTimestamp - startTimestamp) / 1000);
 				logLine.put(DATE.getPrettyName(), new Date().getTime());
 				service.logCollection.save(logLine);
 			} catch (Exception ex) {
@@ -199,7 +181,8 @@ public class LackrFrontendRequest {
 		}
 	}
 
-	public void writeErrorResponse(HttpServletResponse response) throws IOException {
+	public void writeErrorResponse(HttpServletResponse response)
+			throws IOException {
 		response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 		response.setContentType("text/plain");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -210,37 +193,47 @@ public class LackrFrontendRequest {
 		response.setContentLength(baos.size());
 		response.getOutputStream().write(baos.toByteArray());
 
-		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
+		logLine.put(STATUS.getPrettyName(),
+				Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
 		logLine.put(DATA.getPrettyName(), baos.toByteArray());
 	}
 
-	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
+	public void writeSuccessResponse(HttpServletResponse response)
+			throws IOException {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyHeaders(response);
-		log.debug("writing success response for " + rootExchange.getURI());
+		log.debug("writing success response for "
+				+ rootExchange.getSpec().getQuery());
 		if (rootExchange.getParsedDocument().length() > 0) {
 			String etag = generateEtag(rootExchange.getParsedDocument());
 			response.setHeader(HttpHeaders.ETAG, etag);
 			if (log.isDebugEnabled()) {
 				log.debug("etag: " + etag);
-				log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
+				log.debug("if-none-match: "
+						+ request.getHeader(HttpHeaders.IF_NONE_MATCH));
 			}
 			if (rootExchange.getResponseStatus() == HttpStatus.OK_200
-			        && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
+					&& etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
 				response.setStatus(HttpStatus.NOT_MODIFIED_304);
 				response.setHeader("Status", "304 Not Modified");
 				response.flushBuffer(); // force commiting
-				logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
+				logLine.put(STATUS.getPrettyName(),
+						Integer.toString(HttpStatus.NOT_MODIFIED_304));
 			} else {
-				logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
-				response.setContentLength(rootExchange.getParsedDocument().length());
+				logLine.put(STATUS.getPrettyName(),
+						Integer.toString(rootExchange.getResponseStatus()));
+				response.setContentLength(rootExchange.getParsedDocument()
+						.length());
 				if (request.getMethod() != "HEAD")
-					rootExchange.getParsedDocument().writeTo(response.getOutputStream());
+					rootExchange.getParsedDocument().writeTo(
+							response.getOutputStream());
 				response.flushBuffer();
 			}
-			logLine.put(SIZE.getPrettyName(), rootExchange.getParsedDocument().length());
+			logLine.put(SIZE.getPrettyName(), rootExchange.getParsedDocument()
+					.length());
 		} else {
-			logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+			logLine.put(STATUS.getPrettyName(),
+					Integer.toString(rootExchange.getResponseStatus()));
 			response.flushBuffer(); // force commiting
 		}
 	}
@@ -275,10 +268,8 @@ public class LackrFrontendRequest {
 			byte[] body = null;
 			if (request.getContentLength() > 0)
 				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			if (request.getMethod() == "HEAD")
-				scheduleUpstreamRequest(rootUrl, "GET", body);
-			else
-				scheduleUpstreamRequest(rootUrl, request.getMethod(), body);
+			BackendRequest spec = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null, 0, null, body);
+			scheduleUpstreamRequest(spec);
 		} catch (Throwable e) {
 			log.debug("in kick() error handler");
 			backendExceptions.add(e);
@@ -301,8 +292,8 @@ public class LackrFrontendRequest {
 	public void notifySubRequestDone() {
 		if (pendingCount.decrementAndGet() <= 0) {
 			if (log.isDebugEnabled())
-				log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
-				        + " exceptions.");
+				log.debug("Gathered all fragments for " + rootUrl + " with "
+						+ backendExceptions.size() + " exceptions.");
 			continuation.resume();
 		}
 	}
