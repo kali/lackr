@@ -28,6 +28,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.util.StringUtils;
 
 import com.fotonauts.lackr.hashring.HashRing;
 import com.fotonauts.lackr.hashring.Host;
@@ -42,9 +43,8 @@ public class Service extends AbstractHandler {
 	private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
 	static Logger log = LoggerFactory.getLogger(Service.class);
 
-	protected String mongoLoggingPath = "127.0.0.1:27017/logs/logs";
+	protected String mongoLoggingPath;
 	protected HttpClient client;
-	protected Mongo logConnection;
 	protected DBCollection logCollection;
 
 	protected Interpolr interpolr;
@@ -69,14 +69,15 @@ public class Service extends AbstractHandler {
 		super.doStart();
 	}
 
-	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, MongoLoggingKeys key,
-	        String headerName) {
+	public static void addHeadersIfPresent(BasicBSONObject logLine,
+			HttpServletRequest request, MongoLoggingKeys key, String headerName) {
 		String value = request.getHeader(headerName);
 		if (value != null)
 			logLine.put(key.getPrettyName(), value);
 	}
 
-	public static BasicDBObject standardLogLine(HttpServletRequest request, String facility) {
+	public static BasicDBObject standardLogLine(HttpServletRequest request,
+			String facility) {
 		/* Prepare the log line */
 		BasicDBObject logLine = new BasicDBObject();
 		logLine.put(FACILITY.getPrettyName(), facility);
@@ -97,7 +98,8 @@ public class Service extends AbstractHandler {
 				if (cname.equals("uid")) {
 					logLine.put(USER_ID.getPrettyName(), cookie.getValue());
 				} else if (cname.equals("login_session")) {
-					logLine.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
+					logLine.put(LOGIN_SESSION.getPrettyName(),
+							cookie.getValue());
 				}
 			}
 		}
@@ -130,27 +132,33 @@ public class Service extends AbstractHandler {
 
 	@PostConstruct
 	public void initLogger() throws MongoException, UnknownHostException {
+		if (StringUtils.hasText(mongoLoggingPath)) {
+			String[] pathComponents = mongoLoggingPath.split("/");
+			if (pathComponents.length != 3)
+				throw new IllegalArgumentException(
+						"Mongo Logging Path not compliant with spec in \""
+								+ mongoLoggingPath
+								+ "\", format is host:port/database/collection.");
 
-		String[] pathComponents = mongoLoggingPath.split("/");
-		if (pathComponents.length != 3)
-			throw new IllegalArgumentException("Mongo Logging Path not compliant with spec in \"" + mongoLoggingPath
-			        + "\", format is host:port/database/collection.");
+			String[] hostComponents = pathComponents[0].split(":");
+			if (hostComponents.length != 2)
+				throw new IllegalArgumentException(
+						"Mongo Logging Hostname not compliant with spec, should be host:port (is \""
+								+ pathComponents[0] + "\" ).");
 
-		String[] hostComponents = pathComponents[0].split(":");
-		if (hostComponents.length != 2)
-			throw new IllegalArgumentException(
-			        "Mongo Logging Hostname not compliant with spec, should be host:port (is \"" + pathComponents[0]
-			                + "\" ).");
-
-		logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
-		setLogCollection(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
-
+			Mongo logConnection = new Mongo(hostComponents[0],
+					Integer.parseInt(hostComponents[1]));
+			setLogCollection(logConnection.getDB(pathComponents[1])
+					.getCollection(pathComponents[2]));
+		}
 	}
 
 	@Override
-	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-	        throws IOException, ServletException {
-		LackrFrontRequest state = (LackrFrontRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
+	public void handle(String target, Request baseRequest,
+			HttpServletRequest request, HttpServletResponse response)
+			throws IOException, ServletException {
+		LackrFrontRequest state = (LackrFrontRequest) request
+				.getAttribute(LACKR_STATE_ATTRIBUTE);
 		if (state == null) {
 			log.debug("starting processing for: " + request.getRequestURL());
 			state = new LackrFrontRequest(this, request);
@@ -160,13 +168,6 @@ public class Service extends AbstractHandler {
 			log.debug("resuming processing for: " + request.getRequestURL());
 			state.writeResponse(response);
 		}
-	}
-
-	/**
-	 * @return the logCollection
-	 */
-	public DBCollection getLogCollection() {
-		return logCollection;
 	}
 
 	public void setBackends(String backends) {
@@ -179,19 +180,15 @@ public class Service extends AbstractHandler {
 
 	@PostConstruct
 	public void buildRing() {
-		if(ring == null && backends != null && !backends.equals("")) {
+		if (ring == null && backends != null && !backends.equals("")) {
 			String[] hostnames = backends.split(",");
 			Host[] hosts = new Host[hostnames.length];
-			for(int i = 0; i < hostnames.length; i++)
+			for (int i = 0; i < hostnames.length; i++)
 				hosts[i] = new Host(hostnames[i], probeUrl);
 			ring = new HashRing(hosts);
 		}
 	}
 
-	/**
-	 * @param logCollection
-	 *            the logCollection to set
-	 */
 	public void setLogCollection(DBCollection logCollection) {
 		this.logCollection = logCollection;
 	}
@@ -210,5 +207,10 @@ public class Service extends AbstractHandler {
 
 	public void setRing(HashRing ring) {
 		this.ring = ring;
+	}
+
+	public void log(BasicDBObject logLine) {
+		if (logCollection != null)
+			logCollection.save(logLine);
 	}
 }
