@@ -4,17 +4,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
-import com.fotonauts.lackr.LackrContentExchange;
+import com.fotonauts.lackr.LackrBackRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 
 public class ExchangeChunk implements Chunk {
 
-	private LackrContentExchange exchange;
+	private LackrBackRequest exchange;
 	
 	private ESIIncludeRule rule;
 	
-	public ExchangeChunk(LackrContentExchange exchange, ESIIncludeRule rule) {
+	public ExchangeChunk(LackrBackRequest exchange, ESIIncludeRule rule) {
 		this.exchange = exchange;
 		this.rule = rule;
     }

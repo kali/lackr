@@ -150,10 +150,10 @@ public class Service extends AbstractHandler {
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
 	        throws IOException, ServletException {
-		LackrRequest state = (LackrRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
+		LackrFrontRequest state = (LackrFrontRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
 		if (state == null) {
 			log.debug("starting processing for: " + request.getRequestURL());
-			state = new LackrRequest(this, request);
+			state = new LackrFrontRequest(this, request);
 			request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
 			state.kick();
 		} else {
