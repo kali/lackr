@@ -2,7 +2,7 @@ package com.fotonauts.lackr.esi;
 
 import java.util.List;
 
-import com.fotonauts.lackr.LackrBackRequest;
+import com.fotonauts.lackr.LackrContentExchange;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.interpolr.Chunk;
 
@@ -18,7 +18,7 @@ public class JSEscapedMLESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(LackrBackRequest exchange) {
+	public Chunk filterDocumentAsChunk(LackrContentExchange exchange) {
 		String mimeType = getMimeType(exchange);
 		if (MimeType.isML(mimeType)) {
 			if (exchange.getParsedDocument() == null || exchange.getParsedDocument().length() == 0)
@@ -29,7 +29,7 @@ public class JSEscapedMLESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public void check(LackrBackRequest exchange, List<InterpolrException> exceptions) {
+    public void check(LackrContentExchange exchange, List<InterpolrException> exceptions) {
 		String mimeType = getMimeType(exchange);
 		if (MimeType.isJS(mimeType))
 			exceptions.add(new InterpolrException("unsupported ESI type (js* in js(*ML) context)", exchange));

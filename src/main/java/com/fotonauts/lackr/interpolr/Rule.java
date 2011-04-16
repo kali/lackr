@@ -2,7 +2,7 @@ package com.fotonauts.lackr.interpolr;
 
 import java.util.List;
 
-import com.fotonauts.lackr.LackrBackRequest;
+import com.fotonauts.lackr.LackrContentExchange;
 
 public interface Rule {
 	
@@ -12,7 +12,7 @@ public interface Rule {
 			super(message);
         }
 
-		public InterpolrException(String message, LackrBackRequest exchange) {
+		public InterpolrException(String message, LackrContentExchange exchange) {
 			super(message + " (for fragment: " + exchange.getURI() + " )");
         }
 	}

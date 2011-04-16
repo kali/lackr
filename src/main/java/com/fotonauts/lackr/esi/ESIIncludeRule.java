@@ -6,7 +6,7 @@ import java.util.List;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpMethods;
 
-import com.fotonauts.lackr.LackrBackRequest;
+import com.fotonauts.lackr.LackrContentExchange;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
@@ -21,20 +21,20 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 		super(markup);
     }
 
-	protected String getMimeType(LackrBackRequest exchange) {
+	protected String getMimeType(LackrContentExchange exchange) {
 		return exchange.getResponseFields().getStringField(HttpHeaders.CONTENT_TYPE);
 	}
 
 	@Override
     public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
-		LackrBackRequest exchange = (LackrBackRequest) context;
+		LackrContentExchange exchange = (LackrContentExchange) context;
 		String url = null ;
         try {
 	        url = new String(buffer, start, stop - start, "UTF-8");
         } catch (UnsupportedEncodingException e) {
         	// nope, thank you
         }
-        LackrBackRequest sub;
+        LackrContentExchange sub;
         try {
 	        sub = exchange.getLackrRequest().scheduleUpstreamRequest(url, HttpMethods.GET, null, exchange.getURI(), getSyntaxIdentifier());
         } catch (NotAvailableException e) {
@@ -45,7 +45,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 
 	public abstract String getSyntaxIdentifier();
 
-	public abstract Chunk filterDocumentAsChunk(LackrBackRequest exchange);
+	public abstract Chunk filterDocumentAsChunk(LackrContentExchange exchange);
 
-	public abstract void check(LackrBackRequest exchange, List<InterpolrException> exceptions);
+	public abstract void check(LackrContentExchange exchange, List<InterpolrException> exceptions);
 	}
