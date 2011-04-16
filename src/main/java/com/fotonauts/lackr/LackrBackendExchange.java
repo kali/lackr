@@ -15,6 +15,7 @@ import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
 
 import org.eclipse.jetty.http.HttpHeaders;
 import org.slf4j.Logger;
@@ -28,11 +29,12 @@ import com.mongodb.BasicDBObject;
 
 public abstract class LackrBackendExchange {
 
-	static Logger log = LoggerFactory.getLogger(JettyLackrBackendExchange.class);
+	static Logger log = LoggerFactory
+			.getLogger(JettyLackrBackendExchange.class);
 
-	public abstract Enumeration<String> getResponseHeaderValues(String name);
+	public abstract List<String> getResponseHeaderValues(String name);
 
-	protected abstract Enumeration<String> getResponseHeaderNames();
+	protected abstract List<String> getResponseHeaderNames();
 
 	public abstract void addRequestHeader(String name, String value);
 
@@ -56,32 +58,34 @@ public abstract class LackrBackendExchange {
 		this.backendRequest = spec;
 	}
 
-	protected void start() throws IOException, NotAvailableException {		
+	protected void start() throws IOException, NotAvailableException {
 		addRequestHeader("X-NGINX-SSI", "yes");
-		addRequestHeader("X-SSI-ROOT", backendRequest.getFrontendRequest().getRequest()
-				.getRequestURI());
-		addRequestHeader("X-FTN-NORM-USER-AGENT", backendRequest.getFrontendRequest()
-				.getUserAgent().toString());
-		addRequestHeader("X-FTN-INLINE-IMAGES", backendRequest.getFrontendRequest()
-				.getUserAgent().supportsInlineImages() ? "yes" : "no");
+		addRequestHeader("X-SSI-ROOT", backendRequest.getFrontendRequest()
+				.getRequest().getRequestURI());
+		addRequestHeader("X-FTN-NORM-USER-AGENT", backendRequest
+				.getFrontendRequest().getUserAgent().toString());
+		addRequestHeader("X-FTN-INLINE-IMAGES",
+				backendRequest.getFrontendRequest().getUserAgent()
+						.supportsInlineImages() ? "yes" : "no");
 		if (backendRequest.getParent() != null)
 			addRequestHeader("X-SSI-PARENT", backendRequest.getParent());
 		if (backendRequest.getSyntax() != null)
 			addRequestHeader("X-SSI-INCLUDE-SYNTAX", backendRequest.getSyntax());
 
 		for (@SuppressWarnings("unchecked")
-		Enumeration e = backendRequest.getFrontendRequest().getRequest().getHeaderNames(); e
-				.hasMoreElements();) {
+		Enumeration e = backendRequest.getFrontendRequest().getRequest()
+				.getHeaderNames(); e.hasMoreElements();) {
 			String header = (String) e.nextElement();
 			if (!LackrFrontendRequest.skipHeader(header)) {
-				addRequestHeader(header, backendRequest.getFrontendRequest().getRequest()
-						.getHeader(header));
+				addRequestHeader(header, backendRequest.getFrontendRequest()
+						.getRequest().getHeader(header));
 			}
 		}
 		startTimestamp = System.currentTimeMillis();
 		logLine = Service.standardLogLine(backendRequest.getFrontendRequest()
 				.getRequest(), "lackr-back");
-		logLine.put(HTTP_HOST.getPrettyName(), getRequestField("Host"));
+		logLine.put(HTTP_HOST.getPrettyName(), backendRequest
+				.getFrontendRequest().getRequest().getHeader("Host"));
 		logLine.put(METHOD.getPrettyName(), backendRequest.getMethod());
 		logLine.put(PATH.getPrettyName(), backendRequest.getPath());
 		logLine.put(FRAGMENT_ID.getPrettyName(), backendRequest.hashCode());
@@ -118,9 +122,7 @@ public abstract class LackrBackendExchange {
 				});
 
 	}
-	
-	protected abstract String getRequestField(String name);
-	
+
 	protected abstract void doStart(String host) throws IOException;
 
 	protected void postProcess() {
@@ -135,8 +137,9 @@ public abstract class LackrBackendExchange {
 			if (rawResponseContent != null && rawResponseContent.length > 0) {
 				String mimeType = getResponseHeader(HttpHeaders.CONTENT_TYPE);
 				if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-					parsedDocument = backendRequest.getFrontendRequest().getService()
-							.getInterpolr().parse(rawResponseContent, this);
+					parsedDocument = backendRequest.getFrontendRequest()
+							.getService().getInterpolr()
+							.parse(rawResponseContent, this);
 				else
 					parsedDocument = new Document(new DataChunk(
 							rawResponseContent));
@@ -154,11 +157,11 @@ public abstract class LackrBackendExchange {
 	}
 
 	public String getResponseHeaderValue(String name) {
-		Enumeration<String> values = getResponseHeaderValues(name);
-		if (values.hasMoreElements())
-			return values.nextElement();
-		else
+		List<String> values = getResponseHeaderValues(name);
+		if (values.isEmpty())
 			return null;
+		else
+			return values.get(0);
 	}
 
 }

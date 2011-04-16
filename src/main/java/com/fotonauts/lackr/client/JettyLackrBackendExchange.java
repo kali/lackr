@@ -1,7 +1,9 @@
 package com.fotonauts.lackr.client;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
@@ -80,13 +82,13 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 	}
 
 	@Override
-	protected Enumeration<String> getResponseHeaderNames() {
-		return jettyContentExchange.getResponseFields().getFieldNames();
+	protected List<String> getResponseHeaderNames() {
+		return Collections.list(jettyContentExchange.getResponseFields().getFieldNames());
 	}
 
 	@Override
-	public Enumeration<String> getResponseHeaderValues(String name) {
-		return jettyContentExchange.getResponseFields().getValues(name);
+	public List<String> getResponseHeaderValues(String name) {
+		return Collections.list(jettyContentExchange.getResponseFields().getValues(name));
 	}
 
 	@Override
@@ -95,8 +97,4 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 		jettyClient.send(jettyContentExchange);
 	}
 
-	@Override
-	protected String getRequestField(String name) {
-		return jettyContentExchange.getRequestFields().getStringField(name);
-	}
 }

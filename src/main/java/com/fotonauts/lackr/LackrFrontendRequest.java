@@ -114,7 +114,8 @@ public class LackrFrontendRequest {
 
 	public LackrBackendExchange scheduleUpstreamRequest(BackendRequest spec)
 			throws NotAvailableException {
-		LackrBackendExchange exchange = getService().getClient().createExchange(spec);
+		LackrBackendExchange exchange = getService().getClient()
+				.createExchange(spec);
 		if (rootExchange == null)
 			rootExchange = exchange;
 		this.pendingCount.incrementAndGet();
@@ -131,16 +132,10 @@ public class LackrFrontendRequest {
 	}
 
 	public void copyHeaders(HttpServletResponse response) {
-		for (Enumeration<String> names = rootExchange.getResponseHeaderNames(); names
-				.hasMoreElements();) {
-			String name = (String) names.nextElement();
+		for (String name : rootExchange.getResponseHeaderNames()) {
 			if (!skipHeader(name)) {
-				for (Enumeration<String> values = rootExchange
-						.getResponseHeaderValues(name); values
-						.hasMoreElements();) {
-					String value = (String) values.nextElement();
+				for (String value : rootExchange.getResponseHeaderValues(name))
 					response.addHeader(name, value);
-				}
 			}
 		}
 	}
@@ -268,7 +263,10 @@ public class LackrFrontendRequest {
 			byte[] body = null;
 			if (request.getContentLength() > 0)
 				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			BackendRequest spec = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null, 0, null, body);
+			BackendRequest spec = new BackendRequest(
+					this,
+					request.getMethod() == "HEAD" ? "GET" : request.getMethod(),
+					rootUrl, null, 0, null, body);
 			scheduleUpstreamRequest(spec);
 		} catch (Throwable e) {
 			log.debug("in kick() error handler: " + e);
