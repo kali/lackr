@@ -51,7 +51,12 @@ public abstract class BaseTestSubstitution extends TestCase {
     		        HttpServletResponse response) throws IOException, ServletException {
     			if (request.getPathInfo().equals("/page.html")) {
     				response.setContentType(MimeType.TEXT_HTML);
-    				response.getWriter().print(page);
+    				response.setCharacterEncoding("UTF-8");
+    				response.getOutputStream().write(page.toString().getBytes("UTF-8"));
+    				response.flushBuffer();
+    			} else if (request.getPathInfo().equals("/\u00c9si.json")) {
+    				response.setContentType(MimeType.APPLICATION_JSON);
+    				response.getWriter().print(ESI_JSON);
     				response.getWriter().flush();
     				response.flushBuffer();
     			} else if (request.getPathInfo().equals("/esi.json")) {

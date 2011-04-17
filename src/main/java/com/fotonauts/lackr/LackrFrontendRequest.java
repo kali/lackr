@@ -164,15 +164,11 @@ public class LackrFrontendRequest {
 					writeResponseException.getMessage());
 			throw writeResponseException;
 		} finally {
-			try {
-				long endTimestamp = System.currentTimeMillis();
-				logLine.put(ELAPSED.getPrettyName(),
-						1.0 * (endTimestamp - startTimestamp) / 1000);
-				logLine.put(DATE.getPrettyName(), new Date().getTime());
-				service.logCollection.save(logLine);
-			} catch (Exception ex) {
-				log.error("Unable to log data in mongo: " + ex.getMessage());
-			}
+			long endTimestamp = System.currentTimeMillis();
+			logLine.put(ELAPSED.getPrettyName(),
+					1.0 * (endTimestamp - startTimestamp) / 1000);
+			logLine.put(DATE.getPrettyName(), new Date().getTime());
+			service.log(logLine);
 		}
 	}
 

@@ -71,10 +71,11 @@ public class AHCBackendExchange extends LackrBackendExchange {
 		if(getBackendRequest().getBody() != null)
 			builder.setBody(getBackendRequest().getBody());
 		for(Entry<String, String> h: requestHeaders.entrySet())
-		builder.addHeader(h.getKey(), h.getValue());
-		
+			builder.addHeader(h.getKey(), h.getValue());
+		builder.setVirtualHost(getBackendRequest().getFrontendRequest().getRequest().getHeader("Host"));
+
 		builder.execute(new AsyncCompletionHandler<Response>(){
-	        	        
+			
 	        @Override
 	        public void onThrowable(Throwable t){
 	        	getBackendRequest().getFrontendRequest().addBackendExceptions(t);

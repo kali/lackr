@@ -54,4 +54,9 @@ public class TestESI extends BaseTestSubstitution {
 		assertEquals("{ something_empty: null }", result);
 	}
 
+	public void testEncoding() throws Exception {
+		String result = expand("before\nhttp://esi.include.virtual/\u00c9si.html#\nafter\n");
+		assertEquals("before\n" + ESI_HTML + "\nafter\n", result);
+	}
+
 }

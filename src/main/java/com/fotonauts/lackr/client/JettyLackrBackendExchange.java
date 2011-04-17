@@ -2,7 +2,6 @@ package com.fotonauts.lackr.client;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 
 import org.eclipse.jetty.client.ContentExchange;

@@ -31,7 +31,7 @@
 	</bean>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
-		p:client-ref="ahcClient" p:backends="${lackr.backends}" p:probeUrl="${lackr.probeUrl}"
+		p:client-ref="jettyClient" p:backends="${lackr.backends}" p:probeUrl="${lackr.probeUrl}"
 		p:mongoLoggingPath="${lackr.mongologgingpath}" p:interpolr-ref="interpolr">
 	</bean>
 
@@ -48,18 +48,16 @@
 			</list>
 		</property>
 	</bean>
-
+<!-- 
 	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient"/>
+ -->
+	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient" p:actualClient-ref="jettyHttpClient" />
 
-	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient">
-		<property name="actualClient">
-			<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
-				init-method="start" destroy-method="stop" p:connectTimeout="5">
-				<property name="connectorType">
-					<util:constant
-						static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />
-				</property>
-			</bean>
+	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
+		init-method="start" destroy-method="stop" p:connectTimeout="500">
+		<property name="connectorType">
+			<util:constant
+				static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />
 		</property>
 	</bean>
 </beans>
