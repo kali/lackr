@@ -19,19 +19,15 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 
 	@Override
 	public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
-		String mimeType = getMimeType(exchange);
-		if (MimeType.isML(mimeType)) {
-			if (exchange.getParsedDocument() == null || exchange.getParsedDocument().length() == 0)
-				return NULL_CHUNK;
-			return new JsonQuotingChunk(exchange.getParsedDocument(), false);
-		}
-		throw new RuntimeException("unsupported ESI type (js* in js(*ML) context)");
+		if (exchange.getParsedDocument() == null || exchange.getParsedDocument().length() == 0)
+			return NULL_CHUNK;
+		return new JsonQuotingChunk(exchange.getParsedDocument(), false);
 	}
 
 	@Override
 	public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
 		String mimeType = getMimeType(exchange);
-		if(!MimeType.isML(mimeType)) {
+		if(MimeType.isJS(mimeType)) {
 			exceptions.add(new InterpolrException("unsupported ESI type (js* in js(*ML) context)", exchange));
 		}
 	}

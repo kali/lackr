@@ -15,9 +15,13 @@ public class MimeType {
 		return mimeType.startsWith(TEXT_HTML) || mimeType.startsWith(APPLICATION_ATOM_XML)
 		        || mimeType.startsWith(APPLICATION_X_MMTML) || mimeType.startsWith(APPLICATION_XML);
 	}
-	
+
 	public static boolean isJS(String mimeType) {
 		return mimeType.startsWith(APPLICATION_JAVASCRIPT) || mimeType.startsWith(APPLICATION_JSON)
-        || mimeType.startsWith(TEXT_JAVASCRIPT);
+		        || mimeType.startsWith(TEXT_JAVASCRIPT);
+	}
+
+	public static boolean isTextPlain(String mimeType) {
+		return mimeType.startsWith(TEXT_PLAIN);
 	}
 }
