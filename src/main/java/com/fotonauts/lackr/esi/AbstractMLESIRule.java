@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.esi.filters.AmpersandEscapeChunk;
+import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 
 public abstract class AbstractMLESIRule extends ESIIncludeRule {
@@ -22,8 +24,8 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
 		String mimeType = getMimeType(exchange);
 		if(MimeType.isML(mimeType))
 			return exchange.getParsedDocument();
-		else // FIXME plain text
-			return exchange.getParsedDocument();
+		else 
+			return new AmpersandEscapeChunk(exchange.getParsedDocument());
 	}
 
 	@Override

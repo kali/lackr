@@ -20,6 +20,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 	final StringBuffer page = new StringBuffer();
 	static final String ESI_HTML = "<p> un bout de html avec des \" et des \\ dedans\nsur plusieurs lignes\npour faire joli</p>";
 	static final String ESI_JSON = "{ some: \"json crap\" }";
+	static final String ESI_URL = "http://hou.salut.com/blah&merci.pour.tout";
 
 	public BaseTestSubstitution(String clientImplementation) throws Exception {
 		super(clientImplementation);
@@ -32,6 +33,8 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     				writeResponse(response, page.toString().getBytes("UTF-8"), MimeType.TEXT_HTML);
     			} else if (request.getPathInfo().equals("/empty.html")) {
     				writeResponse(response, "".getBytes(), MimeType.TEXT_HTML);
+    			} else if (request.getPathInfo().endsWith("url")) {
+    				writeResponse(response, ESI_URL.getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("json")) {
     				writeResponse(response, ESI_JSON.getBytes("UTF-8"), MimeType.APPLICATION_JSON);
     			} else if (request.getPathInfo().endsWith("html")) {

@@ -72,7 +72,13 @@ public class TestESI extends BaseTestSubstitution {
 	}
 
 	@Test
-	public void testEncoding() throws Exception {
+	public void testPlainToML() throws Exception {
+		String result = expand("before\nhttp://esi.include.virtual/some.plain.text.with.stuff.in.it.url#\nafter\n");
+		assertEquals("before\n" + ESI_URL.replace("&", "&amp;") + "\nafter\n", result);
+	}
+
+	@Test
+	public void testUrlEncoding() throws Exception {
 		String result = expand("before\nhttp://esi.include.virtual/\u00c9si.html#\nafter\n");
 		assertEquals("before\n" + ESI_HTML + "\nafter\n", result);
 	}
