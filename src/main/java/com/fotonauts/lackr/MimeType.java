@@ -9,6 +9,7 @@ public class MimeType {
 	public static String APPLICATION_XML = "application/xml";
 	public static String TEXT_HTML = "text/html";
 	public static String TEXT_JAVASCRIPT = "text/javascript";
+	public static String TEXT_PLAIN = "text/plain";
 
 	public static boolean isML(String mimeType) {
 		return mimeType.startsWith(TEXT_HTML) || mimeType.startsWith(APPLICATION_ATOM_XML)

@@ -16,6 +16,7 @@
 					<exclude>**/spring.handlers</exclude>
 					<exclude>**/spring.schemas</exclude>
 					<exclude>com/ning/http/client/providers/netty/NettyAsyncHttpProvider.class</exclude>
+					<exclude>com/ning/http/client/providers/netty/NettyAsyncHttpProvider$*.class</exclude>
 				</excludes>
 			</unpackOptions>
 			<scope>runtime</scope>
@@ -34,7 +35,8 @@
 			<directory>target/classes</directory>
 			<outputDirectory>/</outputDirectory>
 			<includes>
-				<include>com/ning/http/client/providers/netty/NettyAsyncHttpProvider.class</include>
+				<include>com/ning/http/client/providers/netty/NettyAsyncHttpProvider*</include>
+				<include>com/ning/http/client/providers/netty/NettyAsyncHttpProvider$*.class</include>
 			</includes>
 		</fileSet>
 	</fileSets>

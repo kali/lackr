@@ -11,69 +11,31 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.junit.After;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.util.Log4jConfigurer;
 
-import junit.framework.TestCase;
+public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 
-public abstract class BaseTestSubstitution extends TestCase {
-
-	Server backend;
-	Server lackrServer;
-	HttpClient client;
 	final StringBuffer page = new StringBuffer();
 	static final String ESI_HTML = "<p> un bout de html avec des \" et des \\ dedans\nsur plusieurs lignes\npour faire joli</p>";
 	static final String ESI_JSON = "{ some: \"json crap\" }";
 
-	public BaseTestSubstitution() {
-		super();
-	}
-
-	public BaseTestSubstitution(String name) {
-		super(name);
-	}
-
-	@Override
-    protected void setUp() throws Exception {
-    	super.setUp();
-    
-    	Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
-    
-    	backend = new Server();
-    
-    	backend.addConnector(new SelectChannelConnector());
-    
-    	backend.setHandler(new AbstractHandler() {
+	public BaseTestSubstitution(String clientImplementation) throws Exception {
+		super(clientImplementation);
+    	currentHandler.set(new AbstractHandler() {
     
     		public void handle(String target, Request baseRequest, HttpServletRequest request,
     		        HttpServletResponse response) throws IOException, ServletException {
     			if (request.getPathInfo().equals("/page.html")) {
-    				response.setContentType(MimeType.TEXT_HTML);
-    				response.setCharacterEncoding("UTF-8");
-    				response.getOutputStream().write(page.toString().getBytes("UTF-8"));
-    				response.flushBuffer();
-    			} else if (request.getPathInfo().equals("/\u00c9si.json")) {
-    				response.setContentType(MimeType.APPLICATION_JSON);
-    				response.getWriter().print(ESI_JSON);
-    				response.getWriter().flush();
-    				response.flushBuffer();
-    			} else if (request.getPathInfo().equals("/esi.json")) {
-    				response.setContentType(MimeType.APPLICATION_JSON);
-    				response.getWriter().print(ESI_JSON);
-    				response.getWriter().flush();
-    				response.flushBuffer();
+    				System.err.println(page.toString());
+    				writeResponse(response, page.toString().getBytes("UTF-8"), MimeType.TEXT_HTML);
     			} else if (request.getPathInfo().equals("/empty.html")) {
-    				response.setContentType(MimeType.TEXT_HTML);
-    				response.getWriter().print("");
-    				response.getWriter().flush();
-    				response.flushBuffer();
-    			} else if (request.getPathInfo().equals("/esi.html")) {
-    				response.setContentType(MimeType.TEXT_HTML);
-    				response.getWriter().print(ESI_HTML);
-    				response.getWriter().flush();
-    				response.flushBuffer();
+    				writeResponse(response, "".getBytes(), MimeType.TEXT_HTML);
+    			} else if (request.getPathInfo().endsWith("json")) {
+    				writeResponse(response, ESI_JSON.getBytes("UTF-8"), MimeType.APPLICATION_JSON);
+    			} else if (request.getPathInfo().endsWith("html")) {
+    				writeResponse(response, ESI_HTML.getBytes("UTF-8"), MimeType.TEXT_HTML);
     			}
     		}
     	});
@@ -109,9 +71,8 @@ public abstract class BaseTestSubstitution extends TestCase {
     	return new String(e.getResponseContentBytes());
     }
 
-	@Override
-    protected void tearDown() throws Exception {
-    	super.tearDown();
+	@After
+    public void tearDown() throws Exception {
     	lackrServer.stop();
     	backend.stop();
     }

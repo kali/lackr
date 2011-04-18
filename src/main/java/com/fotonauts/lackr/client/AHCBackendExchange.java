@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,10 +69,10 @@ public class AHCBackendExchange extends LackrBackendExchange {
 	protected void doStart(String host) throws IOException {
 		BoundRequestBuilder builder = client.prepareGet("/").setMethod(getBackendRequest().getMethod());
 		builder.setUrl(host+getBackendRequest().getQuery());
-		if(getBackendRequest().getBody() != null)
-			builder.setBody(getBackendRequest().getBody());
 		for(Entry<String, String> h: requestHeaders.entrySet())
 			builder.addHeader(h.getKey(), h.getValue());
+		if(getBackendRequest().getBody() != null)
+			builder.setBody(new ByteArrayInputStream(getBackendRequest().getBody()));
 		builder.setVirtualHost(getBackendRequest().getFrontendRequest().getRequest().getHeader("Host"));
 
 		builder.execute(new AsyncCompletionHandler<Response>(){
