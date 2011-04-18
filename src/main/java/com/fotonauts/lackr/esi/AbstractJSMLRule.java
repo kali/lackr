@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 
 public class AbstractJSMLRule extends ESIIncludeRule {

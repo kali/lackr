@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.esi;
+package com.fotonauts.lackr.esi.filters;
 
 import java.io.IOException;
 import java.io.OutputStream;

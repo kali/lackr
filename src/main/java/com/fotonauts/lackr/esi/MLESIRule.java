@@ -1,34 +1,9 @@
 package com.fotonauts.lackr.esi;
 
-import java.util.List;
-
-import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.interpolr.Chunk;
-
-public class MLESIRule extends ESIIncludeRule {
+public class MLESIRule extends AbstractMLESIRule {
 
 	public MLESIRule() {
 		super("<!--# include virtual=\"*\" -->");
 	}
 
-	@Override
-	public String getSyntaxIdentifier() {
-		return "ML";
-	}
-	
-	@Override
-	public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
-		String mimeType = getMimeType(exchange);
-		if(MimeType.isML(mimeType))
-			return exchange.getParsedDocument();
-		throw new RuntimeException("unsupported ESI type (js* in *ML context) " + exchange.getBackendRequest().getQuery());
-	}
-
-	@Override
-    public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
-		String mimeType = getMimeType(exchange);
-		if(MimeType.isJS(mimeType))
-			exceptions.add(new InterpolrException("unsupported ESI type (js* in *ML context)", exchange));
-    }
 }
