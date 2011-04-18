@@ -29,15 +29,27 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 		return exchange.getResponseHeaderValue(HttpHeaders.CONTENT_TYPE);
 	}
 
+	protected String makeUrl(byte[] buffer, int start, int stop) {
+		StringBuilder builder = new StringBuilder();
+		for(int i = start; i<stop; i++) {
+			byte b = buffer[i];
+			if(b < 0) {
+				builder.append('%');
+				builder.append(Integer.toHexString(b + 256).toUpperCase());
+			} else if (b < 32) {
+				builder.append('%');
+				builder.append(Integer.toHexString(b).toUpperCase());
+			} else {
+				builder.append((char) b);
+			}
+		}
+		return builder.toString();
+	}
+	
 	@Override
 	public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
 		LackrBackendExchange exchange = (LackrBackendExchange) context;
-		String url = null;
-		try {
-			url = new String(buffer, start, stop - start, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// nope, thank you
-		}
+		String url = makeUrl(buffer, start, stop);
 		LackrBackendExchange sub;
 		try {
 			LackrFrontendRequest front = exchange.getBackendRequest()
