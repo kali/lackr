@@ -49,12 +49,12 @@
 		</property>
 	</bean>
 
-	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient"/>
+	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient" lazy-init="true"/>
 
-	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient" p:actualClient-ref="jettyHttpClient" />
+	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient" p:actualClient-ref="jettyHttpClient" lazy-init="true" />
 
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
-		init-method="start" destroy-method="stop" p:connectTimeout="500">
+		init-method="start" destroy-method="stop" p:connectTimeout="500" lazy-init="true">
 		<property name="connectorType">
 			<util:constant
 				static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />

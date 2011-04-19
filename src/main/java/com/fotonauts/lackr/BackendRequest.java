@@ -2,15 +2,15 @@ package com.fotonauts.lackr;
 
 public class BackendRequest {
 
-	private byte[] body;
+	private final byte[] body;
 
-	private String method;
-	private String parent;
-	private int parentId;
-	private String query;
-	private LackrFrontendRequest frontendRequest;
+	private final String method;
+	private final String parent;
+	private final int parentId;
+	private final String query;
+	private final LackrFrontendRequest frontendRequest;
 
-	private String syntax;
+	private final String syntax;
 
 	public BackendRequest(LackrFrontendRequest frontendRequest, String method,
 			String query, String parent, int parentId, String syntax,

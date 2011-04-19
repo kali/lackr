@@ -5,20 +5,13 @@ import java.util.List;
 
 public abstract class MarkupDetectingRule implements Rule {
 
-	private BMHPattern startPlaceholder;
-	private BMHPattern stopPlaceholder;
-
-	public void setMarkup(String markup) {
-		String[] parts = markup.split("\\*");
-		this.startPlaceholder = new BMHPattern(parts[0]);
-		this.stopPlaceholder = new BMHPattern(parts[1]);
-	}
-
-	public MarkupDetectingRule() {
-	}
+	final private BoyerMooreScanner startPlaceholder;
+	final private BoyerMooreScanner stopPlaceholder;
 
 	public MarkupDetectingRule(String markup) {
-		setMarkup(markup);
+		String[] parts = markup.split("\\*");
+		this.startPlaceholder = new BoyerMooreScanner(parts[0].getBytes());
+		this.stopPlaceholder = new BoyerMooreScanner(parts[1].getBytes());
 	}
 
 	public abstract Chunk substitute(byte[] buffer, int start, int stop, Object context);

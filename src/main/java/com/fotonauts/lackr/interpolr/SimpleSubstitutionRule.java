@@ -6,11 +6,11 @@ import java.util.List;
 
 public class SimpleSubstitutionRule implements Rule {
 
-	private BMHPattern placeholder;
+	private BoyerMooreScanner placeholder;
 	private Chunk replacement;
 
 	public void setPlaceholder(String placeholder) {
-		this.placeholder = new BMHPattern(placeholder);
+		this.placeholder = new BoyerMooreScanner(placeholder.getBytes());
 	}
 
 	public void setReplacement(String replacement) {
