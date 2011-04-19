@@ -68,15 +68,14 @@ public class Service extends AbstractHandler {
 		super.doStart();
 	}
 
-	public static void addHeadersIfPresent(BasicBSONObject logLine,
-			HttpServletRequest request, MongoLoggingKeys key, String headerName) {
+	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, MongoLoggingKeys key,
+	        String headerName) {
 		String value = request.getHeader(headerName);
 		if (value != null)
 			logLine.put(key.getPrettyName(), value);
 	}
 
-	public static BasicDBObject standardLogLine(HttpServletRequest request,
-			String facility) {
+	public static BasicDBObject standardLogLine(HttpServletRequest request, String facility) {
 		/* Prepare the log line */
 		BasicDBObject logLine = new BasicDBObject();
 		logLine.put(FACILITY.getPrettyName(), facility);
@@ -97,8 +96,7 @@ public class Service extends AbstractHandler {
 				if (cname.equals("uid")) {
 					logLine.put(USER_ID.getPrettyName(), cookie.getValue());
 				} else if (cname.equals("login_session")) {
-					logLine.put(LOGIN_SESSION.getPrettyName(),
-							cookie.getValue());
+					logLine.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
 				}
 			}
 		}
@@ -134,21 +132,17 @@ public class Service extends AbstractHandler {
 		if (StringUtils.hasText(mongoLoggingPath)) {
 			String[] pathComponents = mongoLoggingPath.split("/");
 			if (pathComponents.length != 3)
-				throw new IllegalArgumentException(
-						"Mongo Logging Path not compliant with spec in \""
-								+ mongoLoggingPath
-								+ "\", format is host:port/database/collection.");
+				throw new IllegalArgumentException("Mongo Logging Path not compliant with spec in \""
+				        + mongoLoggingPath + "\", format is host:port/database/collection.");
 
 			String[] hostComponents = pathComponents[0].split(":");
 			if (hostComponents.length != 2)
 				throw new IllegalArgumentException(
-						"Mongo Logging Hostname not compliant with spec, should be host:port (is \""
-								+ pathComponents[0] + "\" ).");
+				        "Mongo Logging Hostname not compliant with spec, should be host:port (is \""
+				                + pathComponents[0] + "\" ).");
 
-			Mongo logConnection = new Mongo(hostComponents[0],
-					Integer.parseInt(hostComponents[1]));
-			setLogCollection(logConnection.getDB(pathComponents[1])
-					.getCollection(pathComponents[2]));
+			Mongo logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
+			setLogCollection(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
 		}
 	}
 
@@ -206,8 +200,14 @@ public class Service extends AbstractHandler {
 		this.ring = ring;
 	}
 
-	public void log(BasicDBObject logLine) {
-		if (logCollection != null)
-			logCollection.save(logLine);
+	public void log(final BasicDBObject logLine) {
+		if (logCollection != null) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					logCollection.save(logLine);
+				}
+			});
+		}
 	}
 }

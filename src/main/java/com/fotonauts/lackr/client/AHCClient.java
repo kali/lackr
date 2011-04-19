@@ -13,6 +13,8 @@ public class AHCClient implements BackendClient {
 	public AHCClient() {
 		AsyncHttpClientConfig cf = new AsyncHttpClientConfig.Builder()
 			.setIdleConnectionInPoolTimeoutInMs(60000)
+			.setMaximumConnectionsPerHost(100)
+			.setMaximumConnectionsTotal(1000)
 			.setUserAgent(null).build();
 		actualClient = new AsyncHttpClient(cf);
 	}
