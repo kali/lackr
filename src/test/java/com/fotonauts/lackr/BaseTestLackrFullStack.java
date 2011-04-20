@@ -2,10 +2,13 @@ package com.fotonauts.lackr;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.ServletException;
@@ -25,6 +28,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.Log4jConfigurer;
 
 @Ignore
@@ -39,7 +44,7 @@ public class BaseTestLackrFullStack {
 
 	@Parameters
 	public static Collection<Object[]> data() {
-		return Arrays.asList(new Object[][] { { "jettyClient" }, /* { "ahcClient" }, */ { "apacheClient" } });
+		return Arrays.asList(new Object[][] { { "jettyClient" }, /*{ "ahcClient" }, */{ "apacheClient" } });
 	}
 
 	public BaseTestLackrFullStack(String clientImplementation) throws Exception {
@@ -58,11 +63,17 @@ public class BaseTestLackrFullStack {
 		});
 		backend.start();
 
-		System.setProperty("lackr.properties", "classpath:/lackr.test.properties");
+		File propFile = File.createTempFile("lackr.test.", ".props");
+		propFile.deleteOnExit();
+		
+		Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
+		props.setProperty("lackr.clientImpl", clientImplementation);
+		props.store(new FileOutputStream(propFile), "properties for lackr test run");
+		
+		System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
 		Service service = (Service) ctx.getBean("proxyService");
-		service.setClient((BackendClient) ctx.getBean(clientImplementation));
 		service.setBackends("http://localhost:" + backend.getConnectors()[0].getLocalPort());
 		service.buildRing();
 		lackrServer = (Server) ctx.getBean("Server");

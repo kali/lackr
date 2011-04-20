@@ -15,7 +15,7 @@
 	<context:property-placeholder order="20"
 		location="classpath:/lackr.default.properties"
 		ignore-resource-not-found="false" ignore-unresolvable="true" />
-
+		
 	<context:annotation-config />
 
 	<bean id="Server" class="org.eclipse.jetty.server.Server"
