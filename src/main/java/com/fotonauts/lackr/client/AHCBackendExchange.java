@@ -23,7 +23,7 @@ public class AHCBackendExchange extends LackrBackendExchange {
 	
 	protected Response response;
 	
-	Map<String, String> requestHeaders = new HashMap<String, String>();
+	protected Map<String, String> requestHeaders = new HashMap<String, String>();
 	
 	public AHCBackendExchange(AsyncHttpClient client, BackendRequest backendRequest) {
 		super(backendRequest);

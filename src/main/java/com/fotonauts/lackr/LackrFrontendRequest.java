@@ -23,7 +23,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
-import com.fotonauts.lackr.client.JettyLackrBackendExchange;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
@@ -82,7 +80,7 @@ public class LackrFrontendRequest {
 		this.service = service;
 		this.request = request;
 		this.continuation = ContinuationSupport.getContinuation(request);
-		this.continuation.setTimeout(60 * 1000);
+		this.continuation.setTimeout(getService().getTimeout() * 1000);
 		this.pendingCount = new AtomicInteger(0);
 		URI uri = null;
 		try {

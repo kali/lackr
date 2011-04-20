@@ -128,7 +128,7 @@ public abstract class LackrBackendExchange {
 	protected void postProcess() {
 		if (this != backendRequest.getFrontendRequest().rootExchange
 				&& (getResponseStatus() / 100 == 4 || getResponseStatus() / 100 == 5)
-				&& getResponseHeader("X-SSI-AWARE") != null)
+				&& getResponseHeader("X-SSI-AWARE") == null)
 			backendRequest.getFrontendRequest().addBackendExceptions(
 					new Exception("Fragment " + getBackendRequest().getQuery()
 							+ " returned code " + getResponseStatus()));

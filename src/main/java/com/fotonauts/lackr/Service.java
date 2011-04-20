@@ -46,6 +46,8 @@ public class Service extends AbstractHandler {
 	protected BackendClient client;
 	protected DBCollection logCollection;
 
+	private int timeout;
+	
 	protected Interpolr interpolr;
 
 	public Interpolr getInterpolr() {
@@ -210,4 +212,12 @@ public class Service extends AbstractHandler {
 			});
 		}
 	}
+
+	public void setTimeout(int timeout) {
+	    this.timeout = timeout;
+    }
+
+	public int getTimeout() {
+	    return timeout;
+    }
 }

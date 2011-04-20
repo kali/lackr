@@ -33,6 +33,10 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     				writeResponse(response, page.toString().getBytes("UTF-8"), MimeType.TEXT_HTML);
     			} else if (request.getPathInfo().equals("/empty.html")) {
     				writeResponse(response, "".getBytes(), MimeType.TEXT_HTML);
+    			} else if (request.getPathInfo().equals("/500.html")) {
+    				response.setStatus(500);
+    				response.setHeader("X-SSI-AWARE", "yes");
+    				writeResponse(response, "<!-- ignore me -->".getBytes(), MimeType.TEXT_HTML);
     			} else if (request.getPathInfo().endsWith("url")) {
     				writeResponse(response, ESI_URL.getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("json")) {

@@ -70,4 +70,35 @@ public class TestPropagation extends BaseTestLackrFullStack {
 		e.setRequestHeader("Content-Length", "4");
 		runRequest(e, "coin");
     }
+	
+	@Test
+	public void accept() {
+		currentHandler.set(new AbstractHandler() {
+
+			@Override
+			public void handle(String target, Request baseRequest, HttpServletRequest request,
+			        HttpServletResponse response) throws IOException, ServletException {
+				writeResponse(response, request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(), MimeType.TEXT_PLAIN);
+			}
+		});
+
+		ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+		e.setRequestHeader("Accept", "test/accept");
+		runRequest(e, "test/accept");
+	}	
+	
+	@Test
+	public void noAccept() {
+		currentHandler.set(new AbstractHandler() {
+
+			@Override
+			public void handle(String target, Request baseRequest, HttpServletRequest request,
+			        HttpServletResponse response) throws IOException, ServletException {
+				writeResponse(response, request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(), MimeType.TEXT_PLAIN);
+			}
+		});
+
+		ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+		runRequest(e, "null");
+	}	
 }

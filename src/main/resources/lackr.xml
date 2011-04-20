@@ -32,7 +32,7 @@
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
 		p:client-ref="${lackr.clientImpl}" p:backends="${lackr.backends}" p:probeUrl="${lackr.probeUrl}"
-		p:mongoLoggingPath="${lackr.mongologgingpath}" p:interpolr-ref="interpolr">
+		p:mongoLoggingPath="${lackr.mongologgingpath}" p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}">
 	</bean>
 
 	<bean id="interpolr" class="com.fotonauts.lackr.interpolr.Interpolr">
@@ -48,6 +48,8 @@
 			</list>
 		</property>
 	</bean>
+
+	<bean name="apacheClient" class="com.fotonauts.lackr.client.ApacheClient" lazy-init="true"/>
 
 	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient" lazy-init="true"/>
 

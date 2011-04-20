@@ -39,7 +39,7 @@ public class BaseTestLackrFullStack {
 
 	@Parameters
 	public static Collection<Object[]> data() {
-		return Arrays.asList(new Object[][] { { "jettyClient" }, { "ahcClient" } });
+		return Arrays.asList(new Object[][] { { "jettyClient" }, /* { "ahcClient" }, */ { "apacheClient" } });
 	}
 
 	public BaseTestLackrFullStack(String clientImplementation) throws Exception {
