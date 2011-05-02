@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.bson.BasicBSONObject;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
@@ -63,6 +64,7 @@ public class Service extends AbstractHandler {
 	private HashRing ring;
 	private String backends;
 	private String probeUrl;
+	private ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
 	protected void doStart() throws Exception {
@@ -219,5 +221,9 @@ public class Service extends AbstractHandler {
 
 	public int getTimeout() {
 	    return timeout;
+    }
+
+	public ObjectMapper getJacksonObjectMapper() {
+	    return objectMapper;
     }
 }

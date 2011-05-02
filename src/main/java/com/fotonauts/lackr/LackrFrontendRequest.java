@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
 
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.mustache.MustacheContext;
 import com.mongodb.BasicDBObject;
 
 public class LackrFrontendRequest {
@@ -76,9 +77,12 @@ public class LackrFrontendRequest {
 
 	private UserAgent userAgent;
 
+	private MustacheContext mustacheContext;
+
 	LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
 		this.request = request;
+		this.mustacheContext = new MustacheContext();
 		this.continuation = ContinuationSupport.getContinuation(request);
 		this.continuation.setTimeout(getService().getTimeout() * 1000);
 		this.pendingCount = new AtomicInteger(0);
@@ -273,4 +277,8 @@ public class LackrFrontendRequest {
 			continuation.resume();
 		}
 	}
+
+	public MustacheContext getMustacheContext() {
+		return mustacheContext;
+    }
 }

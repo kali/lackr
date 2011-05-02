@@ -29,7 +29,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     		public void handle(String target, Request baseRequest, HttpServletRequest request,
     		        HttpServletResponse response) throws IOException, ServletException {
     			if (request.getPathInfo().equals("/page.html")) {
-    				System.err.println(page.toString());
+    				//System.err.println(page.toString());
     				writeResponse(response, page.toString().getBytes("UTF-8"), MimeType.TEXT_HTML);
     			} else if (request.getPathInfo().equals("/empty.html")) {
     				writeResponse(response, "".getBytes(), MimeType.TEXT_HTML);
