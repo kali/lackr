@@ -29,7 +29,7 @@ public abstract class MarkupDetectingRule implements Rule {
 			} else {
 				boolean broken = false;
 				int lookahead = startFound + patterns[0].length();
-				for (int i = 1; i < patterns.length; i++) {
+				for (int i = 1; !broken && i < patterns.length; i++) {
 					boundPairs[2 * (i - 1)] = lookahead;
 					lookahead = patterns[i].searchNext(chunk.getBuffer(), lookahead, chunk.getStop());
 					if (lookahead == -1) {
