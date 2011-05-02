@@ -8,11 +8,12 @@ public class TestMarkupDetection extends BaseTestSubstitution {
 
 	protected Interpolr simpleIterpolr() throws Exception {
 		Interpolr inter = new Interpolr();
-		inter.addRule(new MarkupDetectingRule("{*:*}") {
+		inter.addRule(new MarkupDetectingRule("{*}") {
 
 			@Override
-			public Chunk substitute(byte[] buffer, int start, int stop, Object blah) {
-				return new ConstantChunk(("'" + new String(buffer, start, stop - start) + "'").getBytes());
+			public Chunk substitute(byte[] buffer, int[] boundPairs, Object blah) {
+				return new ConstantChunk(("'" + new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0]) + "'")
+				        .getBytes());
 			}
 		});
 		return inter;
