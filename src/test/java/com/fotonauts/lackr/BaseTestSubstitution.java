@@ -19,7 +19,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 
 	final StringBuffer page = new StringBuffer();
 	static final String ESI_HTML = "<p> un bout de html avec des \" et des \\ dedans\nsur plusieurs lignes\npour faire joli</p>";
-	static final String ESI_JSON = "{ some: \"json crap\" }";
+	static final String ESI_JSON = "{ \"some\": \"json crap\" }";
 	static final String ESI_URL = "http://hou.salut.com/blah&merci.pour.tout";
 
 	public BaseTestSubstitution(String clientImplementation) throws Exception {
@@ -73,8 +73,10 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     	client.send(e);
     	while (!e.isDone())
     		Thread.sleep(10);
-    	if(e.getResponseStatus() != 200)
+    	if(e.getResponseStatus() != 200) {
+    		System.err.println(e.getResponseContent());
     		return null;
+    	}
     	return new String(e.getResponseContentBytes());
     }
 

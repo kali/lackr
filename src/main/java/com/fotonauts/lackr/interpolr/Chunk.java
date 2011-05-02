@@ -11,7 +11,7 @@ public interface Chunk {
 
 	void writeTo(OutputStream stream) throws IOException;
 
-	Object toDebugString();
+	String toDebugString();
 
 	void check(List<InterpolrException> exceptions);
 }

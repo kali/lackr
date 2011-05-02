@@ -41,7 +41,7 @@ public class AmpersandEscapeChunk implements Chunk {
     }
 
 	@Override
-    public Object toDebugString() {
+    public String toDebugString() {
 	    return "AMPERSANDESCAPE";
     }
 

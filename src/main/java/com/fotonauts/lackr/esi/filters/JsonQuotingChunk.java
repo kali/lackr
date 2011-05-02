@@ -43,7 +43,7 @@ public class JsonQuotingChunk implements Chunk {
     }
 
 	@Override
-    public Object toDebugString() {
+    public String toDebugString() {
 	    return "JSONIZER";
     }
 

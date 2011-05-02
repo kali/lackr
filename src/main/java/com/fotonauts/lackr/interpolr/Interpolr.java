@@ -6,14 +6,19 @@ import java.util.List;
 public class Interpolr {
 
 	private List<Rule> rules;
-	
-	public Document parse(byte[] data, Object context) {
+
+	public Document parse(byte[] buffer, int start, int stop, Object context) {
 		Document chunks = new Document();
-		chunks.add(new DataChunk(data));
+		chunks.add(new DataChunk(buffer, start, stop));
 		for (Rule rule : getRules()) {
 			chunks = parse(rule, chunks, context);
 		}
 		return chunks;
+    }
+
+	
+	public Document parse(byte[] data, Object context) {
+		return parse(data, 0, data.length, context);
 	}
 
 	public Document parse(Rule rule, Document input, Object context) {
