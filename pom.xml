@@ -117,5 +117,10 @@
 			<artifactId>httpasyncclient</artifactId>
 			<version>4.0-alpha1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.samskivert</groupId>
+			<artifactId>jmustache</artifactId>
+			<version>1.2</version>
+		</dependency>
 	</dependencies>
 </project>

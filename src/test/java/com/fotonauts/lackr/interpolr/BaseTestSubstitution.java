@@ -3,18 +3,11 @@ package com.fotonauts.lackr.interpolr;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import static org.junit.Assert.assertEquals;
 
-import junit.framework.TestCase;
+public class BaseTestSubstitution {
 
-public class BaseTestSubstitution extends TestCase {
-	protected Interpolr inter;
-
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-	}
-
-	protected Document parse(String data) {
+	protected Document parse(Interpolr inter, String data) {
 		try {
 			return inter.parse(data.getBytes("UTF-8"), null);
 		} catch (UnsupportedEncodingException e) {
