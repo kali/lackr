@@ -15,7 +15,7 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 
 	@Override
 	public String getSyntaxIdentifier() {
-		return "JS";
+		return "ML";
 	}
 
 	@Override
