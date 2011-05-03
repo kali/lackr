@@ -114,7 +114,6 @@ public class HttpDestination {
 			while((connection = _idle.poll()) == null)
 				Thread.yield();
 		}
-		// connection.cancelIdleTimeout();
 		send(connection, ex);
 	}
 
@@ -140,7 +139,6 @@ public class HttpDestination {
 	public void onNewConnection(final HttpConnection connection) throws IOException {
 		_all.add(connection);
 		returnConnection(connection, false);
-		// System.err.println(toString() + " +1");
 	}
 
 	public void returnConnection(HttpConnection connection, boolean close) throws IOException {
@@ -148,7 +146,6 @@ public class HttpDestination {
 		if (close || !connection.getEndPoint().isOpen()) {
 			try {
 				connection.close();
-				// System.err.println(toString() + " -1");
 				if (_all.remove(connection))
 					_openedConnectionCount.decrementAndGet();
 			} catch (IOException e) {
@@ -186,12 +183,6 @@ public class HttpDestination {
 				}
 			}
 		}
-
-		// Security is supported by default and should be the first consulted
-		if (_client.hasRealms()) {
-			ex.setEventListener(new SecurityListener(this, ex));
-		}
-
 		doSend(ex);
 	}
 
