@@ -30,10 +30,7 @@ import org.eclipse.jetty.client.security.SecurityListener;
 import org.eclipse.jetty.http.HttpBuffers;
 import org.eclipse.jetty.http.HttpSchemes;
 import org.eclipse.jetty.http.ssl.SslContextFactory;
-import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.io.ByteArrayBuffer;
-import org.eclipse.jetty.io.nio.DirectNIOBuffer;
-import org.eclipse.jetty.io.nio.IndirectNIOBuffer;
+import org.eclipse.jetty.io.Buffers.Type;
 import org.eclipse.jetty.util.Attributes;
 import org.eclipse.jetty.util.AttributesMap;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -76,6 +73,7 @@ public class HttpClient extends HttpBuffers implements Attributes
     private boolean _useDirectBuffers = true;
     private boolean _connectBlocking = true;
     private int _maxConnectionsPerAddress = Integer.MAX_VALUE;
+    private int _maxQueueSizePerAddress = Integer.MAX_VALUE;
     private ConcurrentMap<Address, HttpDestination> _destinations = new ConcurrentHashMap<Address, HttpDestination>();
     ThreadPool _threadPool;
     Connector _connector;
@@ -97,14 +95,38 @@ public class HttpClient extends HttpBuffers implements Attributes
 
     private AttributesMap _attributes=new AttributesMap();
 
+
+    /* ------------------------------------------------------------------------------- */
+    private void setBufferTypes()
+    {
+        if (_connectorType==CONNECTOR_SOCKET)
+        {
+            setRequestBufferType(Type.BYTE_ARRAY);
+            setRequestHeaderType(Type.BYTE_ARRAY);
+            setResponseBufferType(Type.BYTE_ARRAY);
+            setResponseHeaderType(Type.BYTE_ARRAY);
+        }
+        else
+        {
+            setRequestBufferType(Type.DIRECT);
+            setRequestHeaderType(_useDirectBuffers?Type.DIRECT:Type.INDIRECT);
+            setResponseBufferType(Type.DIRECT);
+            setResponseHeaderType(_useDirectBuffers?Type.DIRECT:Type.INDIRECT);
+        }
+    }
+
+    /* ------------------------------------------------------------------------------- */
     public HttpClient()
     {
         this(new SslContextFactory());
+        setBufferTypes();
     }
 
+    /* ------------------------------------------------------------------------------- */
     public HttpClient(SslContextFactory sslContextFactory)
     {
         _sslContextFactory = sslContextFactory;
+        setBufferTypes();
     }
 
     /* ------------------------------------------------------------------------------- */
@@ -133,7 +155,7 @@ public class HttpClient extends HttpBuffers implements Attributes
             for (Map.Entry<Address, HttpDestination> entry : _destinations.entrySet())
             {
                 Log.info("\n" + entry.getKey() + ":");
-//                entry.getValue().dump();
+                entry.getValue().dump();
             }
         }
         catch(Exception e)
@@ -218,7 +240,7 @@ public class HttpClient extends HttpBuffers implements Attributes
     }
 
     /* ------------------------------------------------------------------------------- */
-    public HttpDestination getDestination(Address remote, boolean ssl) throws UnknownHostException, IOException
+    public HttpDestination getDestination(Address remote, boolean ssl) throws IOException
     {
         if (remote == null)
             throw new UnknownHostException("Remote socket address cannot be null.");
@@ -226,7 +248,7 @@ public class HttpClient extends HttpBuffers implements Attributes
         HttpDestination destination = _destinations.get(remote);
         if (destination == null)
         {
-            destination = new HttpDestination(this, remote, ssl, _maxConnectionsPerAddress);
+            destination = new HttpDestination(this, remote, ssl);
             if (_proxy != null && (_noProxy == null || !_noProxy.contains(remote.getHost())))
             {
                 destination.setProxy(_proxy);
@@ -341,6 +363,7 @@ public class HttpClient extends HttpBuffers implements Attributes
     public void setUseDirectBuffers(boolean direct)
     {
         _useDirectBuffers = direct;
+        setBufferTypes();
     }
 
     /* ------------------------------------------------------------ */
@@ -356,74 +379,8 @@ public class HttpClient extends HttpBuffers implements Attributes
     public void setConnectorType(int connectorType)
     {
         this._connectorType = connectorType;
+        setBufferTypes();
     }
-
-    /* ------------------------------------------------------------ */
-    /**
-     * @see org.eclipse.jetty.http.HttpBuffers#newRequestBuffer(int)
-     */
-    @Override
-    protected Buffer newRequestBuffer(int size)
-    {
-        if (_connectorType == CONNECTOR_SOCKET)
-            return new ByteArrayBuffer(size);
-        return _useDirectBuffers?new DirectNIOBuffer(size):new IndirectNIOBuffer(size);
-    }
-
-    /* ------------------------------------------------------------ */
-    /**
-     * @see org.eclipse.jetty.http.HttpBuffers#newRequestHeader(int)
-     */
-    @Override
-    protected Buffer newRequestHeader(int size)
-    {
-        if (_connectorType == CONNECTOR_SOCKET)
-            return new ByteArrayBuffer(size);
-        return new IndirectNIOBuffer(size);
-    }
-
-    /* ------------------------------------------------------------ */
-    /**
-     * @see org.eclipse.jetty.http.HttpBuffers#newResponseBuffer(int)
-     */
-    @Override
-    protected Buffer newResponseBuffer(int size)
-    {
-        if (_connectorType == CONNECTOR_SOCKET)
-            return new ByteArrayBuffer(size);
-        return _useDirectBuffers?new DirectNIOBuffer(size):new IndirectNIOBuffer(size);
-    }
-
-    /* ------------------------------------------------------------ */
-    /**
-     * @see org.eclipse.jetty.http.HttpBuffers#newResponseHeader(int)
-     */
-    @Override
-    protected Buffer newResponseHeader(int size)
-    {
-        if (_connectorType == CONNECTOR_SOCKET)
-            return new ByteArrayBuffer(size);
-        return new IndirectNIOBuffer(size);
-    }
-
-    /* ------------------------------------------------------------------------------- */
-    @Override
-    protected boolean isRequestHeader(Buffer buffer)
-    {
-        if (_connectorType == CONNECTOR_SOCKET)
-            return buffer instanceof ByteArrayBuffer;
-        return buffer instanceof IndirectNIOBuffer;
-    }
-
-    /* ------------------------------------------------------------------------------- */
-    @Override
-    protected boolean isResponseHeader(Buffer buffer)
-    {
-        if (_connectorType == CONNECTOR_SOCKET)
-            return buffer instanceof ByteArrayBuffer;
-        return buffer instanceof IndirectNIOBuffer;
-    }
-
 
     /* ------------------------------------------------------------ */
     public int getMaxConnectionsPerAddress()
@@ -437,10 +394,21 @@ public class HttpClient extends HttpBuffers implements Attributes
         _maxConnectionsPerAddress = maxConnectionsPerAddress;
     }
 
+    public int getMaxQueueSizePerAddress()
+    {
+        return _maxQueueSizePerAddress;
+    }
+
+    public void setMaxQueueSizePerAddress(int maxQueueSizePerAddress)
+    {
+        this._maxQueueSizePerAddress = maxQueueSizePerAddress;
+    }
+
     /* ------------------------------------------------------------ */
     @Override
     protected void doStart() throws Exception
     {
+        setBufferTypes();
         super.doStart();
 
         _timeoutQ.setDuration(_timeout);
@@ -493,7 +461,6 @@ public class HttpClient extends HttpBuffers implements Attributes
                 }
             }
         });
-
     }
 
     /* ------------------------------------------------------------ */

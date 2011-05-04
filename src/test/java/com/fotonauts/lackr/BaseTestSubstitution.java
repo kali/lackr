@@ -66,6 +66,10 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     }
 
 	public String expand(String testPage) throws IOException, InterruptedException {
+		return expand(testPage, false);
+	}
+	
+	public String expand(String testPage, boolean expectNon200) throws IOException, InterruptedException {
     	ContentExchange e = new ContentExchange(true);
     	page.setLength(0);
     	page.append(testPage);
@@ -73,7 +77,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     	client.send(e);
     	while (!e.isDone())
     		Thread.sleep(10);
-    	if(e.getResponseStatus() != 200) {
+    	if((e.getResponseStatus() != 200) != expectNon200) {
     		System.err.println(e.getResponseContent());
     		return null;
     	}

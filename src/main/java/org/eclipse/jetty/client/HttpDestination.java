@@ -10,241 +10,720 @@
 // http://www.opensource.org/licenses/apache2.0.php
 // You may elect to redistribute this code under either of these licenses.
 // ========================================================================
+
 package org.eclipse.jetty.client;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.Collections;
+import java.net.ConnectException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jetty.client.HttpClient.Connector;
 import org.eclipse.jetty.client.security.Authentication;
 import org.eclipse.jetty.client.security.SecurityListener;
 import org.eclipse.jetty.http.HttpCookie;
+import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpMethods;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.PathMap;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.Connection;
+import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.util.log.Log;
 
 /**
- * 
- * @version $Revision: 879 $ $Date: 2009-09-11 16:13:28 +0200 (Fri, 11 Sep 2009)
- *          $
+ * @version $Revision: 879 $ $Date: 2009-09-11 16:13:28 +0200 (Fri, 11 Sep 2009) $
  */
-public class HttpDestination {
-	private final ByteArrayBuffer _hostHeader;
-	private final Address _address;
-	private final List<HttpConnection> _all = Collections.synchronizedList(new LinkedList<HttpConnection>());
-	private final Queue<HttpConnection> _idle = new ConcurrentLinkedQueue<HttpConnection>();
-	private final HttpClient _client;
-	private final int _maxConnections;
-	private final AtomicInteger _openedConnectionCount = new AtomicInteger();
-	private final Queue<Throwable> _connectionFailures = new ConcurrentLinkedQueue<Throwable>();
+public class HttpDestination
+{
+    static class ExchangeQueue
+    {
+        private final Queue<HttpExchange> _queue = new ConcurrentLinkedQueue<HttpExchange>();
+        private AtomicInteger _approximateSize = new AtomicInteger();
 
-	/* The queue of exchanged for this destination if connections are limited */
-	private ConcurrentLinkedQueue<HttpExchange> _queue = new ConcurrentLinkedQueue<HttpExchange>();
+        public HttpExchange poll()
+        {
+            HttpExchange e = _queue.poll();
+            if (e != null)
+                _approximateSize.decrementAndGet();
+            return e;
+        }
 
-	/*
-	private static List<HttpDestination> _allDestinations = Collections.synchronizedList(new LinkedList<HttpDestination>());	
-	private static Runnable _destinationThread = new Thread() {
-		public void run() {
-			for(HttpDestination d: _allDestinations)
-	            try {
-	                d.makeThingsHappen();
-                } catch (IOException e) {
-	                // TODO Auto-generated catch block
-	                e.printStackTrace();
+        public boolean isEmpty()
+        {
+            return _queue.isEmpty();
+        }
+
+        public void add(HttpExchange exchange)
+        {
+            _queue.add(exchange);
+            _approximateSize.incrementAndGet();
+        }
+
+        public int approximateSize()
+        {
+            return _approximateSize.get();
+        }
+
+        public void remove(HttpExchange exchange)
+        {
+            if (_queue.remove(exchange))
+                _approximateSize.decrementAndGet();
+        }
+
+    }
+
+    private final ExchangeQueue _queue = new ExchangeQueue();
+    private final List<HttpConnection> _connections = new LinkedList<HttpConnection>();
+    private final BlockingQueue<Object> _newQueue = new ArrayBlockingQueue<Object>(10,true);
+    private final Queue<HttpConnection> _idle = new ConcurrentLinkedQueue<HttpConnection>();
+    private final HttpClient _client;
+    private final Address _address;
+    private final boolean _ssl;
+    private final ByteArrayBuffer _hostHeader;
+    private final AtomicInteger _maxConnections = new AtomicInteger();
+    private final AtomicInteger _maxQueueSize = new AtomicInteger();
+    private final AtomicInteger _pendingConnections = new AtomicInteger();
+    private int _newConnection = 0;
+    private AtomicReference<Address> _proxy = new AtomicReference<Address>();
+    private Authentication _proxyAuthentication;
+    private PathMap _authorizations;
+    private List<HttpCookie> _cookies;
+
+    public void dump() throws IOException
+    {
+        synchronized (this)
+        {
+            Log.info(this.toString());
+            Log.info("connections=" + _connections.size());
+            Log.info("idle=" + _idle.size());
+            Log.info("pending=" + _pendingConnections);
+            for (HttpConnection c : _connections)
+            {
+                if (!c.isIdle())
+                    c.dump();
+            }
+        }
+    }
+
+    HttpDestination(HttpClient client, Address address, boolean ssl)
+    {
+        _client = client;
+        _address = address;
+        _ssl = ssl;
+        _maxConnections.set(_client.getMaxConnectionsPerAddress());
+        _maxQueueSize.set(_client.getMaxQueueSizePerAddress());
+        String addressString = address.getHost();
+        if (address.getPort() != (_ssl?443:80))
+            addressString += ":" + address.getPort();
+        _hostHeader = new ByteArrayBuffer(addressString);
+    }
+
+    public HttpClient getHttpClient()
+    {
+        return _client;
+    }
+
+    public Address getAddress()
+    {
+        return _address;
+    }
+
+    public boolean isSecure()
+    {
+        return _ssl;
+    }
+
+    public Buffer getHostHeader()
+    {
+        return _hostHeader;
+    }
+
+    public int getMaxConnections()
+    {
+        return _maxConnections.get();
+    }
+
+    void setMaxConnections(int maxConnections)
+    {
+        this._maxConnections.set(maxConnections);
+    }
+
+    public int getMaxQueueSize()
+    {
+        return _maxQueueSize.intValue();
+    }
+
+    public void setMaxQueueSize(int maxQueueSize)
+    {
+        _maxQueueSize.set(maxQueueSize);
+    }
+
+    // this is only used by tests
+    int getConnections()
+    {
+        synchronized (this)
+        {
+            return _connections.size();
+        }
+    }
+
+    // this is only used by tests
+    int getIdleConnections()
+    {
+        synchronized (this)
+        {
+            return _idle.size();
+        }
+    }
+
+    public void addAuthorization(String pathSpec, Authentication authorization)
+    {
+        synchronized (this)
+        {
+            if (_authorizations == null)
+                _authorizations = new PathMap();
+            _authorizations.put(pathSpec,authorization);
+        }
+
+        // TODO query and remove methods
+    }
+
+    public void addCookie(HttpCookie cookie)
+    {
+        synchronized (this)
+        {
+            if (_cookies == null)
+                _cookies = new ArrayList<HttpCookie>();
+            _cookies.add(cookie);
+        }
+
+        // TODO query, remove and age methods
+    }
+
+    /**
+     * Get a connection. We either get an idle connection if one is available, or we make a new connection, if we have not yet reached maxConnections. If we
+     * have reached maxConnections, we wait until the number reduces.
+     * 
+     * @param timeout
+     *            max time prepared to block waiting to be able to get a connection
+     * @return a HttpConnection for this destination
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    private HttpConnection getConnection(long timeout) throws IOException
+    {
+        HttpConnection connection = null;
+
+        while ((connection == null) && (connection = getIdleConnection()) == null && timeout > 0)
+        {
+            boolean startConnection = false;
+            synchronized (this)
+            {
+                int totalConnections = _connections.size() + _pendingConnections.get();
+                if (totalConnections < _maxConnections.get())
+                {
+                    _newConnection++;
+                    startConnection = true;
                 }
-		};
-	};
-	*/
+            }
 
-	HttpDestination(HttpClient client, Address address, boolean ssl, int maxConnections) {
-		_client = client;
-		_address = address;
-		_maxConnections = maxConnections;
-		String addressString = address.getHost();
-		if (address.getPort() != 80)
-			addressString += ":" + address.getPort();
-		_hostHeader = new ByteArrayBuffer(addressString);
-	}
+            if (startConnection)
+            {
+                startNewConnection();
+                try
+                {
+                    Object o = _newQueue.take();
+                    if (o instanceof HttpConnection)
+                    {
+                        connection = (HttpConnection)o;
+                    }
+                    else
+                        throw (IOException)o;
+                }
+                catch (InterruptedException e)
+                {
+                    Log.ignore(e);
+                }
+            }
+            else
+            {
+                try
+                {
+                    Thread.currentThread();
+                    Thread.sleep(200);
+                    timeout -= 200;
+                }
+                catch (InterruptedException e)
+                {
+                    Log.ignore(e);
+                }
+            }
+        }
+        return connection;
+    }
 
-	public Address getAddress() {
-		return _address;
-	}
+    public HttpConnection reserveConnection(long timeout) throws IOException
+    {
+        HttpConnection connection = getConnection(timeout);
+        if (connection != null)
+            connection.setReserved(true);
+        return connection;
+    }
 
-	public Buffer getHostHeader() {
-		return _hostHeader;
-	}
+    public HttpConnection getIdleConnection() throws IOException
+    {
+        HttpConnection connection = null;
+        while (true)
+        {
+            if (connection != null)
+            {
+                synchronized (this)
+                {
+                    _connections.remove(connection);
+                    connection.close();
+                    connection = null;
+                }
+            }
+            connection = _idle.poll();
 
-	public HttpClient getHttpClient() {
-		return _client;
-	}
+            if (connection == null)
+                return null;
 
-	public boolean isSecure() {
-		return false;
-	}
+            // Check if the connection was idle,
+            // but it expired just a moment ago
+            if (connection.cancelIdleTimeout())
+                return connection;
+        }
+    }
 
-	public void addAuthorization(String pathSpec, Authentication authorization) {
-		throw new RuntimeException("Not implemented");
-	}
+    protected void startNewConnection()
+    {
+        try
+        {
+            _pendingConnections.incrementAndGet();
+            final Connector connector = _client._connector;
+            if (connector != null)
+                connector.startConnection(this);
+        }
+        catch (Exception e)
+        {
+            Log.debug(e);
+            onConnectionFailed(e);
+        }
+    }
 
-	public void addCookie(HttpCookie cookie) {
-		throw new RuntimeException("Not implemented");
-	}
+    public void onConnectionFailed(Throwable throwable)
+    {
+        Throwable connect_failure = null;
 
-	private void makeThingsHappen() throws IOException {
-		HttpExchange ex = _queue.poll();
-		if (ex == null)
-			return;
-		Throwable throwable = _connectionFailures.poll();
-		if (throwable != null) {
-			ex.onConnectionFailed(throwable);
-			return;
-		}
-		HttpConnection connection;
-		if ((connection = _idle.poll()) == null) {
-			if (_openedConnectionCount.get() < _maxConnections) {
-				_openedConnectionCount.incrementAndGet();
-				startNewConnection();
-			}
-			while((connection = _idle.poll()) == null)
-				Thread.yield();
-		}
-		send(connection, ex);
-	}
+        boolean startConnection = false;
 
-	protected void startNewConnection() {
-		try {
-			final Connector connector = _client._connector;
-			if (connector != null)
-				connector.startConnection(this);
-		} catch (Exception e) {
-			Log.debug(e);
-			onConnectionFailed(e);
-		}
-	}
+        _pendingConnections.decrementAndGet();
+        // this one is an exception
+        synchronized (this)
+        {
+            if (_newConnection > 0)
+            {
+                connect_failure = throwable;
+                _newConnection--;
+            }
+            else
+            {
+                HttpExchange ex = _queue.poll();
+                if (ex != null)
+                {
+                    ex.setStatus(HttpExchange.STATUS_EXCEPTED);
+                    ex.getEventListener().onConnectionFailed(throwable);
 
-	public void onConnectionFailed(Throwable throwable) {
-		_connectionFailures.add(throwable);
-	}
+                    // Since an existing connection had failed, we need to create a
+                    // connection if the queue is not empty and client is running.
+                    if (!_queue.isEmpty() && _client.isStarted())
+                        startConnection = true;
+                }
+            }
+        }
 
-	public void onException(Throwable throwable) {
-		_connectionFailures.add(throwable);
-	}
+        if (startConnection)
+            startNewConnection();
 
-	public void onNewConnection(final HttpConnection connection) throws IOException {
-		_all.add(connection);
-		returnConnection(connection, false);
-	}
+        if (connect_failure != null)
+        {
+            try
+            {
+                _newQueue.put(connect_failure);
+            }
+            catch (InterruptedException e)
+            {
+                Log.ignore(e);
+            }
+        }
+    }
 
-	public void returnConnection(HttpConnection connection, boolean close) throws IOException {
+    public void onException(Throwable throwable)
+    {
+        _pendingConnections.decrementAndGet();
+        // fine, on exception
+        synchronized (this)
+        {
+            HttpExchange ex = _queue.poll();
+            if (ex != null)
+            {
+                ex.setStatus(HttpExchange.STATUS_EXCEPTED);
+                ex.getEventListener().onException(throwable);
+            }
+        }
+    }
 
-		if (close || !connection.getEndPoint().isOpen()) {
-			try {
-				connection.close();
-				if (_all.remove(connection))
-					_openedConnectionCount.decrementAndGet();
-			} catch (IOException e) {
-				Log.ignore(e);
-			}
-		} else {
-			if (!_client.isStarted())
-				return;
+    public void onNewConnection(final HttpConnection connection) throws IOException
+    {
+        Connection q_connection = null;
 
-			if (connection.isReserved())
-				connection.setReserved(false);
+        // fine, we just opened a connection
+        _pendingConnections.decrementAndGet();
+        synchronized (this)
+        {
+            _connections.add(connection);
 
-			_idle.add(connection);
-		}
-	}
+            if (_newConnection > 0)
+            {
+                q_connection = connection;
+                _newConnection--;
+            }
+            else
+            {
+                HttpExchange exchange = _queue.poll();
+                if (exchange == null)
+                {
+                    connection.setIdleTimeout();
+                    _idle.add(connection);
+                }
+                else
+                {
+                    EndPoint endPoint = connection.getEndPoint();
+                    if (isProxied() && endPoint instanceof SelectConnector.ProxySelectChannelEndPoint)
+                    {
+                        SelectConnector.ProxySelectChannelEndPoint proxyEndPoint = (SelectConnector.ProxySelectChannelEndPoint)endPoint;
+                        ConnectExchange connect = new ConnectExchange(getAddress(),proxyEndPoint,exchange);
+                        connect.setAddress(getProxy());
+                        send(connection,connect);
+                        // this is ugly. at this point, I have dequeued an exchange just to look at it, and I can't actually process it. so...
+                        _queue.add(exchange);
+                    }
+                    else
+                    {
+                        send(connection,exchange);
+                    }
+                }
+            }
+        }
 
-	@SuppressWarnings("unchecked")
-	public void send(HttpExchange ex) throws IOException {
-		LinkedList<String> listeners = _client.getRegisteredListeners();
+        if (q_connection != null)
+        {
+            try
+            {
+                _newQueue.put(q_connection);
+            }
+            catch (InterruptedException e)
+            {
+                Log.ignore(e);
+            }
+        }
+    }
 
-		if (listeners != null) {
-			// Add registered listeners, fail if we can't load them
-			for (int i = listeners.size(); i > 0; --i) {
-				String listenerClass = listeners.get(i - 1);
+    public void returnConnection(HttpConnection connection, boolean close) throws IOException
+    {
+        if (connection.isReserved())
+            connection.setReserved(false);
 
-				try {
-					Class listener = Class.forName(listenerClass);
-					Constructor constructor = listener
-					        .getDeclaredConstructor(HttpDestination.class, HttpExchange.class);
-					HttpEventListener elistener = (HttpEventListener) constructor.newInstance(this, ex);
-					ex.setEventListener(elistener);
-				} catch (Exception e) {
-					e.printStackTrace();
-					throw new IOException("Unable to instantiate registered listener for destination: " + listenerClass);
-				}
-			}
-		}
-		doSend(ex);
-	}
+        if (close)
+        {
+            try
+            {
+                connection.close();
+            }
+            catch (IOException e)
+            {
+                Log.ignore(e);
+            }
+        }
 
-	public void resend(HttpExchange ex) throws IOException {
-		ex.getEventListener().onRetry();
-		ex.reset();
-		doSend(ex);
-	}
+        if (!_client.isStarted())
+            return;
 
-	protected void doSend(HttpExchange ex) throws IOException {
-		_queue.add(ex);
-		makeThingsHappen();
-	}
+        if (!close && connection.getEndPoint().isOpen())
+        {
+            HttpExchange ex = _queue.poll();
+            if (ex == null)
+            {
+                connection.setIdleTimeout();
+                _idle.add(connection);
+            }
+            else
+            {
+                send(connection,ex);
+            }
+        }
+        else
+        {
+            boolean startConnection = false;
+            synchronized (this)
+            {
+                _connections.remove(connection);
+                if (!_queue.isEmpty())
+                    startConnection = true;
+            }
 
-	protected void send(HttpConnection connection, HttpExchange exchange) throws IOException {
-		// System.err.println(toString() + " sending");
-		boolean result;
-		result = connection.send(exchange);	        
-		if (!result) {
-			// System.err.println(toString() + " failure sending");
-			_queue.add(exchange);
-			returnConnection(connection, false);
-		}
-	}
+            if (startConnection)
+                startNewConnection();
+        }
+    }
 
-	@Override
-	public synchronized String toString() {
-		return "HttpDestination@" + hashCode() + "//" + _address.getHost() + ":" + _address.getPort() + "("
-		        + _all.size() + "," + _idle.size() + "," + _queue.size() + ")";
-	}
+    public void returnIdleConnection(HttpConnection connection)
+    {
+        _idle.remove(connection);
+        try
+        {
+            connection.close();
+        }
+        catch (IOException e)
+        {
+            Log.ignore(e);
+        }
 
-	public synchronized String toDetailString() {
-		StringBuilder b = new StringBuilder();
-		b.append(toString());
-		b.append('\n');
-		b.append("--");
-		b.append('\n');
+        boolean startConnection = false;
+        synchronized (this)
+        {
+            _connections.remove(connection);
 
-		return b.toString();
-	}
+            if (!_queue.isEmpty() && _client.isStarted())
+                startConnection = true;
+        }
 
-	public void setProxy(Address proxy) {
-		throw new RuntimeException("Not implemented");
-	}
+        if (startConnection)
+            startNewConnection();
+    }
 
-	public Address getProxy() {
-		throw new RuntimeException("Not implemented");
-	}
+    public void send(HttpExchange ex) throws IOException
+    {
+        LinkedList<String> listeners = _client.getRegisteredListeners();
 
-	public Authentication getProxyAuthentication() {
-		throw new RuntimeException("Not implemented");
-	}
+        if (listeners != null)
+        {
+            // Add registered listeners, fail if we can't load them
+            for (int i = listeners.size(); i > 0; --i)
+            {
+                String listenerClass = listeners.get(i - 1);
 
-	public void setProxyAuthentication(Authentication authentication) {
-		throw new RuntimeException("Not implemented");
-	}
+                try
+                {
+                    Class listener = Class.forName(listenerClass);
+                    Constructor constructor = listener.getDeclaredConstructor(HttpDestination.class,HttpExchange.class);
+                    HttpEventListener elistener = (HttpEventListener)constructor.newInstance(this,ex);
+                    ex.setEventListener(elistener);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    throw new IOException("Unable to instantiate registered listener for destination: " + listenerClass);
+                }
+            }
+        }
 
-	public boolean isProxied() {
-		return false;
-	}
+        // Security is supported by default and should be the first consulted
+        if (_client.hasRealms())
+        {
+            ex.setEventListener(new SecurityListener(this,ex));
+        }
 
-	public void close() throws IOException {
-	}
+        doSend(ex);
+    }
 
+    public void resend(HttpExchange ex) throws IOException
+    {
+        ex.getEventListener().onRetry();
+        ex.reset();
+        doSend(ex);
+    }
+
+    protected void doSend(HttpExchange ex) throws IOException
+    {
+        // add cookies
+        // TODO handle max-age etc.
+        if (_cookies != null)
+        {
+            StringBuilder buf = null;
+            for (HttpCookie cookie : _cookies)
+            {
+                if (buf == null)
+                    buf = new StringBuilder();
+                else
+                    buf.append("; ");
+                buf.append(cookie.getName()); // TODO quotes
+                buf.append("=");
+                buf.append(cookie.getValue()); // TODO quotes
+            }
+            if (buf != null)
+                ex.addRequestHeader(HttpHeaders.COOKIE,buf.toString());
+        }
+
+        // Add any known authorizations
+        if (_authorizations != null)
+        {
+            Authentication auth = (Authentication)_authorizations.match(ex.getURI());
+            if (auth != null)
+                (auth).setCredentials(ex);
+        }
+
+        // Schedule the timeout here, before we queue the exchange
+        // so that we count also the queue time in the timeout
+        ex.scheduleTimeout(this);
+
+        HttpConnection connection = getIdleConnection();
+        if (connection != null)
+        {
+            send(connection,ex);
+        }
+        else
+        {
+            boolean startConnection = false;
+            if (_queue.approximateSize() >= _maxQueueSize.get())
+                throw new RejectedExecutionException("Queue full for address " + _address);
+
+            _queue.add(ex);
+            if (_connections.size() + _pendingConnections.get() < _maxConnections.get())
+                startConnection = true;
+
+            if (startConnection)
+                startNewConnection();
+        }
+    }
+
+    protected void exchangeExpired(HttpExchange exchange)
+    {
+        // The exchange may expire while waiting in the
+        // destination queue, make sure it is removed
+        _queue.remove(exchange);
+    }
+
+    protected void send(HttpConnection connection, HttpExchange exchange) throws IOException
+    {
+        // If server closes the connection, put the exchange back
+        // to the exchange queue and recycle the connection
+        if (!connection.send(exchange))
+        {
+            if (exchange.getStatus() <= HttpExchange.STATUS_WAITING_FOR_CONNECTION)
+                // enqueued at the end
+                _queue.add(exchange);
+            returnIdleConnection(connection);
+        }
+    }
+
+    @Override
+    public synchronized String toString()
+    {
+        return "HttpDestination@" + hashCode() + "//" + _address.getHost() + ":" + _address.getPort() + "(" + _connections.size() + "," + _idle.size() + ","
+                + _queue.approximateSize() + ")";
+    }
+
+    public synchronized String toDetailString()
+    {
+        StringBuilder b = new StringBuilder();
+        b.append(toString());
+        b.append('\n');
+        for (HttpConnection connection : _connections)
+        {
+            b.append(connection.toDetailString());
+            if (_idle.contains(connection))
+                b.append(" IDLE");
+            b.append('\n');
+        }
+        b.append("--");
+        b.append('\n');
+
+        return b.toString();
+    }
+
+    public void setProxy(Address proxy)
+    {
+        _proxy.set(proxy);
+    }
+
+    public Address getProxy()
+    {
+        return _proxy.get();
+    }
+
+    public Authentication getProxyAuthentication()
+    {
+        return _proxyAuthentication;
+    }
+
+    public void setProxyAuthentication(Authentication authentication)
+    {
+        _proxyAuthentication = authentication;
+    }
+
+    public boolean isProxied()
+    {
+        return _proxy.get() != null;
+    }
+
+    public void close() throws IOException
+    {
+        synchronized (this)
+        {
+            for (HttpConnection connection : _connections)
+            {
+                connection.close();
+            }
+        }
+    }
+
+    private class ConnectExchange extends ContentExchange
+    {
+        private final SelectConnector.ProxySelectChannelEndPoint proxyEndPoint;
+        private final HttpExchange exchange;
+
+        public ConnectExchange(Address serverAddress, SelectConnector.ProxySelectChannelEndPoint proxyEndPoint, HttpExchange exchange)
+        {
+            this.proxyEndPoint = proxyEndPoint;
+            this.exchange = exchange;
+            setMethod(HttpMethods.CONNECT);
+            String serverHostAndPort = serverAddress.toString();
+            setURI(serverHostAndPort);
+            addRequestHeader(HttpHeaders.HOST,serverHostAndPort);
+            addRequestHeader(HttpHeaders.PROXY_CONNECTION,"keep-alive");
+            addRequestHeader(HttpHeaders.USER_AGENT,"Jetty-Client");
+        }
+
+        @Override
+        protected void onResponseComplete() throws IOException
+        {
+            if (getResponseStatus() == HttpStatus.OK_200)
+            {
+                proxyEndPoint.upgrade();
+            }
+            else
+            {
+                onConnectionFailed(new ConnectException(exchange.getAddress().toString()));
+            }
+        }
+
+        @Override
+        protected void onConnectionFailed(Throwable x)
+        {
+            HttpDestination.this.onConnectionFailed(x);
+        }
+    }
 }

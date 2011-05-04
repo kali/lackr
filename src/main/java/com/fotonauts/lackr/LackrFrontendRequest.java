@@ -176,8 +176,13 @@ public class LackrFrontendRequest {
 		response.setContentType("text/plain");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos);
-		for (Throwable t : backendExceptions)
-			t.printStackTrace(ps);
+		for (Throwable t : backendExceptions) {
+			if (t instanceof LackrPresentableError) {
+	            LackrPresentableError error = (LackrPresentableError) t;
+	            ps.append(error.getMessage());
+            } else 
+            	t.printStackTrace(ps);
+		}
 		ps.flush();
 		response.setContentLength(baos.size());
 		response.getOutputStream().write(baos.toByteArray());

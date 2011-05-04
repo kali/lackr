@@ -21,8 +21,16 @@ public class MustacheContext {
 		registeredTemplates.put(name, template);
 		templates.put(name, Mustache.compiler().compile(template));
 	}
-	
-	public String eval(String templateName, Object data) {
-		return templates.get(templateName).execute(data);
+
+	public Template get(String templateName) {
+		return templates.get(templateName);
 	}
+
+	public String getTemplate(String name) {
+		return registeredTemplates.get(name);
+	}
+
+	public String[] getAllNames() {
+		return (String[]) registeredTemplates.keySet().toArray(new String[0]);
+    }
 }
