@@ -32,6 +32,16 @@ public class TestMustache extends BaseTestSubstitution {
 	}
 
 	@Test
+	public void testMustacheTemplateWithEsi() throws Exception {
+		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
+		        + "<!--# include virtual=\"/esi.must\" -->\n"
+		        + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"template_name\" -->\n"
+		        + "{ \"name\": \"the name\", \"value\": \"the value\", \"esi\":\"ssi:include:virtual:/esi.json\" }\n"
+		        + "<!-- /lackr:mustache:eval -->\n");
+		assertEquals("\n\nsome text from the template name:the name value:the value some:json crap\n\n", result);
+	}
+
+	@Test
 	public void testMustacheParseException() throws Exception {
 		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
 		        + "some text from the template name:{{name} value:{{value}}\n"

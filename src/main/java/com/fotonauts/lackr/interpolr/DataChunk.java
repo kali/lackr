@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
-
 public class DataChunk implements Chunk {
 
 	public DataChunk(byte[] buffer, int start, int stop) {
@@ -59,6 +57,6 @@ public class DataChunk implements Chunk {
     }
 
 	@Override
-    public void check(List<InterpolrException> exceptions) {
+    public void check(List<Throwable> exceptions) {
     }
 }

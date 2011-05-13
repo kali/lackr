@@ -16,7 +16,6 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.Document;
-import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 import com.samskivert.mustache.MustacheException;
 import com.samskivert.mustache.Template;
 
@@ -37,7 +36,7 @@ public class MustacheEvalChunk implements Chunk {
 	}
 
 	@Override
-	public void check(List<InterpolrException> exceptions) {
+	public void check(List<Throwable> exceptions) {
 		inner.check(exceptions);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
@@ -76,7 +75,7 @@ public class MustacheEvalChunk implements Chunk {
 			builder.append(e.getMessage() + "\n");
 			builder.append("template name: " + name + "\n");
 			String[] lines;
-			lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext().getTemplate(name).split("\n");
+			lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext().getExpandedTemplate(name).split("\n");
 			for (int i = 0; i < lines.length; i++) {
 				builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
 			}

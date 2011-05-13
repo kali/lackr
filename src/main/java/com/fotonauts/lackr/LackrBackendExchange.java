@@ -25,7 +25,6 @@ import com.fotonauts.lackr.client.JettyLackrBackendExchange;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
-import com.fotonauts.lackr.mustache.MustacheContext;
 import com.mongodb.BasicDBObject;
 
 public abstract class LackrBackendExchange {

@@ -144,6 +144,7 @@ public class LackrFrontendRequest {
 
 	@SuppressWarnings("unchecked")
 	private void preflightCheck() {
+		getMustacheContext().checkAndCompileAll((List) backendExceptions);
 		if (rootExchange.getParsedDocument() != null) {
 			rootExchange.getParsedDocument().check((List) backendExceptions);
 		}

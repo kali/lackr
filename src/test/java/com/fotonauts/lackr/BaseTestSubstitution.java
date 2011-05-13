@@ -21,6 +21,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 	static final String ESI_HTML = "<p> un bout de html avec des \" et des \\ dedans\nsur plusieurs lignes\npour faire joli</p>";
 	static final String ESI_JSON = "{ \"some\": \"json crap\" }";
 	static final String ESI_URL = "http://hou.salut.com/blah&merci.pour.tout";
+	static final String ESI_MUST = "some text from the template name:{{name}} value:{{value}} some:{{esi.some}}";
 
 	public BaseTestSubstitution(String clientImplementation) throws Exception {
 		super(clientImplementation);
@@ -37,6 +38,8 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     				response.setStatus(500);
     				response.setHeader("X-SSI-AWARE", "yes");
     				writeResponse(response, "<!-- ignore me -->".getBytes(), MimeType.TEXT_HTML);
+    			} else if (request.getPathInfo().endsWith("must")) {
+    				writeResponse(response, ESI_MUST.getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("url")) {
     				writeResponse(response, ESI_URL.getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("json")) {

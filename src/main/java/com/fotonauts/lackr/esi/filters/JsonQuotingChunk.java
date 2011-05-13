@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 
 public class JsonQuotingChunk implements Chunk {
 	
@@ -57,7 +56,7 @@ public class JsonQuotingChunk implements Chunk {
     }
 
 	@Override
-    public void check(List<InterpolrException> exceptions) {
+    public void check(List<Throwable> exceptions) {
 		inner.check(exceptions);
     }
 	

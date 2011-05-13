@@ -28,7 +28,7 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
+    public void check(LackrBackendExchange exchange, List<Throwable> exceptions) {
 		String mimeType = getMimeType(exchange);
 		if(MimeType.isJS(mimeType))
 			exceptions.add(new InterpolrException("unsupported ESI type (js* in *ML context)", exchange));
