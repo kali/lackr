@@ -15,7 +15,7 @@
 	<context:property-placeholder order="20"
 		location="classpath:/lackr.default.properties"
 		ignore-resource-not-found="false" ignore-unresolvable="true" />
-		
+
 	<context:annotation-config />
 
 	<bean id="Server" class="org.eclipse.jetty.server.Server"
@@ -31,9 +31,11 @@
 	</bean>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
-		p:client-ref="${lackr.clientImpl}" p:backends="${lackr.backends}" p:probeUrl="${lackr.probeUrl}"
-		p:mongoLoggingPath="${lackr.mongologgingpath}" p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}">
-	</bean>
+		p:client-ref="${lackr.clientImpl}" p:backends="${lackr.backends}"
+		p:probeUrl="${lackr.probeUrl}" p:mongoAccessLogCollection="${lackr.mongolog.access}"
+		p:mongoRapportrQueue="${lackr.rapportr.mongo}" p:grid="${lackr.rapportr.grid}"
+		p:ircErrorChannel="${lackr.rapportr.channel}"
+		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"/>
 
 	<bean id="interpolr" class="com.fotonauts.lackr.interpolr.Interpolr">
 		<property name="rules">
@@ -51,14 +53,18 @@
 		</property>
 	</bean>
 
-	<bean name="apacheClient" class="com.fotonauts.lackr.client.ApacheClient" lazy-init="true"/>
+	<bean name="apacheClient" class="com.fotonauts.lackr.client.ApacheClient"
+		lazy-init="true" />
 
-	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient" lazy-init="true"/>
+	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient"
+		lazy-init="true" />
 
-	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient" p:actualClient-ref="jettyHttpClient" lazy-init="true" />
+	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient"
+		p:actualClient-ref="jettyHttpClient" lazy-init="true" />
 
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
-		init-method="start" destroy-method="stop" p:connectTimeout="500" lazy-init="true">
+		init-method="start" destroy-method="stop" p:connectTimeout="500"
+		lazy-init="true">
 		<property name="connectorType">
 			<util:constant
 				static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />

@@ -96,7 +96,7 @@ public class LackrFrontendRequest {
 		        : uri.toASCIIString();
 		rootUrl = rootUrl.replace(" ", "%20");
 
-		logLine = Service.standardLogLine(request, "lackr-front");
+		logLine = Service.accessLogLineTemplate(request, "lackr-front");
 
 		logLine.put(HTTP_HOST.getPrettyName(), request.getHeader("Host"));
 		logLine.put(METHOD.getPrettyName(), request.getMethod());
@@ -190,6 +190,7 @@ public class LackrFrontendRequest {
 
 		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
 		logLine.put(DATA.getPrettyName(), baos.toByteArray());
+		getService().rapportrException(request, new String(baos.toByteArray(), "UTF-8"));
 	}
 
 	public void writeSuccessResponse(HttpServletResponse response) throws IOException {

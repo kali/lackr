@@ -12,6 +12,7 @@ import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -41,15 +42,26 @@ import com.mongodb.MongoException;
 public class Service extends AbstractHandler {
 
 	private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
+	private final String hostname;
 	static Logger log = LoggerFactory.getLogger(Service.class);
 
-	protected String mongoLoggingPath;
 	protected BackendClient client;
-	protected DBCollection logCollection;
+	protected DBCollection accessLogCollection;
+	protected DBCollection mongoRapportrQueue;
 
 	private int timeout;
-	
+
 	protected Interpolr interpolr;
+	
+	public Service() {
+		String hostname = "";
+		try {
+			hostname = java.net.InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+
+		}
+		this.hostname = hostname;
+	}
 
 	public Interpolr getInterpolr() {
 		return interpolr;
@@ -65,6 +77,8 @@ public class Service extends AbstractHandler {
 	private String backends;
 	private String probeUrl;
 	private ObjectMapper objectMapper = new ObjectMapper();
+	private String grid;
+	private String ircErrorChannel;
 
 	@Override
 	protected void doStart() throws Exception {
@@ -72,14 +86,66 @@ public class Service extends AbstractHandler {
 		super.doStart();
 	}
 
-	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, MongoLoggingKeys key,
+	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, String key,
 	        String headerName) {
 		String value = request.getHeader(headerName);
 		if (value != null)
-			logLine.put(key.getPrettyName(), value);
+			logLine.put(key, value);
 	}
 
-	public static BasicDBObject standardLogLine(HttpServletRequest request, String facility) {
+	public static void addHeadersIfPresent(BasicBSONObject logLine, HttpServletRequest request, MongoLoggingKeys key,
+	        String headerName) {
+		addHeadersIfPresent(logLine, request, key.getPrettyName(), headerName);
+	}
+
+	public void rapportrException(HttpServletRequest request, String errorDescription) {
+		if (mongoRapportrQueue == null)
+			return;
+
+		BasicDBObject mongoQueueHull = new BasicDBObject();
+		mongoQueueHull.put("locked_by", null);
+		mongoQueueHull.put("locked_at", null);
+		mongoQueueHull.put("last_error", null);
+		mongoQueueHull.put("attempts", 0);
+		mongoQueueHull.put("priority", 0);
+		mongoQueueHull.put("no_meta_infos", false);
+		mongoQueueHull.put("irc_channel", ircErrorChannel);
+		mongoQueueHull.put("class", "Hash");
+		mongoQueueHull.put("store", true);
+		
+		BasicDBObject logLine = new BasicDBObject();
+		mongoQueueHull.put("obj", logLine);
+		logLine.put("facility", "lackr");
+		logLine.put("created_at", new Date().getTime());
+		logLine.put("level", "error");
+		logLine.put("type", "exception");
+		logLine.put("hostname", hostname);
+		logLine.put("grid", grid);
+		
+		BasicDBObject data = new BasicDBObject();
+		logLine.put("data", data);
+
+		BasicDBObject env = new BasicDBObject();
+		data.put("env", env);
+
+		addHeadersIfPresent(env, request, "HTTP_USER_AGENT", "User-Agent");
+		addHeadersIfPresent(env, request, "REMOTE_ADDR", "X-Forwarded-For");
+		addHeadersIfPresent(env, request, "HTTP_X_FTN_OPERATIONID", "X-Ftn-OperationId");
+
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				String cname = cookie.getName();
+				if (cname.equals("login_session")) {
+					env.put(LOGIN_SESSION.getPrettyName(), cookie.getValue());
+				}
+			}
+		}
+		logLine.put("message", errorDescription);
+		mongoRapportrQueue.save(mongoQueueHull);
+	}
+
+	public static BasicDBObject accessLogLineTemplate(HttpServletRequest request, String facility) {
 		/* Prepare the log line */
 		BasicDBObject logLine = new BasicDBObject();
 		logLine.put(FACILITY.getPrettyName(), facility);
@@ -104,7 +170,6 @@ public class Service extends AbstractHandler {
 				}
 			}
 		}
-
 		return logLine;
 	}
 
@@ -116,38 +181,34 @@ public class Service extends AbstractHandler {
 		this.client = client;
 	}
 
-	/**
-	 * @return the mongoPath
-	 */
-	public String getMongoLoggingPath() {
-		return mongoLoggingPath;
-	}
-
-	/**
-	 * @param mongoPath
-	 *            the mongoPath to set
-	 */
-	public void setMongoLoggingPath(String mongoPath) {
-		this.mongoLoggingPath = mongoPath;
-	}
-
-	@PostConstruct
-	public void initLogger() throws MongoException, UnknownHostException {
-		if (StringUtils.hasText(mongoLoggingPath)) {
-			String[] pathComponents = mongoLoggingPath.split("/");
-			if (pathComponents.length != 3)
-				throw new IllegalArgumentException("Mongo Logging Path not compliant with spec in \""
-				        + mongoLoggingPath + "\", format is host:port/database/collection.");
-
-			String[] hostComponents = pathComponents[0].split(":");
-			if (hostComponents.length != 2)
-				throw new IllegalArgumentException(
-				        "Mongo Logging Hostname not compliant with spec, should be host:port (is \""
-				                + pathComponents[0] + "\" ).");
-
-			Mongo logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
-			setLogCollection(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
+	private DBCollection getCollection(String mongoPath) throws NumberFormatException, UnknownHostException,
+	        MongoException {
+		if (!StringUtils.hasText(mongoPath)) {
+			return null;
 		}
+		String[] pathComponents = mongoPath.split("/");
+		if (pathComponents.length != 3)
+			throw new IllegalArgumentException("Mongo Logging Path not compliant with spec in \"" + mongoPath
+			        + "\", format is host:port/database/collection.");
+
+		String[] hostComponents = pathComponents[0].split(":");
+		if (hostComponents.length != 2)
+			throw new IllegalArgumentException(
+			        "Mongo Logging Hostname not compliant with spec, should be host:port (is \"" + pathComponents[0]
+			                + "\" ).");
+
+		Mongo logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
+		return logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]);
+	}
+
+	public void setMongoAccessLogCollection(String mongoLoggingPath) throws NumberFormatException,
+	        UnknownHostException, MongoException {
+		accessLogCollection = getCollection(mongoLoggingPath);
+	}
+
+	public void setMongoRapportrQueue(String mongoLoggingPath) throws NumberFormatException, UnknownHostException,
+	        MongoException {
+		mongoRapportrQueue = getCollection(mongoLoggingPath);
 	}
 
 	@Override
@@ -185,7 +246,7 @@ public class Service extends AbstractHandler {
 	}
 
 	public void setLogCollection(DBCollection logCollection) {
-		this.logCollection = logCollection;
+		this.accessLogCollection = logCollection;
 	}
 
 	public void setExecutor(Executor executor) {
@@ -205,25 +266,33 @@ public class Service extends AbstractHandler {
 	}
 
 	public void log(final BasicDBObject logLine) {
-		if (logCollection != null) {
+		if (accessLogCollection != null) {
 			executor.execute(new Runnable() {
 				@Override
 				public void run() {
-					logCollection.save(logLine);
+					accessLogCollection.save(logLine);
 				}
 			});
 		}
 	}
 
 	public void setTimeout(int timeout) {
-	    this.timeout = timeout;
-    }
+		this.timeout = timeout;
+	}
 
 	public int getTimeout() {
-	    return timeout;
-    }
+		return timeout;
+	}
 
 	public ObjectMapper getJacksonObjectMapper() {
-	    return objectMapper;
+		return objectMapper;
+	}
+
+	public void setGrid(String grid) {
+		this.grid = grid;
+	}
+
+	public void setIrcErrorChannel(String ircErrorChannel) {
+	    this.ircErrorChannel = ircErrorChannel;
     }
 }

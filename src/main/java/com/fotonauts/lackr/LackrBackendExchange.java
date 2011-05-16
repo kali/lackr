@@ -82,7 +82,7 @@ public abstract class LackrBackendExchange {
 			}
 		}
 		startTimestamp = System.currentTimeMillis();
-		logLine = Service.standardLogLine(backendRequest.getFrontendRequest()
+		logLine = Service.accessLogLineTemplate(backendRequest.getFrontendRequest()
 				.getRequest(), "lackr-back");
 		logLine.put(HTTP_HOST.getPrettyName(), backendRequest
 				.getFrontendRequest().getRequest().getHeader("Host"));
