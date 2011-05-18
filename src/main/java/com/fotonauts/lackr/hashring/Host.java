@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.PostConstruct;
 
@@ -22,7 +23,7 @@ public class Host {
 	private HashRing ring;
 
 	private String probeString;
-	private URL probeURL;
+	private AtomicReference<URL> probeURL = new AtomicReference<URL>();
 
 	public Host() {
 	}
@@ -82,22 +83,19 @@ public class Host {
 	public String getProbe() {
 		return probeString;
 	}
-
-	@PostConstruct
-	public void init() throws MalformedURLException {
-		if(probeString != null)
-			probeURL = new URL("http://" + hostname + probeString);
-	}
 	
 	public void probe() {
-		if(probeURL == null)
+		if(probeString == null)
 			return;
 		boolean after = false;
         try {
-			HttpURLConnection connection = (HttpURLConnection) probeURL.openConnection();
+    		if(probeURL.get() == null)
+    			buildURL();
+			HttpURLConnection connection = (HttpURLConnection) probeURL.get().openConnection();
 			connection.setConnectTimeout(100*1000);
 			after = connection.getResponseCode() == 200;
         } catch (IOException e) {
+        	probeURL.set(null);
         }
         boolean before = up.getAndSet(after);
         if(before != after) {
@@ -105,6 +103,10 @@ public class Host {
         	if(ring != null)
         		ring.refreshStatus();
         }
+    }
+
+	private void buildURL() throws MalformedURLException {
+		probeURL.set(new URL("http://" + hostname + probeString));
     }
 
 }

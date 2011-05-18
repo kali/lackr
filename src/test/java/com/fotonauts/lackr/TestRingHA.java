@@ -44,7 +44,6 @@ public class TestRingHA extends TestCase {
 			start();
 			host = new Host("localhost:" + getConnectors()[0].getLocalPort());
 			host.setProbe("/");
-			host.init();
 		}
 	}
 
@@ -57,7 +56,13 @@ public class TestRingHA extends TestCase {
 	public void testHostProbeNoConnection() throws MalformedURLException {
 		Host h = new Host("localhost:29843");
 		h.setProbe("/");
-		h.init();
+		h.probe();
+		assertFalse("h is down", h.isUp());
+	}
+
+	public void testHostProbeWrongHostname() throws Exception {
+		Host h = new Host("something.that.does.not.exists");
+		h.setProbe("/");
 		h.probe();
 		assertFalse("h is down", h.isUp());
 	}
@@ -70,7 +75,7 @@ public class TestRingHA extends TestCase {
 		assertEquals("server has been probed", 1, backend.requestCount.get());
 		assertFalse("h is down", h.isUp());
 	}
-
+	
 	public void testHostProbe200() throws Exception {
 		StubServer backend = new StubServer();
 		Host h = backend.host;
