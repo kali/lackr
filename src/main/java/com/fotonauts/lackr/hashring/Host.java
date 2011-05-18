@@ -10,10 +10,9 @@ import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 public class Host {
 
@@ -85,7 +84,7 @@ public class Host {
 	}
 	
 	public void probe() {
-		if(probeString == null)
+		if(!StringUtils.hasText(probeString))
 			return;
 		boolean after = false;
         try {
