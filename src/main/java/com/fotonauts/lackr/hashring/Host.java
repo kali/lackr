@@ -14,12 +14,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.lackr.RapportrInterface;
+
 public class Host {
 
 	static Logger log = LoggerFactory.getLogger(Host.class);
 
 	protected String hostname;
 	private HashRing ring;
+	protected RapportrInterface rapportr;
 
 	private String probeString;
 	private AtomicReference<URL> probeURL = new AtomicReference<URL>();
@@ -31,7 +34,8 @@ public class Host {
 		this.hostname = backend;
 	}
 
-	public Host(String hostname, String probeUrl) {
+	public Host(RapportrInterface rapportr, String hostname, String probeUrl) {
+		this.rapportr = rapportr;
 		this.hostname = hostname;
 		this.probeString = probeUrl;
     }
@@ -94,18 +98,22 @@ public class Host {
 			connection.setConnectTimeout(100*1000);
 			after = connection.getResponseCode() == 200;
         } catch (IOException e) {
+        	String message = "Can not probe " + probeURL.toString() + "(" + e.toString() + ")";
+        	log.warn(message);
         	probeURL.set(null);
         }
         boolean before = up.getAndSet(after);
         if(before != after) {
         	log.warn("Status change: " + toString());
+        	if(rapportr != null)
+        		rapportr.warnMessage("Backend status change: " + toString(), null);
         	if(ring != null)
         		ring.refreshStatus();
         }
     }
 
 	private void buildURL() throws MalformedURLException {
-		probeURL.set(new URL("http://" + hostname + probeString));
+		probeURL.set(new URL((hostname.startsWith("http://") ? hostname : ("http://" + hostname)) + probeString));
     }
 
 }

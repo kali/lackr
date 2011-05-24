@@ -22,6 +22,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.bson.BSONObject;
 import org.bson.BasicBSONObject;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.server.Request;
@@ -39,7 +40,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 
-public class Service extends AbstractHandler {
+public class Service extends AbstractHandler implements RapportrInterface {
 
 	private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
 	private final String hostname;
@@ -52,7 +53,7 @@ public class Service extends AbstractHandler {
 	private int timeout;
 
 	protected Interpolr interpolr;
-	
+
 	public Service() {
 		String hostname = "";
 		try {
@@ -98,39 +99,52 @@ public class Service extends AbstractHandler {
 		addHeadersIfPresent(logLine, request, key.getPrettyName(), headerName);
 	}
 
+	public BasicDBObject createRapportrMessage() {
+		BasicDBObject mongoDoc = new BasicDBObject();
+		mongoDoc.put("locked_by", null);
+		mongoDoc.put("locked_at", null);
+		mongoDoc.put("last_error", null);
+		mongoDoc.put("attempts", 0);
+		mongoDoc.put("priority", 0);
+		mongoDoc.put("no_meta_infos", false);
+		mongoDoc.put("irc_channel", ircErrorChannel);
+		mongoDoc.put("class", "Hash");
+		mongoDoc.put("store", true);
+
+		BasicDBObject obj = new BasicDBObject();
+		mongoDoc.put("obj", obj);
+		obj.put("facility", "lackr");
+		obj.put("app", "lackr");
+		obj.put("created_at", new Date().getTime());
+		obj.put("level", "error");
+		obj.put("type", "exception");
+		obj.put("hostname", hostname);
+		obj.put("grid", grid);
+
+		BasicDBObject data = new BasicDBObject();
+		obj.put("data", data);
+
+		return mongoDoc;
+	}
+
 	public void rapportrException(HttpServletRequest request, String errorDescription) {
 		if (mongoRapportrQueue == null)
 			return;
 
-		BasicDBObject mongoQueueHull = new BasicDBObject();
-		mongoQueueHull.put("locked_by", null);
-		mongoQueueHull.put("locked_at", null);
-		mongoQueueHull.put("last_error", null);
-		mongoQueueHull.put("attempts", 0);
-		mongoQueueHull.put("priority", 0);
-		mongoQueueHull.put("no_meta_infos", false);
-		mongoQueueHull.put("irc_channel", ircErrorChannel);
-		mongoQueueHull.put("class", "Hash");
-		mongoQueueHull.put("store", true);
-		
-		BasicDBObject logLine = new BasicDBObject();
-		mongoQueueHull.put("obj", logLine);
-		logLine.put("facility", "lackr");
-		logLine.put("created_at", new Date().getTime());
-		logLine.put("level", "error");
-		logLine.put("type", "exception");
-		logLine.put("hostname", hostname);
-		logLine.put("grid", grid);
-		
-		BasicDBObject data = new BasicDBObject();
-		logLine.put("data", data);
+		BasicDBObject mongoDoc = createRapportrMessage();
+		BSONObject obj = (BSONObject) mongoDoc.get("obj");
+		BSONObject data = (BSONObject) obj.get("data");
+
+		data.put("description", errorDescription);
 
 		BasicDBObject env = new BasicDBObject();
 		data.put("env", env);
-
+		env.put("root_url", request.getRequestURL().toString());
 		addHeadersIfPresent(env, request, "HTTP_USER_AGENT", "User-Agent");
 		addHeadersIfPresent(env, request, "REMOTE_ADDR", "X-Forwarded-For");
 		addHeadersIfPresent(env, request, "HTTP_X_FTN_OPERATIONID", "X-Ftn-OperationId");
+		addHeadersIfPresent(env, request, CLIENT_ID, "X-Ftn-User");
+		addHeadersIfPresent(env, request, SESSION_ID, "X-Ftn-Session");
 
 		Cookie[] cookies = request.getCookies();
 		if (cookies != null) {
@@ -141,8 +155,20 @@ public class Service extends AbstractHandler {
 				}
 			}
 		}
-		logLine.put("message", errorDescription);
-		mongoRapportrQueue.save(mongoQueueHull);
+		obj.put("message", errorDescription.subSequence(0, errorDescription.indexOf('\n')));
+		mongoRapportrQueue.save(mongoDoc);
+	}
+
+	@Override
+    public void warnMessage(String message, String description) {
+		BasicDBObject mongoDoc = createRapportrMessage();
+		BSONObject obj = (BSONObject) mongoDoc.get("obj");
+		BSONObject data = (BSONObject) obj.get("data");
+
+		if (description != null)
+			data.put("description", description);
+		obj.put("message", message);
+		mongoRapportrQueue.save(mongoDoc);
 	}
 
 	public static BasicDBObject accessLogLineTemplate(HttpServletRequest request, String facility) {
@@ -240,8 +266,8 @@ public class Service extends AbstractHandler {
 			String[] hostnames = backends.split(",");
 			Host[] hosts = new Host[hostnames.length];
 			for (int i = 0; i < hostnames.length; i++)
-				hosts[i] = new Host(hostnames[i], probeUrl);
-			ring = new HashRing(hosts);
+				hosts[i] = new Host(this, hostnames[i], probeUrl);
+			ring = new HashRing(this, hosts);
 		}
 	}
 
@@ -293,6 +319,6 @@ public class Service extends AbstractHandler {
 	}
 
 	public void setIrcErrorChannel(String ircErrorChannel) {
-	    this.ircErrorChannel = ircErrorChannel;
-    }
+		this.ircErrorChannel = ircErrorChannel;
+	}
 }

@@ -15,6 +15,8 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fotonauts.lackr.RapportrInterface;
+
 public class HashRing {
 
 	static Logger log = LoggerFactory.getLogger(Host.class);
@@ -28,16 +30,20 @@ public class HashRing {
 	Host[] hosts;
 
 	private NavigableMap<Integer, Host> ring;
+	
+	private RapportrInterface rapportrInterface;
 
-	public HashRing() {
-		// TODO Auto-generated constructor stub
+	public HashRing(RapportrInterface rapportrInterface, Host[] backends) {
+		this.rapportrInterface = rapportrInterface;
+		hosts = backends;
+		init();
 	}
 
 	public HashRing(String... backends) {
 		hosts = new Host[backends.length];
 		for (int i = 0; i < backends.length; i++)
 			hosts[i] = new Host(backends[i]);
-		init();
+		init();		
 	}
 
 	public HashRing(Host... backends) {
@@ -112,6 +118,9 @@ public class HashRing {
 				ups++;
 		}
 		up.set(ups);
-		log.warn("Ring has " + up.get() + " backend up among " + hosts.length + ".");
+		String message = "Ring has " + up.get() + " backend up among " + hosts.length + ".";
+		log.warn(message);
+		if(rapportrInterface != null)
+			rapportrInterface.warnMessage(message, null);
 	}
 }
