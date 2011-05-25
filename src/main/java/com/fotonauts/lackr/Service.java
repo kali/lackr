@@ -115,7 +115,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
 		mongoDoc.put("obj", obj);
 		obj.put("facility", "lackr");
 		obj.put("app", "lackr");
-		obj.put("created_at", new Date().getTime());
+		obj.put("created_at", new Date());
 		obj.put("level", "error");
 		obj.put("type", "exception");
 		obj.put("hostname", hostname);
