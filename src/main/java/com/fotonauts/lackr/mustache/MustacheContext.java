@@ -29,7 +29,7 @@ public class MustacheContext {
 			registered.getValue().check(exceptions);
 			String expanded = getExpandedTemplate(registered.getKey());
 			try {
-				compiledTemplates.put(registered.getKey(), Mustache.compiler().compile(expanded));
+				compiledTemplates.put(registered.getKey(), Mustache.compiler().defaultValue("").compile(expanded));
 			} catch (MustacheParseException e) {
 				StringBuilder builder = new StringBuilder();
 				builder.append("MustacheParseException\n");

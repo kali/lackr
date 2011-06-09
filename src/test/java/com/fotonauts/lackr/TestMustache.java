@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestMustache extends BaseTestSubstitution {
@@ -63,6 +64,10 @@ public class TestMustache extends BaseTestSubstitution {
 		assertTrue(result.contains("JsonParseException"));
 	}
 
+	// This test is now irrelevant (and broken) as we use a default value in case a value is missing or null, 
+	// and I'm at a loss trying 
+	// to find another possible error case.
+	@Ignore
 	@Test
 	public void testMustacheException() throws Exception {
 		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"

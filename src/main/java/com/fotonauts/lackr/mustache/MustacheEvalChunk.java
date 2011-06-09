@@ -47,7 +47,7 @@ public class MustacheEvalChunk implements Chunk {
 			Map data = mapper.readValue(baos.toByteArray(), Map.class);
 			MustacheContext context = exchange.getBackendRequest().getFrontendRequest().getMustacheContext();
 			Template template = context.get(name);
-			if(template == null) {
+			if (template == null) {
 				StringBuilder builder = new StringBuilder();
 				builder.append("Mustache template not found\n");
 				builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
@@ -59,23 +59,43 @@ public class MustacheEvalChunk implements Chunk {
 				}
 				builder.append("\n");
 				builder.append("known templates: ");
-				for (String name: context.getAllNames()) {
+				for (String name : context.getAllNames()) {
 					builder.append(name);
 					builder.append(" ");
 				}
 				builder.append("\n");
 				exchange.getBackendRequest().getFrontendRequest()
-				        .addBackendExceptions(new LackrPresentableError(builder.toString()));				
-			} else 
+				        .addBackendExceptions(new LackrPresentableError(builder.toString()));
+			} else
 				result = new ConstantChunk(template.execute(data).getBytes("UTF-8"));
-		} catch (MustacheException e) {
+		} catch (JsonParseException e) {
+			StringBuilder builder = new StringBuilder();
+			builder.append("JsonParseException\n");
+			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
+			builder.append(e.getMessage() + "\n");
+			builder.append("template name: " + name + "\n");
+			String lines[] = baos.toString().split("\n");
+			for (int i = 0; i < lines.length; i++) {
+				builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
+				if (i + 1 == e.getLocation().getLineNr()) {
+					builder.append("    ");
+					for (int j = 0; j < e.getLocation().getColumnNr() - 2; j++)
+						builder.append("-");
+					builder.append("^\n");
+				}
+			}
+			builder.append("\n");
+			exchange.getBackendRequest().getFrontendRequest()
+			        .addBackendExceptions(new LackrPresentableError(builder.toString()));
+		} catch (Exception e) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("MustacheException\n");
 			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
 			builder.append(e.getMessage() + "\n");
 			builder.append("template name: " + name + "\n");
 			String[] lines;
-			lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext().getExpandedTemplate(name).split("\n");
+			lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext().getExpandedTemplate(name)
+			        .split("\n");
 			for (int i = 0; i < lines.length; i++) {
 				builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
 			}
@@ -87,36 +107,7 @@ public class MustacheEvalChunk implements Chunk {
 			builder.append("\n");
 			exchange.getBackendRequest().getFrontendRequest()
 			        .addBackendExceptions(new LackrPresentableError(builder.toString()));
-		} catch (JsonParseException e) {
-			StringBuilder builder = new StringBuilder();
-			builder.append("JsonParseException\n");
-			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
-			builder.append(e.getMessage() + "\n");
-			builder.append("template name: " + name + "\n");
-			String lines[] = baos.toString().split("\n");
-			for (int i = 0; i < lines.length; i++) {
-				builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
-				if(i + 1 == e.getLocation().getLineNr()) {
-					builder.append("    ");
-					for(int j = 0; j < e.getLocation().getColumnNr() - 2; j++)
-						builder.append("-");
-					builder.append("^\n");
-				}
-			}
-			builder.append("\n");
-			exchange.getBackendRequest().getFrontendRequest()
-			        .addBackendExceptions(new LackrPresentableError(builder.toString()));
-		} catch (UnsupportedEncodingException e) {
-			// unlikely
-			exchange.getBackendRequest().getFrontendRequest().addBackendExceptions(e);
-		} catch (JsonMappingException e) {
-			// unlikely
-			exchange.getBackendRequest().getFrontendRequest().addBackendExceptions(e);
-		} catch (IOException e) {
-			// unlikely
-			exchange.getBackendRequest().getFrontendRequest().addBackendExceptions(e);
 		}
-
 	}
 
 	@Override
