@@ -130,7 +130,7 @@ public abstract class LackrBackendExchange {
 				&& (getResponseStatus() / 100 == 4 || getResponseStatus() / 100 == 5)
 				&& getResponseHeader("X-SSI-AWARE") == null)
 			backendRequest.getFrontendRequest().addBackendExceptions(
-					new Exception("Fragment " + getBackendRequest().getQuery()
+			        new LackrPresentableError("Fragment " + getBackendRequest().getQuery()
 							+ " returned code " + getResponseStatus()));
 
 		try {
@@ -147,7 +147,7 @@ public abstract class LackrBackendExchange {
 				parsedDocument = new Document(new DataChunk(new byte[0]));
 		} catch (Throwable e) {
 			e.printStackTrace();
-			backendRequest.getFrontendRequest().addBackendExceptions(e);
+			backendRequest.getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
 		}
 		backendRequest.getFrontendRequest().notifySubRequestDone();
 	}

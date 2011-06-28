@@ -2,10 +2,8 @@ package com.fotonauts.lackr.esi.filters;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 
 import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 
 public class AmpersandEscapeChunk implements Chunk {
 	
@@ -41,7 +39,7 @@ public class AmpersandEscapeChunk implements Chunk {
     }
 
 	@Override
-    public Object toDebugString() {
+    public String toDebugString() {
 	    return "AMPERSANDESCAPE";
     }
 
@@ -51,8 +49,8 @@ public class AmpersandEscapeChunk implements Chunk {
     }
 
 	@Override
-    public void check(List<InterpolrException> exceptions) {
-		inner.check(exceptions);
+    public void check() {
+		inner.check();
     }
 	
 }

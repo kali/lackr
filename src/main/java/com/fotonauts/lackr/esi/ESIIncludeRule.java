@@ -1,7 +1,5 @@
 package com.fotonauts.lackr.esi;
 
-import java.util.List;
-
 import org.eclipse.jetty.http.HttpHeaders;
 
 import com.fotonauts.lackr.BackendRequest;
@@ -67,6 +65,5 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 
 	public abstract Chunk filterDocumentAsChunk(LackrBackendExchange exchange);
 
-	public abstract void check(LackrBackendExchange exchange,
-			List<InterpolrException> exceptions);
+	public abstract void check(LackrBackendExchange exchange);
 }

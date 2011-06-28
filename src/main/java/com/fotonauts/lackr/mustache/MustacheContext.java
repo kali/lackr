@@ -24,9 +24,9 @@ public class MustacheContext {
 		compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>());
 	}
 
-	public void checkAndCompileAll(List<Throwable> exceptions) {
+	public void checkAndCompileAll(List<LackrPresentableError> backendExceptions) {
 		for (Entry<String, Document> registered : registeredTemplatesDocument.entrySet()) {
-			registered.getValue().check(exceptions);
+			registered.getValue().check();
 			String expanded = getExpandedTemplate(registered.getKey());
 			try {
 				compiledTemplates.put(registered.getKey(), Mustache.compiler().defaultValue("").compile(expanded));
@@ -39,7 +39,7 @@ public class MustacheContext {
 				for (int i = 0; i < lines.length; i++)
 					builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
 				builder.append("\n");
-				exceptions.add(new LackrPresentableError(builder.toString()));
+				backendExceptions.add(new LackrPresentableError(builder.toString()));
 			}
 		}
 	}

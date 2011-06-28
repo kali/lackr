@@ -12,6 +12,7 @@ import org.springframework.util.FileCopyUtils;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.LackrPresentableError;
 import com.ning.http.client.AsyncCompletionHandler;
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
@@ -79,7 +80,7 @@ public class AHCBackendExchange extends LackrBackendExchange {
 			
 	        @Override
 	        public void onThrowable(Throwable t){
-	        	getBackendRequest().getFrontendRequest().addBackendExceptions(t);
+	        	getBackendRequest().getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(t));
 	        }
 
 			@Override

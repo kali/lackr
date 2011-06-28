@@ -1,7 +1,5 @@
 package com.fotonauts.lackr.esi;
 
-import java.util.List;
-
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
@@ -33,7 +31,7 @@ public class JSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
+    public void check(LackrBackendExchange exchange) {
     }
 
 }

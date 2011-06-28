@@ -3,12 +3,9 @@ package com.fotonauts.lackr.mustache;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.fotonauts.lackr.LackrBackendExchange;
@@ -16,7 +13,6 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.Document;
-import com.samskivert.mustache.MustacheException;
 import com.samskivert.mustache.Template;
 
 public class MustacheEvalChunk implements Chunk {
@@ -36,8 +32,8 @@ public class MustacheEvalChunk implements Chunk {
 	}
 
 	@Override
-	public void check(List<Throwable> exceptions) {
-		inner.check(exceptions);
+	public void check() {
+		inner.check();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService()
