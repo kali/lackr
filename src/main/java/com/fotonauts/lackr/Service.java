@@ -155,7 +155,11 @@ public class Service extends AbstractHandler implements RapportrInterface {
                 }
             }
         }
-        obj.put("message", errorDescription.subSequence(0, errorDescription.indexOf('\n')));
+        if (errorDescription.contains("\n"))
+            obj.put("message", errorDescription.subSequence(0, errorDescription.indexOf('\n')));
+        else
+            obj.put("message", errorDescription);
+
         mongoRapportrQueue.save(mongoDoc);
     }
 
