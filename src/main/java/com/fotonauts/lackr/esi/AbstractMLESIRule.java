@@ -20,9 +20,11 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
     @Override
     public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
         String mimeType = getMimeType(exchange);
+        // JS is detected by check()
         if (MimeType.isML(mimeType))
             return exchange.getParsedDocument();
         else
+            // so this is most likely plain text
             return new AmpersandEscapeChunk(exchange.getParsedDocument());
     }
 

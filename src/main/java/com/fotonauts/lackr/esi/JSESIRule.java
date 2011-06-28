@@ -21,6 +21,8 @@ public class JSESIRule extends ESIIncludeRule {
 				return NULL_CHUNK;
 			else
 				return new JsonQuotingChunk(exchange.getParsedDocument(), true);
+		} else if(MimeType.isTextPlain(mimeType)) {
+            return new JsonQuotingChunk(exchange.getParsedDocument(), true);		    
 		}
 		return NULL_CHUNK;		
     }

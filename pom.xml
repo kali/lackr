@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
-	<version>0.3.12</version>
+	<version>0.3.13</version>
 	<name>Lackr</name>
 	<build>
 		<plugins>

@@ -21,6 +21,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 	static final String ESI_HTML = "<p> un bout de html avec des \" et des \\ dedans\nsur plusieurs lignes\npour faire joli</p>";
 	static final String ESI_JSON = "{ \"some\": \"json crap\" }";
 	static final String ESI_URL = "http://hou.salut.com/blah&merci.pour.tout";
+    static final String ESI_TEXT = "something like a \"base title\" or \nlike a http://url?with=options&blah=blih";
 	static final String ESI_MUST = "some text from the template name:{{name}} value:{{value}} some:{{esi.some}}";
 
 	public BaseTestSubstitution(String clientImplementation) throws Exception {
@@ -42,6 +43,8 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     				writeResponse(response, ESI_MUST.getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("url")) {
     				writeResponse(response, ESI_URL.getBytes(), MimeType.TEXT_PLAIN);
+                } else if (request.getPathInfo().endsWith("text")) {
+                    writeResponse(response, ESI_TEXT.getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("json")) {
     				writeResponse(response, ESI_JSON.getBytes("UTF-8"), MimeType.APPLICATION_JSON);
     			} else if (request.getPathInfo().endsWith("html")) {
