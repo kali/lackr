@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.Rule.InterpolrException;
 
 public class ExchangeChunk implements Chunk {
 
@@ -34,7 +35,7 @@ public class ExchangeChunk implements Chunk {
     }
 	
 	@Override
-	public void check(List<Throwable> exceptions) {
+	public void check(List<InterpolrException> exceptions) {
 		rule.check(exchange, exceptions);
 	}
 

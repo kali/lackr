@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
-	<version>0.3.11</version>
+	<version>0.3.12</version>
 	<name>Lackr</name>
 	<build>
 		<plugins>
@@ -111,11 +111,6 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpasyncclient</artifactId>
-			<version>4.0-alpha1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.samskivert</groupId>

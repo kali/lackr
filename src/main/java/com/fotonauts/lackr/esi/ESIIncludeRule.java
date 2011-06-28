@@ -68,5 +68,5 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 	public abstract Chunk filterDocumentAsChunk(LackrBackendExchange exchange);
 
 	public abstract void check(LackrBackendExchange exchange,
-			List<Throwable> exceptions);
+			List<InterpolrException> exceptions);
 }

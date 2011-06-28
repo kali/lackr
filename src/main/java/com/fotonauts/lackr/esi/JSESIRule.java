@@ -33,7 +33,7 @@ public class JSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-    public void check(LackrBackendExchange exchange, List<Throwable> exceptions) {
+    public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
     }
 
 }

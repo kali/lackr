@@ -15,7 +15,7 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 
 	@Override
 	public String getSyntaxIdentifier() {
-		return "ML";
+		return "JS";
 	}
 
 	@Override
@@ -26,7 +26,7 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public void check(LackrBackendExchange exchange, List<Throwable> exceptions) {
+	public void check(LackrBackendExchange exchange, List<InterpolrException> exceptions) {
 		String mimeType = getMimeType(exchange);
 		if(MimeType.isJS(mimeType)) {
 			exceptions.add(new InterpolrException("unsupported ESI type (js* in js(*ML) context)", exchange));
