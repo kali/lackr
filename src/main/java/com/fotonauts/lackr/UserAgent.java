@@ -14,7 +14,7 @@ public class UserAgent {
 	};
 
 	private static Pattern IE_VERSION_PATTERN = Pattern.compile("(?i)msie (\\d+)\\.(\\d+)");
-	private static Pattern FIREFOX_VERSION_PATTERN = Pattern.compile("(?i)firefox/(\\d+)\\.(\\d+)");
+	private static Pattern FIREFOX_VERSION_PATTERN = Pattern.compile("(?i)firefox[/ ](\\d+)\\.(\\d+)");
 
 	private BrowserName browserName;
 	private DeviceName deviceName;
@@ -28,7 +28,7 @@ public class UserAgent {
 		browserName = BrowserName.UNKNOWN;
 		if (downcase.indexOf("msie") >= 0 && downcase.indexOf("opera") == -1 && downcase.indexOf("webtv") == -1)
 			browserName = BrowserName.IE;
-		else if (downcase.indexOf("firefox/") >= 0)
+		else if (downcase.indexOf("firefox") >= 0)
 			browserName = BrowserName.FIREFOX;
 		else if (downcase.indexOf("opera") >= 0)
 			browserName = BrowserName.OPERA;
