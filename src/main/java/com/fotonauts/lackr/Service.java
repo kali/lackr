@@ -100,19 +100,23 @@ public class Service extends AbstractHandler implements RapportrInterface {
     }
 
     public BasicDBObject createRapportrMessage() {
-        BasicDBObject mongoDoc = new BasicDBObject();
-        mongoDoc.put("locked_by", null);
-        mongoDoc.put("locked_at", null);
-        mongoDoc.put("last_error", null);
-        mongoDoc.put("attempts", 0);
-        mongoDoc.put("priority", 0);
-        mongoDoc.put("no_meta_infos", false);
-        mongoDoc.put("irc_channel", ircErrorChannel);
-        mongoDoc.put("class", "Hash");
-        mongoDoc.put("store", true);
+        BasicDBObject wrapper = new BasicDBObject();
+        wrapper.put("locked_by", null);
+        wrapper.put("locked_at", null);
+        wrapper.put("last_error", null);
+        wrapper.put("attempts", 0);
+        wrapper.put("priority", 0);
+        wrapper.put("enqueued_at", new Date());
+        
+        BasicDBObject payload = new BasicDBObject();
+        wrapper.put("payload", payload);
+        payload.put("no_meta_infos", false);
+        payload.put("irc_channel", ircErrorChannel);
+        payload.put("class", "Hash");
+        payload.put("store", true);
 
         BasicDBObject obj = new BasicDBObject();
-        mongoDoc.put("obj", obj);
+        payload.put("obj", obj);
         obj.put("facility", "lackr");
         obj.put("app", "lackr");
         obj.put("created_at", new Date());
@@ -124,7 +128,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         BasicDBObject data = new BasicDBObject();
         obj.put("data", data);
 
-        return mongoDoc;
+        return wrapper;
     }
 
     public void rapportrException(HttpServletRequest request, String errorDescription) {
@@ -132,7 +136,8 @@ public class Service extends AbstractHandler implements RapportrInterface {
             return;
 
         BasicDBObject mongoDoc = createRapportrMessage();
-        BSONObject obj = (BSONObject) mongoDoc.get("obj");
+        BSONObject payload = (BSONObject) mongoDoc.get("payload");
+        BSONObject obj = (BSONObject) payload.get("obj");
         BSONObject data = (BSONObject) obj.get("data");
 
         data.put("description", errorDescription);
@@ -166,7 +171,8 @@ public class Service extends AbstractHandler implements RapportrInterface {
     @Override
     public void warnMessage(String message, String description) {
         BasicDBObject mongoDoc = createRapportrMessage();
-        BSONObject obj = (BSONObject) mongoDoc.get("obj");
+        BSONObject payload = (BSONObject) mongoDoc.get("payload");
+        BSONObject obj = (BSONObject) payload.get("obj");
         BSONObject data = (BSONObject) obj.get("data");
 
         if (description != null)
