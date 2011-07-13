@@ -3,8 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
-	<version>0.3.18</version>
+	<version>0.3.19</version>
 	<name>Lackr</name>
+	<properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 	<build>
 		<plugins>
 			<plugin>

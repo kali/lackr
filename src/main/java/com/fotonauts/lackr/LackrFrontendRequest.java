@@ -124,6 +124,9 @@ public class LackrFrontendRequest {
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 } catch (NotAvailableException e) {
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
+                } catch (NullPointerException e) {
+                    // This occurs sometimes in X-SSI-ROOT inject in the backend
+                    addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 }
             }
         });
