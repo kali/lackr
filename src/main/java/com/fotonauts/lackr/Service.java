@@ -165,7 +165,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         else
             obj.put("message", errorDescription);
 
-        mongoRapportrQueue.save(mongoDoc);
+        // mongoRapportrQueue.save(mongoDoc);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         if (description != null)
             data.put("description", description);
         obj.put("message", message);
-        mongoRapportrQueue.save(mongoDoc);
+        // mongoRapportrQueue.save(mongoDoc);
     }
 
     public static BasicDBObject accessLogLineTemplate(HttpServletRequest request, String facility) {
@@ -306,7 +306,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    accessLogCollection.save(logLine);
+                    // accessLogCollection.save(logLine);
                 }
             });
         }
