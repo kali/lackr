@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.fotonauts.lackr.LackrBackendExchange;
@@ -35,12 +37,12 @@ public class MustacheEvalChunk implements Chunk {
 	public void check() {
 		inner.check();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService()
+        .getJacksonObjectMapper();
+        @SuppressWarnings("unchecked") Map data = null;
 		try {
-			ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService()
-			        .getJacksonObjectMapper();
 			inner.writeTo(baos);
-			@SuppressWarnings("unchecked")
-			Map data = mapper.readValue(baos.toByteArray(), Map.class);
+			data = mapper.readValue(baos.toByteArray(), Map.class);
 			MustacheContext context = exchange.getBackendRequest().getFrontendRequest().getMustacheContext();
 			Template template = context.get(name);
 			if (template == null) {
@@ -99,6 +101,18 @@ public class MustacheEvalChunk implements Chunk {
 			lines = baos.toString().split("\n");
 			for (int i = 0; i < lines.length; i++) {
 				builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
+			}
+			if(data != null) {
+			    builder.append("\nparsed data:\n");
+			    try {
+                    mapper.defaultPrettyPrintingWriter().writeValue(baos, data);
+                } catch (JsonGenerationException e1) {
+                    e1.printStackTrace();
+                } catch (JsonMappingException e1) {
+                    e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
 			}
 			builder.append("\n");
 			exchange.getBackendRequest().getFrontendRequest()

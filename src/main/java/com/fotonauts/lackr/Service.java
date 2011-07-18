@@ -12,6 +12,7 @@ import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -36,6 +37,7 @@ import com.fotonauts.lackr.hashring.HashRing;
 import com.fotonauts.lackr.hashring.Host;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 
@@ -159,6 +161,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
                 }
             }
         }
+
         if (errorDescription.contains("\n"))
             obj.put("message", errorDescription.subSequence(0, errorDescription.indexOf('\n')));
         else
@@ -233,7 +236,10 @@ public class Service extends AbstractHandler implements RapportrInterface {
                             + "\" ).");
 
         Mongo logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
-        return new LowPriorityMongoInserter(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
+        DBCollection collection = logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]);
+        if(collection == null)
+            return null;
+        return new LowPriorityMongoInserter(collection);
     }
 
     public void setMongoAccessLogCollection(String mongoLoggingPath) throws NumberFormatException,

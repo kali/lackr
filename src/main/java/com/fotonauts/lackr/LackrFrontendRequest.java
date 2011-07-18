@@ -184,7 +184,7 @@ public class LackrFrontendRequest {
         for (Throwable t : backendExceptions) {
             if (t instanceof LackrPresentableError) {
                 LackrPresentableError error = (LackrPresentableError) t;
-                ps.append(error.getMessage());
+                ps.println(error.getMessage());
             } else
                 t.printStackTrace(ps);
         }
