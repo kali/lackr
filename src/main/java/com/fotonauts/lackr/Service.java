@@ -36,7 +36,6 @@ import com.fotonauts.lackr.hashring.HashRing;
 import com.fotonauts.lackr.hashring.Host;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
 
@@ -47,8 +46,8 @@ public class Service extends AbstractHandler implements RapportrInterface {
     static Logger log = LoggerFactory.getLogger(Service.class);
 
     protected BackendClient client;
-    protected DBCollection accessLogCollection;
-    protected DBCollection mongoRapportrQueue;
+    protected LowPriorityMongoInserter accessLogCollection;
+    protected LowPriorityMongoInserter mongoRapportrQueue;
 
     private int timeout;
 
@@ -165,7 +164,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         else
             obj.put("message", errorDescription);
 
-        // mongoRapportrQueue.save(mongoDoc);
+        mongoRapportrQueue.save(mongoDoc);
     }
 
     @Override
@@ -178,7 +177,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         if (description != null)
             data.put("description", description);
         obj.put("message", message);
-        // mongoRapportrQueue.save(mongoDoc);
+        mongoRapportrQueue.save(mongoDoc);
     }
 
     public static BasicDBObject accessLogLineTemplate(HttpServletRequest request, String facility) {
@@ -217,7 +216,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         this.client = client;
     }
 
-    private DBCollection getCollection(String mongoPath) throws NumberFormatException, UnknownHostException,
+    private LowPriorityMongoInserter getMongoInserter(String mongoPath) throws NumberFormatException, UnknownHostException,
             MongoException {
         if (!StringUtils.hasText(mongoPath)) {
             return null;
@@ -234,17 +233,17 @@ public class Service extends AbstractHandler implements RapportrInterface {
                             + "\" ).");
 
         Mongo logConnection = new Mongo(hostComponents[0], Integer.parseInt(hostComponents[1]));
-        return logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]);
+        return new LowPriorityMongoInserter(logConnection.getDB(pathComponents[1]).getCollection(pathComponents[2]));
     }
 
     public void setMongoAccessLogCollection(String mongoLoggingPath) throws NumberFormatException,
             UnknownHostException, MongoException {
-        accessLogCollection = getCollection(mongoLoggingPath);
+        accessLogCollection = getMongoInserter(mongoLoggingPath);
     }
 
     public void setMongoRapportrQueue(String mongoLoggingPath) throws NumberFormatException, UnknownHostException,
             MongoException {
-        mongoRapportrQueue = getCollection(mongoLoggingPath);
+        mongoRapportrQueue = getMongoInserter(mongoLoggingPath);
     }
 
     @Override
@@ -281,7 +280,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         }
     }
 
-    public void setLogCollection(DBCollection logCollection) {
+    public void setLogCollection(LowPriorityMongoInserter logCollection) {
         this.accessLogCollection = logCollection;
     }
 
@@ -302,14 +301,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
     }
 
     public void log(final BasicDBObject logLine) {
-        if (accessLogCollection != null) {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    // accessLogCollection.save(logLine);
-                }
-            });
-        }
+        accessLogCollection.save(logLine);
     }
 
     public void setTimeout(int timeout) {
