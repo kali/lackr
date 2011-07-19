@@ -21,7 +21,7 @@ public class LowPriorityMongoInserter {
         this.thread = new Thread("mongo-async-inserter-" + collection.getName()) {
             public void run() {
                 WriteConcern concern = new WriteConcern(-1);
-                DBObject[] objects = new DBObject[256];
+                DBObject[] objects = new DBObject[4096];
                 while(true) {
                     try {
                         DBObject object;
@@ -34,7 +34,7 @@ public class LowPriorityMongoInserter {
                             queue.clear();
                         }
                         if(i == 0)
-                            Thread.yield();
+                            Thread.sleep(10);
                         else
                             collection.insert(Arrays.copyOfRange(objects, 0, i), concern);
                     } catch (Exception e) {
