@@ -44,6 +44,8 @@
 				<bean class="com.fotonauts.lackr.mustache.EvalRule" />
 				<bean class="com.fotonauts.lackr.interpolr.SimpleSubstitutionRule"
 					p:placeholder="http://_A_S_S_E_T_S___P_A_T_H_" p:replacement="${lackr.assets_prefix}" />
+				<bean class="com.fotonauts.lackr.interpolr.SimpleSubstitutionRule"
+					p:placeholder="https://_A_S_S_E_T_S___P_A_T_H_" p:replacement="${lackr.assets_prefix_ssl}" />
 				<bean class="com.fotonauts.lackr.esi.HttpESIRule" />
 				<bean class="com.fotonauts.lackr.esi.JSESIRule" />
 				<bean class="com.fotonauts.lackr.esi.JSEscapedMLESIRule" />
