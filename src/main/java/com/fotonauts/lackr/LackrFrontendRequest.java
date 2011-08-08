@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -44,256 +45,267 @@ import com.fotonauts.lackr.mustache.MustacheContext;
 import com.mongodb.BasicDBObject;
 
 public class LackrFrontendRequest {
-    static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te",
-            "trailer", "proxy-authorization", "proxy-authenticate", "upgrade", "content-length" };
+	static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
+	        "proxy-authorization", "proxy-authenticate", "upgrade", "content-length" };
 
-    static boolean skipHeader(String header) {
-        for (String skip : headersToSkip) {
-            if (skip.equals(header.toLowerCase()))
-                return true;
-        }
-        return false;
-    }
+	static boolean skipHeader(String header) {
+		for (String skip : headersToSkip) {
+			if (skip.equals(header.toLowerCase()))
+				return true;
+		}
+		return false;
+	}
 
-    AtomicInteger pendingCount;
+	AtomicInteger pendingCount;
 
-    static Logger log = LoggerFactory.getLogger(LackrFrontendRequest.class);
+	static Logger log = LoggerFactory.getLogger(LackrFrontendRequest.class);
 
-    protected HttpServletRequest request;
+	protected HttpServletRequest request;
 
-    protected Service service;
+	protected Service service;
 
-    private String rootUrl;
+	private String rootUrl;
 
-    protected LackrBackendExchange rootExchange;
+	protected LackrBackendExchange rootExchange;
 
-    private Continuation continuation;
+	private Continuation continuation;
 
-    protected List<LackrPresentableError> backendExceptions = Collections
-            .synchronizedList(new ArrayList<LackrPresentableError>(5));
+	protected List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
 
-    protected BasicDBObject logLine;
+	protected BasicDBObject logLine;
 
-    protected long startTimestamp;
+	protected long startTimestamp;
 
-    private UserAgent userAgent;
+	private UserAgent userAgent;
 
-    private MustacheContext mustacheContext;
+	private MustacheContext mustacheContext;
 
-    LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
-        this.service = service;
-        this.request = request;
-        this.mustacheContext = new MustacheContext();
-        this.continuation = ContinuationSupport.getContinuation(request);
-        this.continuation.setTimeout(getService().getTimeout() * 1000);
-        this.pendingCount = new AtomicInteger(0);
-        URI uri = null;
-        try {
-            uri = new URI(null, null, request.getPathInfo(), null);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("invalid URL");
-        }
-        rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString()
-                : uri.toASCIIString();
-        rootUrl = rootUrl.replace(" ", "%20");
+	private ConcurrentHashMap<String, LackrBackendExchange> backendExchangeCache = new ConcurrentHashMap<String, LackrBackendExchange>();
 
-        logLine = Service.accessLogLineTemplate(request, "lackr-front");
+	LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
+		this.service = service;
+		this.request = request;
+		this.mustacheContext = new MustacheContext();
+		this.continuation = ContinuationSupport.getContinuation(request);
+		this.continuation.setTimeout(getService().getTimeout() * 1000);
+		this.pendingCount = new AtomicInteger(0);
+		URI uri = null;
+		try {
+			uri = new URI(null, null, request.getPathInfo(), null);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("invalid URL");
+		}
+		rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString() : uri
+		        .toASCIIString();
+		rootUrl = rootUrl.replace(" ", "%20");
 
-        logLine.put(HTTP_HOST.getPrettyName(), request.getHeader("Host"));
-        logLine.put(METHOD.getPrettyName(), request.getMethod());
-        logLine.put(PATH.getPrettyName(), request.getPathInfo());
-        logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
+		logLine = Service.accessLogLineTemplate(request, "lackr-front");
 
-        this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
+		logLine.put(HTTP_HOST.getPrettyName(), request.getHeader("Host"));
+		logLine.put(METHOD.getPrettyName(), request.getMethod());
+		logLine.put(PATH.getPrettyName(), request.getPathInfo());
+		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
 
-        continuation.suspend();
-    }
+		this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
-    public LackrBackendExchange scheduleUpstreamRequest(BackendRequest spec) throws NotAvailableException {
-        final LackrBackendExchange exchange = getService().getClient().createExchange(spec);
-        if (rootExchange == null)
-            rootExchange = exchange;
-        this.pendingCount.incrementAndGet();
-        getService().getExecutor().execute(new Runnable() {
+		continuation.suspend();
+	}
 
-            @Override
-            public void run() {
-                try {
-                    exchange.start();
-                } catch (IOException e) {
-                    addBackendExceptions(LackrPresentableError.fromThrowable(e));
-                } catch (NotAvailableException e) {
-                    addBackendExceptions(LackrPresentableError.fromThrowable(e));
-                } catch (NullPointerException e) {
-                    System.out.println("The exchange has thrown a NullPointerException.");
-                    // This occurs sometimes in X-SSI-ROOT inject in the backend
-                    addBackendExceptions(LackrPresentableError.fromThrowable(e));
-                }
-            }
-        });
-        return exchange;
-    }
+	public LackrBackendExchange getSubBackendExchange(String url, String format, LackrBackendExchange dad)
+	        throws NotAvailableException {
+		String key = format + "::" + url;
+		LackrBackendExchange ex = backendExchangeCache.get(key);
+		if (ex != null)
+			return ex;
+		BackendRequest sub = new BackendRequest(this, "GET", url, dad.getBackendRequest().getQuery(), dad.getBackendRequest()
+		        .hashCode(), format, null);
+		ex = getService().getClient().createExchange(sub);
+		backendExchangeCache.put(key, ex);
+		scheduleUpstreamRequest(ex);
+		return ex;
+	}
 
-    UserAgent getUserAgent() {
-        return userAgent;
-    }
+	private LackrBackendExchange scheduleUpstreamRequest(final LackrBackendExchange exchange) throws NotAvailableException {
+		this.pendingCount.incrementAndGet();
+		getService().getExecutor().execute(new Runnable() {
 
-    public void copyHeaders(HttpServletResponse response) {
-        for (String name : rootExchange.getResponseHeaderNames()) {
-            if (!skipHeader(name)) {
-                for (String value : rootExchange.getResponseHeaderValues(name))
-                    response.addHeader(name, value);
-            }
-        }
-    }
+			@Override
+			public void run() {
+				try {
+					exchange.start();
+				} catch (IOException e) {
+					addBackendExceptions(LackrPresentableError.fromThrowable(e));
+				} catch (NotAvailableException e) {
+					addBackendExceptions(LackrPresentableError.fromThrowable(e));
+				} catch (NullPointerException e) {
+					System.out.println("The exchange has thrown a NullPointerException.");
+					// This occurs sometimes in X-SSI-ROOT inject in the backend
+					addBackendExceptions(LackrPresentableError.fromThrowable(e));
+				}
+			}
+		});
+		return exchange;
+	}
 
-    private void preflightCheck() {
-        getMustacheContext().checkAndCompileAll(backendExceptions);
-        if (rootExchange.getParsedDocument() != null) {
-            rootExchange.getParsedDocument().check();
-        }
-    }
+	UserAgent getUserAgent() {
+		return userAgent;
+	}
 
-    public void writeResponse(HttpServletResponse response) throws IOException {
-        if (request.getHeader("X-Ftn-OperationId") != null)
-            response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
-        preflightCheck();
-        try {
-            if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
-                writeErrorResponse(response);
-            } else {
-                writeSuccessResponse(response);
-            }
-        } catch (IOException writeResponseException) {
-            logLine.put(STATUS.getPrettyName(), "500");
-            logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
-            throw writeResponseException;
-        } finally {
-            long endTimestamp = System.currentTimeMillis();
-            logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
-            logLine.put(DATE.getPrettyName(), new Date().getTime());
-            service.log(logLine);
-        }
-    }
+	public void copyHeaders(HttpServletResponse response) {
+		for (String name : rootExchange.getResponseHeaderNames()) {
+			if (!skipHeader(name)) {
+				for (String value : rootExchange.getResponseHeaderValues(name))
+					response.addHeader(name, value);
+			}
+		}
+	}
 
-    public void writeErrorResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
-        response.setContentType("text/plain");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
-        for (Throwable t : backendExceptions) {
-            if (t instanceof LackrPresentableError) {
-                LackrPresentableError error = (LackrPresentableError) t;
-                ps.println(error.getMessage());
-            } else
-                t.printStackTrace(ps);
-        }
-        ps.flush();
-        response.setContentLength(baos.size());
-        response.getOutputStream().write(baos.toByteArray());
+	private void preflightCheck() {
+		getMustacheContext().checkAndCompileAll(backendExceptions);
+		if (rootExchange.getParsedDocument() != null) {
+			rootExchange.getParsedDocument().check();
+		}
+	}
 
-        logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
-        logLine.put(DATA.getPrettyName(), baos.toByteArray());
-        getService().rapportrException(request, new String(baos.toByteArray(), "UTF-8"));
-    }
+	public void writeResponse(HttpServletResponse response) throws IOException {
+		if (request.getHeader("X-Ftn-OperationId") != null)
+			response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
+		preflightCheck();
+		try {
+			if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
+				writeErrorResponse(response);
+			} else {
+				writeSuccessResponse(response);
+			}
+		} catch (IOException writeResponseException) {
+			logLine.put(STATUS.getPrettyName(), "500");
+			logLine.put(DATA.getPrettyName(), writeResponseException.getMessage());
+			throw writeResponseException;
+		} finally {
+			long endTimestamp = System.currentTimeMillis();
+			logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
+			logLine.put(DATE.getPrettyName(), new Date().getTime());
+			service.log(logLine);
+		}
+	}
 
-    public void writeSuccessResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(rootExchange.getResponseStatus());
-        copyHeaders(response);
-        log.debug("writing success response for " + rootExchange.getBackendRequest().getQuery());
-        if (rootExchange.getParsedDocument().length() > 0) {
-            String etag = generateEtag(rootExchange.getParsedDocument());
-            response.setHeader(HttpHeaders.ETAG, etag);
-            if (log.isDebugEnabled()) {
-                log.debug("etag: " + etag);
-                log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
-            }
-            if (rootExchange.getResponseStatus() == HttpStatus.OK_200
-                    && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
-                response.setStatus(HttpStatus.NOT_MODIFIED_304);
-                response.setHeader("Status", "304 Not Modified");
-                response.flushBuffer(); // force commiting
-                logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
-            } else {
-                logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
-                response.setContentLength(rootExchange.getParsedDocument().length());
-                if (request.getMethod() != "HEAD")
-                    rootExchange.getParsedDocument().writeTo(response.getOutputStream());
-                response.flushBuffer();
-            }
-            logLine.put(SIZE.getPrettyName(), rootExchange.getParsedDocument().length());
-        } else {
-            logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
-            response.flushBuffer(); // force commiting
-        }
-    }
+	public void writeErrorResponse(HttpServletResponse response) throws IOException {
+		response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+		response.setContentType("text/plain");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		for (Throwable t : backendExceptions) {
+			if (t instanceof LackrPresentableError) {
+				LackrPresentableError error = (LackrPresentableError) t;
+				ps.println(error.getMessage());
+			} else
+				t.printStackTrace(ps);
+		}
+		ps.flush();
+		response.setContentLength(baos.size());
+		response.getOutputStream().write(baos.toByteArray());
 
-    private String generateEtag(Document content) {
-        MessageDigest m = null;
-        try {
-            m = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            // nope.
-        }
-        DigestOutputStream dos = new DigestOutputStream(new OutputStream() {
+		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
+		logLine.put(DATA.getPrettyName(), baos.toByteArray());
+		getService().rapportrException(request, new String(baos.toByteArray(), "UTF-8"));
+	}
 
-            @Override
-            public void write(int arg0) throws IOException {
-                // noop
-            }
-        }, m);
-        dos.on(true);
-        try {
-            content.writeTo(dos);
-            dos.flush();
-        } catch (IOException e) {
-            // not possible with these streams
-        }
-        return '"' + new BigInteger(1, m.digest()).toString(16) + '"';
-    }
+	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
+		response.setStatus(rootExchange.getResponseStatus());
+		copyHeaders(response);
+		log.debug("writing success response for " + rootExchange.getBackendRequest().getQuery());
+		if (rootExchange.getParsedDocument().length() > 0) {
+			String etag = generateEtag(rootExchange.getParsedDocument());
+			response.setHeader(HttpHeaders.ETAG, etag);
+			if (log.isDebugEnabled()) {
+				log.debug("etag: " + etag);
+				log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
+			}
+			if (rootExchange.getResponseStatus() == HttpStatus.OK_200 && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
+				response.setStatus(HttpStatus.NOT_MODIFIED_304);
+				response.setHeader("Status", "304 Not Modified");
+				response.flushBuffer(); // force commiting
+				logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
+			} else {
+				logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+				response.setContentLength(rootExchange.getParsedDocument().length());
+				if (request.getMethod() != "HEAD")
+					rootExchange.getParsedDocument().writeTo(response.getOutputStream());
+				response.flushBuffer();
+			}
+			logLine.put(SIZE.getPrettyName(), rootExchange.getParsedDocument().length());
+		} else {
+			logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+			response.flushBuffer(); // force commiting
+		}
+	}
 
-    public void kick() {
-        startTimestamp = System.currentTimeMillis();
-        try {
-            byte[] body = null;
-            if (request.getContentLength() > 0)
-                body = FileCopyUtils.copyToByteArray(request.getInputStream());
-            BackendRequest spec = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(),
-                    rootUrl, null, 0, null, body);
-            scheduleUpstreamRequest(spec);
-        } catch (Throwable e) {
-            log.debug("in kick() error handler: " + e);
-            backendExceptions.add(LackrPresentableError.fromThrowable(e));
-            continuation.resume();
-        }
-    }
+	private String generateEtag(Document content) {
+		MessageDigest m = null;
+		try {
+			m = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			// nope.
+		}
+		DigestOutputStream dos = new DigestOutputStream(new OutputStream() {
 
-    public void addBackendExceptions(LackrPresentableError x) {
-        backendExceptions.add(x);
-    }
+			@Override
+			public void write(int arg0) throws IOException {
+				// noop
+			}
+		}, m);
+		dos.on(true);
+		try {
+			content.writeTo(dos);
+			dos.flush();
+		} catch (IOException e) {
+			// not possible with these streams
+		}
+		return '"' + new BigInteger(1, m.digest()).toString(16) + '"';
+	}
 
-    public void addBackendExceptions(Throwable x) {
-        addBackendExceptions(LackrPresentableError.fromThrowable(x));
-    }
+	public void kick() {
+		startTimestamp = System.currentTimeMillis();
+		try {
+			byte[] body = null;
+			if (request.getContentLength() > 0)
+				body = FileCopyUtils.copyToByteArray(request.getInputStream());
+			BackendRequest spec = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl,
+			        null, 0, null, body);
+			rootExchange = getService().getClient().createExchange(spec);
+			scheduleUpstreamRequest(rootExchange);
+		} catch (Throwable e) {
+			log.debug("in kick() error handler: " + e);
+			backendExceptions.add(LackrPresentableError.fromThrowable(e));
+			continuation.resume();
+		}
+	}
 
-    public HttpServletRequest getRequest() {
-        return request;
-    }
+	public void addBackendExceptions(LackrPresentableError x) {
+		backendExceptions.add(x);
+	}
 
-    public Service getService() {
-        return service;
-    }
+	public void addBackendExceptions(Throwable x) {
+		addBackendExceptions(LackrPresentableError.fromThrowable(x));
+	}
 
-    public void notifySubRequestDone() {
-        if (pendingCount.decrementAndGet() <= 0) {
-            if (log.isDebugEnabled())
-                log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size()
-                        + " exceptions.");
-            continuation.resume();
-        }
-    }
+	public HttpServletRequest getRequest() {
+		return request;
+	}
 
-    public MustacheContext getMustacheContext() {
-        return mustacheContext;
-    }
+	public Service getService() {
+		return service;
+	}
+
+	public void notifySubRequestDone() {
+		if (pendingCount.decrementAndGet() <= 0) {
+			if (log.isDebugEnabled())
+				log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size() + " exceptions.");
+			continuation.resume();
+		}
+	}
+
+	public MustacheContext getMustacheContext() {
+		return mustacheContext;
+	}
 }

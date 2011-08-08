@@ -8,6 +8,8 @@ import com.fotonauts.lackr.interpolr.Chunk;
 
 public class ExchangeChunk implements Chunk {
 
+	private boolean isChecked = false;
+	
 	private LackrBackendExchange exchange;
 	
 	private ESIIncludeRule rule;
@@ -34,7 +36,10 @@ public class ExchangeChunk implements Chunk {
 	
 	@Override
 	public void check() {
+		if(isChecked)
+			return;
 		rule.check(exchange);
+		isChecked = true;
 	}
 
 }

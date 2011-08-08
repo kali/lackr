@@ -50,10 +50,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 		try {
 			LackrFrontendRequest front = exchange.getBackendRequest()
 					.getFrontendRequest();
-			BackendRequest esi = new BackendRequest(front, "GET", url, exchange
-					.getBackendRequest().getQuery(), exchange.getBackendRequest().hashCode(),
-					getSyntaxIdentifier(), null);
-			sub = front.scheduleUpstreamRequest(esi);
+			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), exchange);
 		} catch (NotAvailableException e) {
 			throw new RuntimeException("no backend available for fragment: "
 					+ exchange.getBackendRequest().getQuery());
