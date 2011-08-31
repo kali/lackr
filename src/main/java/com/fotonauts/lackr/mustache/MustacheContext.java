@@ -2,6 +2,8 @@ package com.fotonauts.lackr.mustache;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.Map.Entry;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
 import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Mustache.TemplateLoader;
 import com.samskivert.mustache.MustacheParseException;
 import com.samskivert.mustache.Template;
 
@@ -29,7 +32,7 @@ public class MustacheContext {
 			registered.getValue().check();
 			String expanded = getExpandedTemplate(registered.getKey());
 			try {
-				compiledTemplates.put(registered.getKey(), Mustache.compiler().defaultValue("").compile(expanded));
+				compiledTemplates.put(registered.getKey(), Mustache.compiler().withLoader(getLoader()).defaultValue("").compile(expanded));
 			} catch (MustacheParseException e) {
 				StringBuilder builder = new StringBuilder();
 				builder.append("MustacheParseException\n");
@@ -42,6 +45,16 @@ public class MustacheContext {
 				backendExceptions.add(new LackrPresentableError(builder.toString()));
 			}
 		}
+	}
+
+	private TemplateLoader getLoader() {
+		return new TemplateLoader() {
+			
+			@Override
+			public Reader getTemplate(String name) throws Exception {
+				return new StringReader(getExpandedTemplate(name));
+			}
+		};
 	}
 
 	public void registerTemplate(String name, Document template) {

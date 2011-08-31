@@ -99,4 +99,14 @@ public class TestMustache extends BaseTestSubstitution {
 		assertEquals("\n\nsome text from the template name:the name value:the value inline:false\n\n", result);
 	}
 
+	@Test
+	public void testPartial() throws Exception {
+		String result = expand("<!-- lackr:mustache:template name=\"partial\" -->\n"
+		        + "some text from the template name:{{name}} value:{{value}}\n" + "<!-- /lackr:mustache:template -->\n"
+		        + "<!-- lackr:mustache:template name=\"main\" -->main opens {{>partial}} and closes<!-- /lackr:mustache:template -->\n"
+		        + "<!-- lackr:mustache:eval name=\"main\" -->\n"
+		        + "{ \"name\": \"the name\", \"value\": \"the value\" }\n" + "<!-- /lackr:mustache:eval -->\n");
+		assertEquals("\n\nmain opens \nsome text from the template name:the name value:the value\n and closes\n", result);
+	}
+
 }
