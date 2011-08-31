@@ -43,6 +43,9 @@ public class MustacheEvalChunk implements Chunk {
 		try {
 			inner.writeTo(baos);
 			data = mapper.readValue(baos.toByteArray(), Map.class);
+			data.put("_ftn_inline_images",
+					exchange.getBackendRequest().getFrontendRequest().getUserAgent()
+							.supportsInlineImages());
 			MustacheContext context = exchange.getBackendRequest().getFrontendRequest().getMustacheContext();
 			Template template = context.get(name);
 			if (template == null) {

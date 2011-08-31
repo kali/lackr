@@ -147,7 +147,7 @@ public class LackrFrontendRequest {
 		return exchange;
 	}
 
-	UserAgent getUserAgent() {
+	public UserAgent getUserAgent() {
 		return userAgent;
 	}
 

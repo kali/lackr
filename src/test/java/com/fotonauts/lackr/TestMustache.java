@@ -89,4 +89,14 @@ public class TestMustache extends BaseTestSubstitution {
 		assertNotNull("result is an error", result);
 		assertTrue(result.contains("Mustache template not found"));
 	}
+	
+	@Test
+	public void testInlineImageFlagSupport() throws Exception {
+		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
+		        + "some text from the template name:{{name}} value:{{value}} inline:{{_ftn_inline_images}}\n" + "<!-- /lackr:mustache:template -->\n"
+		        + "<!-- lackr:mustache:eval name=\"template_name\" -->\n"
+		        + "{ \"name\": \"the name\", \"value\": \"the value\" }\n" + "<!-- /lackr:mustache:eval -->\n");
+		assertEquals("\n\nsome text from the template name:the name value:the value inline:false\n\n", result);
+	}
+
 }
