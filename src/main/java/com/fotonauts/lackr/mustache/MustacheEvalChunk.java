@@ -94,12 +94,16 @@ public class MustacheEvalChunk implements Chunk {
 			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
 			builder.append(e.getMessage() + "\n");
 			builder.append("template name: " + name + "\n");
-			String[] lines;
-			lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext().getExpandedTemplate(name)
-			        .split("\n");
-			for (int i = 0; i < lines.length; i++) {
-				builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
-			}
+            String[] lines;
+            try {
+                lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext()
+                        .getExpandedTemplate(name).split("\n");
+                for (int i = 0; i < lines.length; i++) {
+                    builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
+                }
+            } catch (Exception e2) {
+                /* very depressing to get here */
+            }
 			builder.append("\nexpanded data:\n");
 			lines = baos.toString().split("\n");
 			for (int i = 0; i < lines.length; i++) {

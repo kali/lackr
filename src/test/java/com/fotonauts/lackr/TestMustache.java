@@ -79,7 +79,16 @@ public class TestMustache extends BaseTestSubstitution {
 		assertTrue(result.contains("MustacheException"));
 	}
 
-	@Test
+    @Test
+    public void testMustacheNoTemplates() throws Exception {
+        String result = expand("<!-- lackr:mustache:eval name=\"bogus_template_name\" -->\n"
+                + "{ \"name\": \"the name\", \"value\": \"the value\", \"esi\":\"ssi:include:virtual:/esi.json\" }\n"
+                + "<!-- /lackr:mustache:eval -->\n", true);
+        assertNotNull("result is an error", result);
+        assertTrue(result.contains("Mustache template not found"));
+    }
+
+    @Test
 	public void testMustacheTemplateNotFound() throws Exception {
 		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
 		        + "some text from the template name:{{name}} value:{{value}} blah:{{esi.blih}}\n"
