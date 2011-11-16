@@ -43,14 +43,13 @@ public class TestMustache extends BaseTestSubstitution {
 	}
 
 	@Test
-	public void testMustacheParseException() throws Exception {
+	public void testMustacheLenientParsing() throws Exception {
 		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
 		        + "some text from the template name:{{name} value:{{value}}\n"
 		        + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"template_name\" -->\n"
 		        + "{ \"name\": \"the name\", \"value\": \"the value\" }\n"
-		        + "<!-- /lackr:mustache:eval -->\n", true);
-		assertNotNull("result is an error", result);
-		assertTrue(result.contains("MustacheParseException"));
+		        + "<!-- /lackr:mustache:eval -->\n", false);
+        assertEquals("\n\nsome text from the template name:{{name} value:the value\n\n", result);
 	}
 
 	@Test
@@ -78,6 +77,16 @@ public class TestMustache extends BaseTestSubstitution {
 		assertNotNull("result is an error", result);
 		assertTrue(result.contains("MustacheException"));
 	}
+
+    @Test
+    public void testMustacheAbsentKeyInHybridKeys() throws Exception {
+        String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
+                + "{{ absent.stuff }}\n"
+                + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"template_name\" -->\n"
+                + "{ }\n"
+                + "<!-- /lackr:mustache:eval -->\n");
+        assertEquals("\n\n\n\n", result);
+    }
 
     @Test
     public void testMustacheNoTemplates() throws Exception {
