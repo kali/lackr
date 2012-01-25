@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
+import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
 
@@ -28,9 +29,11 @@ public class TemplateRule extends MarkupDetectingRule {
 			template = exchange.getBackendRequest().getFrontendRequest().getService().getInterpolr()
 	        .parse(buffer, boundPairs[2], boundPairs[3], exchange);
 			exchange.getBackendRequest().getFrontendRequest().getMustacheContext().registerTemplate(name, template);
-			return EMPTY_CHUNK;
+            // Someday, we will not want lackr to delete parsed templates on the fly
+			// return new DataChunk(buffer, boundPairs[2], boundPairs[3]);
+            return EMPTY_CHUNK;
         } catch (UnsupportedEncodingException e) {
-        	// now way :)
+        	// no way :)
 			return EMPTY_CHUNK;
         }
     }
