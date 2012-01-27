@@ -31,6 +31,6 @@ public class TestStatus extends BaseTestLackrFullStack {
         client.send(e);
         while (!e.isDone())
             Thread.sleep(10);
-        System.err.println(e.getResponseContent());	}
-
+        assertTrue("status message format", e.getResponseContent().matches("picor-ring\thttp://localhost:[0-9]+\tUP\n"));
+    }
 }

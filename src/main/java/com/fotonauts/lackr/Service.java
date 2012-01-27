@@ -255,7 +255,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        if(request.getRequestURI() == "/_lackr_status") {
+        if(request.getRequestURI().equals("/_lackr_status")) {
             handleStatusQuery(target, baseRequest, request, response);
             return;
         }
@@ -277,7 +277,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
         for(Host h: getRing().getHosts())
-            ps.format("picor-ring:%s:%s\n", h.getHostname(), h.isUp() ? "UP" : "DOWN");
+            ps.format("picor-ring\t%s\t%s\n", h.getHostname(), h.isUp() ? "UP" : "DOWN");
         ps.flush();
         response.setContentLength(baos.size());
         response.getOutputStream().write(baos.toByteArray());
