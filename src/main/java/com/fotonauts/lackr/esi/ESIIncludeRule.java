@@ -2,7 +2,6 @@ package com.fotonauts.lackr.esi;
 
 import org.eclipse.jetty.http.HttpHeaders;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;

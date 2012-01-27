@@ -123,4 +123,8 @@ public class HashRing {
 		if(rapportrInterface != null)
 			rapportrInterface.warnMessage(message, null);
 	}
+
+    public Host[] getHosts() {
+        return hosts;
+    }
 }

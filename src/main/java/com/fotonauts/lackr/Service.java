@@ -1,18 +1,21 @@
 package com.fotonauts.lackr;
 
 import static com.fotonauts.lackr.MongoLoggingKeys.CLIENT_ID;
+import static com.fotonauts.lackr.MongoLoggingKeys.DATA;
 import static com.fotonauts.lackr.MongoLoggingKeys.FACILITY;
 import static com.fotonauts.lackr.MongoLoggingKeys.LOGIN_SESSION;
 import static com.fotonauts.lackr.MongoLoggingKeys.OPERATION_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.REMOTE_ADDR;
 import static com.fotonauts.lackr.MongoLoggingKeys.SESSION_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.SSL;
+import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
 import static com.fotonauts.lackr.MongoLoggingKeys.USER_AGENT;
 import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -252,6 +255,10 @@ public class Service extends AbstractHandler implements RapportrInterface {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
+        if(request.getRequestURI() == "/_lackr_status") {
+            handleStatusQuery(target, baseRequest, request, response);
+            return;
+        }
         LackrFrontendRequest state = (LackrFrontendRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
         if (state == null) {
             log.debug("starting processing for: " + request.getRequestURL());
@@ -262,6 +269,18 @@ public class Service extends AbstractHandler implements RapportrInterface {
             log.debug("resuming processing for: " + request.getRequestURL());
             state.writeResponse(response);
         }
+    }
+    
+    protected void handleStatusQuery(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("text/plain");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        for(Host h: getRing().getHosts())
+            ps.format("picor-ring:%s:%s\n", h.getHostname(), h.isUp() ? "UP" : "DOWN");
+        ps.flush();
+        response.setContentLength(baos.size());
+        response.getOutputStream().write(baos.toByteArray());
     }
 
     public void setBackends(String backends) {
