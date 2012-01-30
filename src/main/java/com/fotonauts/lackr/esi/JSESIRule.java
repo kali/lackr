@@ -1,39 +1,11 @@
 package com.fotonauts.lackr.esi;
 
-import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
-import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.BackendRequest;
 
-public class JSESIRule extends ESIIncludeRule {
+public class JSESIRule extends AbstractJSESIRule {
 
 	public JSESIRule() {
-		super("\"ssi:include:virtual:*\"");
+		super("\"ssi:include:virtual:*\"", BackendRequest.Target.PICOR);
 	}
-
-	@Override
-    public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
-		String mimeType = getMimeType(exchange);
-		if (MimeType.isJS(mimeType))
-			return exchange.getParsedDocument();
-		else if (MimeType.isML(mimeType)) {
-			if (exchange.getParsedDocument() == null || exchange.getParsedDocument().length() == 0)
-				return NULL_CHUNK;
-			else
-				return new JsonQuotingChunk(exchange.getParsedDocument(), true);
-		} else if(MimeType.isTextPlain(mimeType)) {
-            return new JsonQuotingChunk(exchange.getParsedDocument(), true);		    
-		}
-		return NULL_CHUNK;		
-    }
-
-	@Override
-	public String getSyntaxIdentifier() {
-		return "JS";
-	}
-
-	@Override
-    public void check(LackrBackendExchange exchange) {
-    }
 
 }

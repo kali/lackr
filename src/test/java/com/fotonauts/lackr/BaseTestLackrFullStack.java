@@ -37,6 +37,7 @@ import org.springframework.util.Log4jConfigurer;
 public class BaseTestLackrFullStack {
 
 	protected Server backend;
+	protected Server femtorStub;
 	protected Server lackrServer;
 	protected HttpClient client;
 
@@ -62,6 +63,17 @@ public class BaseTestLackrFullStack {
 			}
 		});
 		backend.start();
+		
+		femtorStub = new Server();
+		femtorStub.addConnector(new SelectChannelConnector());
+		femtorStub.setHandler(new AbstractHandler() {
+
+			public void handle(String target, Request baseRequest, HttpServletRequest request,
+			        HttpServletResponse response) throws IOException, ServletException {
+				writeResponse(response, "Femtor says hi!".getBytes("UTF-8"), "text/plain");
+			}
+		});
+		femtorStub.start();
 
 		File propFile = File.createTempFile("lackr.test.", ".props");
 		propFile.deleteOnExit();
@@ -74,6 +86,7 @@ public class BaseTestLackrFullStack {
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
 		Service service = (Service) ctx.getBean("proxyService");
+		service.setFemtorBackend("http://localhost:" + femtorStub.getConnectors()[0].getLocalPort());
 		service.setBackends("http://localhost:" + backend.getConnectors()[0].getLocalPort());
 		service.buildRing();
 		lackrServer = (Server) ctx.getBean("Server");

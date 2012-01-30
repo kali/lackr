@@ -111,13 +111,13 @@ public class LackrFrontendRequest {
 		continuation.suspend();
 	}
 
-	public LackrBackendExchange getSubBackendExchange(String url, String format, LackrBackendExchange dad)
+	public LackrBackendExchange getSubBackendExchange(BackendRequest.Target target, String url, String format, LackrBackendExchange dad)
 	        throws NotAvailableException {
 		String key = format + "::" + url;
 		LackrBackendExchange ex = backendExchangeCache.get(key);
 		if (ex != null)
 			return ex;
-		BackendRequest sub = new BackendRequest(this, "GET", url, dad.getBackendRequest().getQuery(), dad.getBackendRequest()
+		BackendRequest sub = new BackendRequest(target, this, "GET", url, dad.getBackendRequest().getQuery(), dad.getBackendRequest()
 		        .hashCode(), format, null);
 		ex = getService().getClient().createExchange(sub);
 		backendExchangeCache.put(key, ex);
@@ -270,7 +270,7 @@ public class LackrFrontendRequest {
 			byte[] body = null;
 			if (request.getContentLength() > 0)
 				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			BackendRequest spec = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl,
+			BackendRequest spec = new BackendRequest(BackendRequest.Target.PICOR, this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl,
 			        null, 0, null, body);
 			rootExchange = getService().getClient().createExchange(spec);
 			scheduleUpstreamRequest(rootExchange);

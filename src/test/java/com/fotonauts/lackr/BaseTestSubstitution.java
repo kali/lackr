@@ -24,6 +24,10 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     static final String ESI_TEXT = "something like a \"base title\" or \nlike a http://url?with=options&blah=blih";
 	static final String ESI_MUST = "some text from the template name:{{name}} value:{{value}} some:{{esi.some}}";
 
+	{
+    	System.setProperty("lackr.properties", "classpath:/lackr.test.properties");
+	}
+	
 	public BaseTestSubstitution(String clientImplementation) throws Exception {
 		super(clientImplementation);
     	currentHandler.set(new AbstractHandler() {
@@ -51,24 +55,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     				writeResponse(response, ESI_HTML.getBytes("UTF-8"), MimeType.TEXT_HTML);
     			}
     		}
-    	});
-    
-    	System.setProperty("lackr.properties", "classpath:/lackr.test.properties");
-    
-    	backend.start();
-    	backend.getConnectors()[0].getLocalPort();
-    
-    	ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
-    	Service service = (Service) ctx.getBean("proxyService");
-    	service.setBackends("http://localhost:" + backend.getConnectors()[0].getLocalPort());
-    	service.buildRing();
-    	lackrServer = (Server) ctx.getBean("Server");
-    	lackrServer.start();
-    
-    	client = new HttpClient();
-    	client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-    	client.setConnectTimeout(5);
-    	client.start();
+    	});    
     }
 
 	public String expand(String testPage) throws IOException, InterruptedException {

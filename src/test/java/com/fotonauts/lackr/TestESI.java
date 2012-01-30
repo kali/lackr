@@ -84,6 +84,12 @@ public class TestESI extends BaseTestSubstitution {
     }
 
     @Test
+    public void testFemtorJSESI() throws Exception {
+        String result = expand("{ something: \"ssi:include:femtor:/blah\" }");
+        assertEquals("{ something: \"Femtor says hi!\" }", result);
+    }
+
+    @Test
 	public void testUrlEncoding() throws Exception {
 		String result = expand("before\nhttp://esi.include.virtual/\u00c9si.html#\nafter\n");
 		assertEquals("before\n" + ESI_HTML + "\nafter\n", result);

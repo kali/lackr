@@ -4,6 +4,11 @@ public class BackendRequest {
 
 	private final byte[] body;
 
+	public static enum Target {
+		PICOR, FEMTOR
+	};
+	
+	private final Target target;
 	private final String method;
 	private final String parent;
 	private final int parentId;
@@ -12,10 +17,11 @@ public class BackendRequest {
 
 	private final String syntax;
 
-	public BackendRequest(LackrFrontendRequest frontendRequest, String method,
+	public BackendRequest(Target target, LackrFrontendRequest frontendRequest, String method,
 			String query, String parent, int parentId, String syntax,
 			byte[] body) {
 		super();
+		this.target = target;
 		this.frontendRequest = frontendRequest;
 		this.method = method;
 		this.query = query;
@@ -60,4 +66,8 @@ public class BackendRequest {
 	public String getParams() {
 		return query.indexOf('?') == -1 ? null : query.substring(query.indexOf('?') + 1);
 	}
+
+	public Object getTarget() {
+	    return target;
+    }
 }

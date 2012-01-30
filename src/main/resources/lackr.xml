@@ -31,6 +31,7 @@
 	</bean>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
+		p:femtorBackend="${lackr.femtorBackend}"
 		p:client-ref="${lackr.clientImpl}" p:backends="${lackr.backends}"
 		p:probeUrl="${lackr.probeUrl}" p:mongoAccessLogCollection="${lackr.mongolog.access}"
 		p:mongoRapportrQueue="${lackr.rapportr.mongo}" p:grid="${lackr.rapportr.grid}"
@@ -47,6 +48,7 @@
 				<bean class="com.fotonauts.lackr.interpolr.SimpleSubstitutionRule"
 					p:placeholder="https://_A_S_S_E_T_S___P_A_T_H_" p:replacement="${lackr.assets_prefix_ssl}" />
 				<bean class="com.fotonauts.lackr.esi.HttpESIRule" />
+				<bean class="com.fotonauts.lackr.esi.FemtorJSESIRule" />
 				<bean class="com.fotonauts.lackr.esi.JSESIRule" />
 				<bean class="com.fotonauts.lackr.esi.JSEscapedMLESIRule" />
 				<bean class="com.fotonauts.lackr.esi.JSMLESIRule" />

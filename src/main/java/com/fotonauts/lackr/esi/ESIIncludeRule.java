@@ -2,6 +2,7 @@ package com.fotonauts.lackr.esi;
 
 import org.eclipse.jetty.http.HttpHeaders;
 
+import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
@@ -18,6 +19,10 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 
 	public ESIIncludeRule(String markup) {
 		super(markup);
+	}
+	
+	protected BackendRequest.Target getTarget() {
+		return BackendRequest.Target.PICOR;
 	}
 
 	protected String getMimeType(LackrBackendExchange exchange) {
@@ -49,7 +54,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 		try {
 			LackrFrontendRequest front = exchange.getBackendRequest()
 					.getFrontendRequest();
-			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), exchange);
+			sub = front.getSubBackendExchange(getTarget(), url, getSyntaxIdentifier(), exchange);
 		} catch (NotAvailableException e) {
 			throw new RuntimeException("no backend available for fragment: "
 					+ exchange.getBackendRequest().getQuery());

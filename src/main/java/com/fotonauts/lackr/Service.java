@@ -79,6 +79,7 @@ public class Service extends AbstractHandler implements RapportrInterface {
 
     private Executor executor;
     private HashRing ring;
+    private String femtorBackend;
     private String backends;
     private String probeUrl;
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -344,5 +345,13 @@ public class Service extends AbstractHandler implements RapportrInterface {
 
     public void setIrcErrorChannel(String ircErrorChannel) {
         this.ircErrorChannel = ircErrorChannel;
+    }
+
+	public String getFemtorBackend() {
+		return femtorBackend;
+    }
+
+	public void setFemtorBackend(String femtorBackend) {
+		this.femtorBackend = femtorBackend;
     }
 }
