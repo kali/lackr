@@ -12,16 +12,20 @@ public class MimeType {
 	public static String TEXT_PLAIN = "text/plain";
 
 	public static boolean isML(String mimeType) {
+		if(isTextPlain(mimeType))
+			return false;
 		return mimeType.startsWith(TEXT_HTML) || mimeType.startsWith(APPLICATION_ATOM_XML)
 		        || mimeType.startsWith(APPLICATION_X_MMTML) || mimeType.startsWith(APPLICATION_XML);
 	}
 
 	public static boolean isJS(String mimeType) {
+		if(isTextPlain(mimeType))
+			return false;
 		return mimeType.startsWith(APPLICATION_JAVASCRIPT) || mimeType.startsWith(APPLICATION_JSON)
 		        || mimeType.startsWith(TEXT_JAVASCRIPT);
 	}
 
 	public static boolean isTextPlain(String mimeType) {
-		return mimeType.startsWith(TEXT_PLAIN);
+		return mimeType == null || mimeType.equals("") || mimeType.startsWith(TEXT_PLAIN);
 	}
 }

@@ -1,14 +1,12 @@
 package com.fotonauts.lackr;
 
 import static com.fotonauts.lackr.MongoLoggingKeys.CLIENT_ID;
-import static com.fotonauts.lackr.MongoLoggingKeys.DATA;
 import static com.fotonauts.lackr.MongoLoggingKeys.FACILITY;
 import static com.fotonauts.lackr.MongoLoggingKeys.LOGIN_SESSION;
 import static com.fotonauts.lackr.MongoLoggingKeys.OPERATION_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.REMOTE_ADDR;
 import static com.fotonauts.lackr.MongoLoggingKeys.SESSION_ID;
 import static com.fotonauts.lackr.MongoLoggingKeys.SSL;
-import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
 import static com.fotonauts.lackr.MongoLoggingKeys.USER_AGENT;
 import static com.fotonauts.lackr.MongoLoggingKeys.USER_ID;
 

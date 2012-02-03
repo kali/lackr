@@ -72,8 +72,8 @@ public abstract class LackrBackendExchange {
 		if (backendRequest.getSyntax() != null)
 			addRequestHeader("X-SSI-INCLUDE-SYNTAX", backendRequest.getSyntax());
 
-		for (@SuppressWarnings("unchecked")
-		Enumeration e = backendRequest.getFrontendRequest().getRequest()
+		for (
+		Enumeration<?> e = backendRequest.getFrontendRequest().getRequest()
 				.getHeaderNames(); e.hasMoreElements();) {
 			String header = (String) e.nextElement();
 			if (!LackrFrontendRequest.skipHeader(header)) {
@@ -161,8 +161,13 @@ public abstract class LackrBackendExchange {
 	}
 
 	public String getResponseHeaderValue(String name) {
-		List<String> values = getResponseHeaderValues(name);
-		if (values.isEmpty())
+		List<String> values = null;
+		try {
+			values = getResponseHeaderValues(name);
+		} catch(NullPointerException exception) {
+			return null;
+		}
+		if (values == null || values.isEmpty())
 			return null;
 		else
 			return values.get(0);
