@@ -34,9 +34,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.commons.LowPriorityMongoInserter;
+
 import com.fotonauts.lackr.hashring.HashRing;
 import com.fotonauts.lackr.hashring.Host;
 import com.fotonauts.lackr.interpolr.Interpolr;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
