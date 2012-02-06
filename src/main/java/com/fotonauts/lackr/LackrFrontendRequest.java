@@ -1,14 +1,10 @@
 package com.fotonauts.lackr;
 
-import static com.fotonauts.lackr.MongoLoggingKeys.DATA;
-import static com.fotonauts.lackr.MongoLoggingKeys.DATE;
-import static com.fotonauts.lackr.MongoLoggingKeys.ELAPSED;
-import static com.fotonauts.lackr.MongoLoggingKeys.HTTP_HOST;
-import static com.fotonauts.lackr.MongoLoggingKeys.METHOD;
-import static com.fotonauts.lackr.MongoLoggingKeys.PATH;
-import static com.fotonauts.lackr.MongoLoggingKeys.QUERY_PARMS;
-import static com.fotonauts.lackr.MongoLoggingKeys.SIZE;
-import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
+import static com.fotonauts.commons.RapportrLoggingKeys.DATA;
+import static com.fotonauts.commons.RapportrLoggingKeys.DATE;
+import static com.fotonauts.commons.RapportrLoggingKeys.ELAPSED;
+import static com.fotonauts.commons.RapportrLoggingKeys.SIZE;
+import static com.fotonauts.commons.RapportrLoggingKeys.STATUS;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,8 +35,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.commons.RapportrService;
 import com.fotonauts.commons.UserAgent;
-
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.MustacheContext;
@@ -101,12 +97,7 @@ public class LackrFrontendRequest {
 		        .toASCIIString();
 		rootUrl = rootUrl.replace(" ", "%20");
 
-		logLine = Service.accessLogLineTemplate(request, "lackr-front");
-
-		logLine.put(HTTP_HOST.getPrettyName(), request.getHeader("Host"));
-		logLine.put(METHOD.getPrettyName(), request.getMethod());
-		logLine.put(PATH.getPrettyName(), request.getPathInfo());
-		logLine.put(QUERY_PARMS.getPrettyName(), request.getQueryString());
+		logLine = RapportrService.accessLogLineTemplate(request, "lackr-front");
 
 		this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
@@ -187,7 +178,7 @@ public class LackrFrontendRequest {
 			long endTimestamp = System.currentTimeMillis();
 			logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
 			logLine.put(DATE.getPrettyName(), new Date().getTime());
-			service.log(logLine);
+			service.getRapportr().log(logLine);
 		}
 	}
 
@@ -207,9 +198,15 @@ public class LackrFrontendRequest {
 		response.setContentLength(baos.size());
 		response.getOutputStream().write(baos.toByteArray());
 
+		String message;
+		if(backendExceptions.size() > 1)
+			message = "Multiple exceptions";
+		else
+			message = backendExceptions.get(0).getMessage();
+		
 		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
 		logLine.put(DATA.getPrettyName(), baos.toByteArray());
-		getService().rapportrException(request, new String(baos.toByteArray(), "UTF-8"));
+		getService().getRapportr().rapportrException(request, message, new String(baos.toByteArray(), "UTF-8"));
 	}
 
 	public void writeSuccessResponse(HttpServletResponse response) throws IOException {

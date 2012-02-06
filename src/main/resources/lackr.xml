@@ -29,14 +29,22 @@
 		</property>
 
 	</bean>
+	
+	<bean id="rapportr" class="com.fotonauts.commons.RapportrService"
+		p:facility="lackr"
+		p:mongoRapportrQueue="${lackr.rapportr.mongo}"
+		p:grid="${lackr.rapportr.grid}"
+		p:ircErrorChannel="${lackr.rapportr.channel}"
+		p:mongoAccessLogCollection="${lackr.mongolog.access}"
+	/>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
 		p:femtorBackend="${lackr.femtorBackend}"
 		p:client-ref="${lackr.clientImpl}" p:backends="${lackr.backends}"
-		p:probeUrl="${lackr.probeUrl}" p:mongoAccessLogCollection="${lackr.mongolog.access}"
-		p:mongoRapportrQueue="${lackr.rapportr.mongo}" p:grid="${lackr.rapportr.grid}"
-		p:ircErrorChannel="${lackr.rapportr.channel}"
-		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"/>
+		p:probeUrl="${lackr.probeUrl}" 
+		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
+		p:rapportr-ref="rapportr"
+	/>
 
 	<bean id="interpolr" class="com.fotonauts.lackr.interpolr.Interpolr">
 		<property name="rules">

@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
-import com.fotonauts.lackr.RapportrInterface;
+import com.fotonauts.commons.RapportrInterface;
 
 public class Host {
 

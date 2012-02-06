@@ -1,16 +1,14 @@
 package com.fotonauts.lackr;
 
-import static com.fotonauts.lackr.MongoLoggingKeys.DATE;
-import static com.fotonauts.lackr.MongoLoggingKeys.ELAPSED;
-import static com.fotonauts.lackr.MongoLoggingKeys.FRAGMENT_ID;
-import static com.fotonauts.lackr.MongoLoggingKeys.HTTP_HOST;
-import static com.fotonauts.lackr.MongoLoggingKeys.METHOD;
-import static com.fotonauts.lackr.MongoLoggingKeys.PARENT;
-import static com.fotonauts.lackr.MongoLoggingKeys.PARENT_ID;
-import static com.fotonauts.lackr.MongoLoggingKeys.PATH;
-import static com.fotonauts.lackr.MongoLoggingKeys.QUERY_PARMS;
-import static com.fotonauts.lackr.MongoLoggingKeys.SIZE;
-import static com.fotonauts.lackr.MongoLoggingKeys.STATUS;
+import static com.fotonauts.commons.RapportrLoggingKeys.DATE;
+import static com.fotonauts.commons.RapportrLoggingKeys.ELAPSED;
+import static com.fotonauts.commons.RapportrLoggingKeys.FRAGMENT_ID;
+import static com.fotonauts.commons.RapportrLoggingKeys.METHOD;
+import static com.fotonauts.commons.RapportrLoggingKeys.PARENT;
+import static com.fotonauts.commons.RapportrLoggingKeys.PARENT_ID;
+import static com.fotonauts.commons.RapportrLoggingKeys.PATH;
+import static com.fotonauts.commons.RapportrLoggingKeys.SIZE;
+import static com.fotonauts.commons.RapportrLoggingKeys.STATUS;
 
 import java.io.IOException;
 import java.util.Date;
@@ -21,6 +19,7 @@ import org.eclipse.jetty.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.client.JettyLackrBackendExchange;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.DataChunk;
@@ -82,10 +81,10 @@ public abstract class LackrBackendExchange {
 			}
 		}
 		startTimestamp = System.currentTimeMillis();
-		logLine = Service.accessLogLineTemplate(backendRequest.getFrontendRequest()
+		logLine = RapportrService.accessLogLineTemplate(backendRequest.getFrontendRequest()
 				.getRequest(), "lackr-back");
-		logLine.put(HTTP_HOST.getPrettyName(), backendRequest
-				.getFrontendRequest().getRequest().getHeader("Host"));
+		
+		// ESI logline overides
 		logLine.put(METHOD.getPrettyName(), backendRequest.getMethod());
 		logLine.put(PATH.getPrettyName(), backendRequest.getPath());
 		logLine.put(FRAGMENT_ID.getPrettyName(), backendRequest.hashCode());
@@ -95,8 +94,6 @@ public abstract class LackrBackendExchange {
 		if (backendRequest.getParent() != null) {
 			logLine.put(PARENT.getPrettyName(), backendRequest.getParent());
 		}
-		if (backendRequest.getParams() != null)
-			logLine.put(QUERY_PARMS.getPrettyName(), backendRequest.getParams());
 		
 		if(backendRequest.getTarget() == BackendRequest.Target.PICOR)
 			doStart(backendRequest.getFrontendRequest().getService().getRing()
@@ -115,7 +112,7 @@ public abstract class LackrBackendExchange {
 		logLine.put(DATE.getPrettyName(), new Date().getTime());
 		logLine.put(ELAPSED.getPrettyName(),
 				0.001 * (endTimestamp - startTimestamp));
-		backendRequest.getFrontendRequest().getService().log(logLine);
+		backendRequest.getFrontendRequest().getService().getRapportr().log(logLine);
 		backendRequest.getFrontendRequest().getService().getExecutor()
 				.execute(new Runnable() {
 

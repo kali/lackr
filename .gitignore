@@ -4,3 +4,4 @@ target
 .springBeans
 /target
 .rsync-filter
+.settings
