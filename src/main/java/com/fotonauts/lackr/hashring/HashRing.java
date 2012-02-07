@@ -3,12 +3,11 @@ package com.fotonauts.lackr.hashring;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
@@ -26,7 +25,7 @@ public class HashRing {
 	public static class NotAvailableException extends Exception {
 	};
 
-	int bucketPerHost = 32;
+	int bucketPerHost = 128;
 	AtomicInteger up = new AtomicInteger(0);
 	Host[] hosts;
 
