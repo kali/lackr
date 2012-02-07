@@ -32,10 +32,10 @@
 	
 	<bean id="rapportr" class="com.fotonauts.commons.RapportrService"
 		p:facility="lackr"
-		p:mongoRapportrQueue="${lackr.rapportr.mongo}"
+		p:mongoRapportrQueuePath="${lackr.rapportr.mongo}"
 		p:grid="${lackr.rapportr.grid}"
 		p:ircErrorChannel="${lackr.rapportr.channel}"
-		p:mongoAccessLogCollection="${lackr.mongolog.access}"
+		p:mongoAccessLogPath="${lackr.mongolog.access}"
 	/>
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
