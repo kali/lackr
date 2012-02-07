@@ -4,6 +4,9 @@ package com.fotonauts.lackr;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -93,9 +96,24 @@ public class Service extends AbstractHandler {
         response.setContentType("text/plain");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
+        Map<Host, Long> weights = new HashMap<Host,Long>();
         for(Host h: getRing().getHosts())
-            ps.format("picor-ring\t%s\t%s\n", h.getHostname(), h.isUp() ? "UP" : "DOWN");
+        	weights.put(h, 0L);
+        Entry<Integer, Host> previous = null;
+        for(Entry<Integer, Host> e : getRing().getRing().entrySet()) {
+        	if(previous != null)
+            	weights.put(previous.getValue(), weights.get(previous.getValue()) + e.getKey() - previous.getKey());
+        	ps.format("ring-boundary\t%08x\t\n", e.getKey(), e.getValue().getHostname());
+        	previous = e;
+        }
+    	weights.put(previous.getValue(), weights.get(previous.getValue()) + (getRing().getRing().firstKey() - Integer.MIN_VALUE));
+    	weights.put(previous.getValue(), weights.get(previous.getValue()) + (Integer.MAX_VALUE - getRing().getRing().lastKey()));
+        for(Host h: getRing().getHosts()) {
+            ps.format("picor-ring-weight\t%s\t%s\t%d\n", h.getHostname(), h.isUp() ? "UP" : "DOWN", weights.get(h));
+        }
+        ps.println();
         ps.flush();
+        
         response.setContentLength(baos.size());
         response.getOutputStream().write(baos.toByteArray());
     }

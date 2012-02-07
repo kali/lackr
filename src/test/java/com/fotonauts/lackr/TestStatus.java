@@ -1,20 +1,9 @@
 package com.fotonauts.lackr;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.eclipse.jetty.client.ContentExchange;
-import org.eclipse.jetty.http.HttpHeaders;
-import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 
 public class TestStatus extends BaseTestLackrFullStack {
@@ -31,6 +20,8 @@ public class TestStatus extends BaseTestLackrFullStack {
         client.send(e);
         while (!e.isDone())
             Thread.sleep(10);
-        assertTrue("status message format", e.getResponseContent().matches("picor-ring\thttp://localhost:[0-9]+\tUP\n"));
+        String[] lines = e.getResponseContent().split("\n");
+        assertEquals(33, lines.length);
+        assertTrue("last line format", lines[lines.length - 1].matches("picor-ring-weight\thttp://localhost:[0-9]+\tUP\t[0-9]+"));
     }
 }
