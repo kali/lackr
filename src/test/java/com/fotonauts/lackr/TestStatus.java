@@ -1,6 +1,6 @@
 package com.fotonauts.lackr;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.eclipse.jetty.client.ContentExchange;
@@ -21,7 +21,7 @@ public class TestStatus extends BaseTestLackrFullStack {
         while (!e.isDone())
             Thread.sleep(10);
         String[] lines = e.getResponseContent().split("\n");
-        assertEquals(33, lines.length);
+        assertEquals(129, lines.length);
         assertTrue("last line format", lines[lines.length - 1].matches("picor-ring-weight\thttp://localhost:[0-9]+\tUP\t[0-9]+"));
     }
 }
