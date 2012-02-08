@@ -7,6 +7,7 @@ import static com.fotonauts.commons.RapportrLoggingKeys.METHOD;
 import static com.fotonauts.commons.RapportrLoggingKeys.PARENT;
 import static com.fotonauts.commons.RapportrLoggingKeys.PARENT_ID;
 import static com.fotonauts.commons.RapportrLoggingKeys.PATH;
+import static com.fotonauts.commons.RapportrLoggingKeys.QUERY_PARMS;
 import static com.fotonauts.commons.RapportrLoggingKeys.SIZE;
 import static com.fotonauts.commons.RapportrLoggingKeys.STATUS;
 
@@ -87,6 +88,7 @@ public abstract class LackrBackendExchange {
 		// ESI logline overides
 		logLine.put(METHOD.getPrettyName(), backendRequest.getMethod());
 		logLine.put(PATH.getPrettyName(), backendRequest.getPath());
+		logLine.put(QUERY_PARMS.getPrettyName(), backendRequest.getParams());
 		logLine.put(FRAGMENT_ID.getPrettyName(), backendRequest.hashCode());
 		if (backendRequest.getParentId() != 0) {
 			logLine.put(PARENT_ID.getPrettyName(), backendRequest.getParentId());
