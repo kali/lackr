@@ -16,9 +16,17 @@ public class LackrPresentableError extends RuntimeException {
     }
 
     public static LackrPresentableError fromThrowable(Throwable e) {
+    	return fromThrowableAndExchange(e, null);
+    }
+
+    public static LackrPresentableError fromThrowableAndExchange(Throwable e, LackrBackendExchange exchange) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
+        if(exchange != null) {
+        	ps.println("While requesting backend for " + exchange.getBackendRequest().getPath());
+        }
         e.printStackTrace(ps);
+        ps.println();
         try {
             return new LackrPresentableError(baos.toString("UTF-8"));
         } catch (UnsupportedEncodingException e1) {

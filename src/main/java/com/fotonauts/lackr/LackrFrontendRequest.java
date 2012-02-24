@@ -68,7 +68,7 @@ public class LackrFrontendRequest {
 
 	private Continuation continuation;
 
-	protected List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
+	private List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
 
 	protected BasicDBObject logLine;
 
@@ -187,22 +187,21 @@ public class LackrFrontendRequest {
 		response.setContentType("text/plain");
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(baos);
-		for (Throwable t : backendExceptions) {
-			if (t instanceof LackrPresentableError) {
-				LackrPresentableError error = (LackrPresentableError) t;
-				ps.println(error.getMessage());
-			} else
-				t.printStackTrace(ps);
+		for (LackrPresentableError t : backendExceptions) {
+				ps.println(t.getMessage());
 		}
 		ps.flush();
 		response.setContentLength(baos.size());
 		response.getOutputStream().write(baos.toByteArray());
 
 		String message;
-		if(backendExceptions.size() > 1)
-			message = "Multiple exceptions";
-		else
-			message = backendExceptions.get(0).getMessage();
+		try {
+			message = backendExceptions.get(0).getMessage().split("\n")[0];
+			if(backendExceptions.size() > 1)
+				message = message + " — and friends.";
+		} catch (Throwable e) {
+			message = "Failed to extract a nice message from this mess";
+		}
 		
 		logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
 		logLine.put(DATA.getPrettyName(), baos.toByteArray());

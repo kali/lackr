@@ -38,6 +38,7 @@ public class ExchangeChunk implements Chunk {
 	public void check() {
 		if(isChecked)
 			return;
+		exchange.getParsedDocument().check();
 		rule.check(exchange);
 		isChecked = true;
 	}
