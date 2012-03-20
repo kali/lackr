@@ -98,8 +98,7 @@ public abstract class LackrBackendExchange {
 		}
 		
 		if(backendRequest.getTarget() == BackendRequest.Target.PICOR)
-			doStart(backendRequest.getFrontendRequest().getService().getRing()
-					.getHostFor(backendRequest.getQuery()).getHostname());
+			doStart(backendRequest.getFrontendRequest().getService().getRing().getHostnameFor(backendRequest));
 		else
 			doStart(backendRequest.getFrontendRequest().getService().getFemtorBackend());
 	}

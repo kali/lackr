@@ -16,8 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.commons.RapportrInterface;
+import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.HttpDirectorInterface;
 
-public class HashRing {
+public class HashRing implements HttpDirectorInterface {
 
 	static Logger log = LoggerFactory.getLogger(Host.class);
 
@@ -132,4 +134,10 @@ public class HashRing {
 	public Host[] getHosts() {
 		return hosts;
 	}
+
+	@Override
+    public String getHostnameFor(BackendRequest request) throws NotAvailableException {
+		return getHostFor(request.getQuery()).getHostname();
+    }
+
 }
