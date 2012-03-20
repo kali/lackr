@@ -5,7 +5,6 @@ import java.io.UnsupportedEncodingException;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
-import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
 

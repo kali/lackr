@@ -22,7 +22,7 @@ public class Bench {
 	        "-B5nmayTPJs", "-BFY1FomGAY", "-BRV-SbMGxI", "-BX7umMAzLY" };
 
 	public static void main(String[] args) throws Exception {
-		int number = 100000;
+//		int number = 100000;
 		int concurrency = 1;
 		warm();
 		while (concurrency < 1024) {

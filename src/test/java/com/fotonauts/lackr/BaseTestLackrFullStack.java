@@ -1,13 +1,12 @@
 package com.fotonauts.lackr;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,9 +22,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.junit.Ignore;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
@@ -33,7 +29,6 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.Log4jConfigurer;
 
 import com.fotonauts.lackr.client.JettyBackend;
-import com.fotonauts.lackr.hashring.HashRing;
 
 @Ignore
 public class BaseTestLackrFullStack {
