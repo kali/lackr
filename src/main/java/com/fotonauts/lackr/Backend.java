@@ -1,6 +1,6 @@
 package com.fotonauts.lackr;
 
-public interface BackendClient {
+public interface Backend {
 
 	public LackrBackendExchange createExchange(BackendRequest request);
 }

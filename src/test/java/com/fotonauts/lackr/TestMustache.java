@@ -9,8 +9,7 @@ import org.junit.Test;
 
 public class TestMustache extends BaseTestSubstitution {
 
-	public TestMustache(String clientImplementation) throws Exception {
-		super(clientImplementation);
+	public TestMustache() throws Exception {
 	}
 
 	@Test

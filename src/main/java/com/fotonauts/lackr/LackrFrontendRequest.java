@@ -64,7 +64,7 @@ public class LackrFrontendRequest {
 
 	private String rootUrl;
 
-	protected LackrBackendExchange rootExchange;
+	protected BackendRequest rootRequest;
 
 	private Continuation continuation;
 
@@ -78,7 +78,7 @@ public class LackrFrontendRequest {
 
 	private MustacheContext mustacheContext;
 
-	private ConcurrentHashMap<String, LackrBackendExchange> backendExchangeCache = new ConcurrentHashMap<String, LackrBackendExchange>();
+	private ConcurrentHashMap<String, BackendRequest> backendRequestCache = new ConcurrentHashMap<String, BackendRequest>();
 
 	LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
 		this.service = service;
@@ -104,28 +104,26 @@ public class LackrFrontendRequest {
 		continuation.suspend();
 	}
 
-	public LackrBackendExchange getSubBackendExchange(BackendRequest.Target target, String url, String format, LackrBackendExchange dad)
+	public BackendRequest getSubBackendExchange(String url, String format, BackendRequest dad)
 	        throws NotAvailableException {
 		String key = format + "::" + url;
-		LackrBackendExchange ex = backendExchangeCache.get(key);
+		BackendRequest ex = backendRequestCache.get(key);
 		if (ex != null)
 			return ex;
-		BackendRequest sub = new BackendRequest(target, this, "GET", url, dad.getBackendRequest().getQuery(), dad.getBackendRequest()
-		        .hashCode(), format, null);
-		ex = getService().getClient().createExchange(sub);
-		backendExchangeCache.put(key, ex);
+		ex = new BackendRequest(this, "GET", url, dad.getQuery(), dad.hashCode(), format, null);
+		backendRequestCache.put(key, ex);
 		scheduleUpstreamRequest(ex);
 		return ex;
 	}
 
-	private LackrBackendExchange scheduleUpstreamRequest(final LackrBackendExchange exchange) throws NotAvailableException {
+	private void scheduleUpstreamRequest(final BackendRequest request) throws NotAvailableException {
 		this.pendingCount.incrementAndGet();
 		getService().getExecutor().execute(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					exchange.start();
+					request.start();
 				} catch (IOException e) {
 					addBackendExceptions(LackrPresentableError.fromThrowable(e));
 				} catch (NotAvailableException e) {
@@ -137,17 +135,16 @@ public class LackrFrontendRequest {
 				}
 			}
 		});
-		return exchange;
 	}
 
 	public UserAgent getUserAgent() {
 		return userAgent;
 	}
 
-	public void copyHeaders(HttpServletResponse response) {
-		for (String name : rootExchange.getResponseHeaderNames()) {
+	public void copyResponseHeaders(HttpServletResponse response) {
+		for (String name : rootRequest.getExchange().getResponseHeaderNames()) {
 			if (!skipHeader(name)) {
-				for (String value : rootExchange.getResponseHeaderValues(name))
+				for (String value : rootRequest.getExchange().getResponseHeaderValues(name))
 					response.addHeader(name, value);
 			}
 		}
@@ -155,8 +152,8 @@ public class LackrFrontendRequest {
 
 	private void preflightCheck() {
 		getMustacheContext().checkAndCompileAll(backendExceptions);
-		if (rootExchange.getParsedDocument() != null) {
-			rootExchange.getParsedDocument().check();
+		if (rootRequest.getExchange().getParsedDocument() != null) {
+			rootRequest.getExchange().getParsedDocument().check();
 		}
 	}
 
@@ -209,9 +206,10 @@ public class LackrFrontendRequest {
 	}
 
 	public void writeSuccessResponse(HttpServletResponse response) throws IOException {
+		LackrBackendExchange rootExchange = rootRequest.getExchange();
 		response.setStatus(rootExchange.getResponseStatus());
-		copyHeaders(response);
-		log.debug("writing success response for " + rootExchange.getBackendRequest().getQuery());
+		copyResponseHeaders(response);
+		log.debug("writing success response for " + rootRequest.getQuery());
 		if (rootExchange.getParsedDocument().length() > 0) {
 			String etag = generateEtag(rootExchange.getParsedDocument());
 			response.setHeader(HttpHeaders.ETAG, etag);
@@ -268,10 +266,9 @@ public class LackrFrontendRequest {
 			byte[] body = null;
 			if (request.getContentLength() > 0)
 				body = FileCopyUtils.copyToByteArray(request.getInputStream());
-			BackendRequest spec = new BackendRequest(BackendRequest.Target.PICOR, this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl,
+			rootRequest = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl,
 			        null, 0, null, body);
-			rootExchange = getService().getClient().createExchange(spec);
-			scheduleUpstreamRequest(rootExchange);
+			scheduleUpstreamRequest(rootRequest);
 		} catch (Throwable e) {
 			log.debug("in kick() error handler: " + e);
 			backendExceptions.add(LackrPresentableError.fromThrowable(e));
@@ -306,4 +303,8 @@ public class LackrFrontendRequest {
 	public MustacheContext getMustacheContext() {
 		return mustacheContext;
 	}
+
+	public BackendRequest getRootRequest() {
+		return rootRequest;
+    }
 }

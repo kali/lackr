@@ -19,8 +19,8 @@ import org.junit.Test;
 
 public class Test304 extends BaseTestLackrFullStack {
 
-	public Test304(String clientImplementation) throws Exception {
-	    super(clientImplementation);
+	public Test304() throws Exception {
+	    super();
     }
 
 	protected ContentExchange run(String testPage) throws IOException, InterruptedException {

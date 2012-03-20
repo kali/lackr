@@ -29,22 +29,21 @@
 		</property>
 
 	</bean>
-	
+
 	<bean id="rapportr" class="com.fotonauts.commons.RapportrService"
-		p:facility="lackr"
-		p:mongoRapportrQueuePath="${lackr.rapportr.mongo}"
-		p:grid="${lackr.rapportr.grid}"
-		p:ircErrorChannel="${lackr.rapportr.channel}"
-		p:mongoAccessLogPath="${lackr.mongolog.access}"
-	/>
+		p:facility="lackr" p:mongoRapportrQueuePath="${lackr.rapportr.mongo}"
+		p:grid="${lackr.rapportr.grid}" p:ircErrorChannel="${lackr.rapportr.channel}"
+		p:mongoAccessLogPath="${lackr.mongolog.access}" />
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
-		p:femtorBackend="${lackr.femtorBackend}"
-		p:client-ref="${lackr.clientImpl}" p:backends="${lackr.backends}"
-		p:probeUrl="${lackr.probeUrl}" 
 		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
-		p:rapportr-ref="rapportr"
-	/>
+		p:rapportr-ref="rapportr" lazy-init="true">
+		<property name="backends">
+			<array>
+				<ref bean="picorBackend" />
+			</array>
+		</property>
+	</bean>
 
 	<bean id="interpolr" class="com.fotonauts.lackr.interpolr.Interpolr">
 		<property name="rules">
@@ -65,14 +64,11 @@
 		</property>
 	</bean>
 
-	<bean name="apacheClient" class="com.fotonauts.lackr.client.ApacheClient"
-		lazy-init="true" />
+	<bean id="picorHashRing" class="com.fotonauts.lackr.hashring.HashRing"
+		p:rapportrInterface-ref="rapportr" p:probeUrl="${lackr.probeUrl}"
+		p:hostnames="${lackr.backends}" />
 
-	<bean name="ahcClient" class="com.fotonauts.lackr.client.AHCClient"
-		lazy-init="true" />
-
-	<bean id="jettyClient" class="com.fotonauts.lackr.client.JettyClient"
-		p:actualClient-ref="jettyHttpClient" lazy-init="true" />
+	<bean id="picorBackend" class="com.fotonauts.lackr.client.JettyBackend" p:actualClient-ref="jettyHttpClient" />
 
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
 		init-method="start" destroy-method="stop" p:connectTimeout="500"

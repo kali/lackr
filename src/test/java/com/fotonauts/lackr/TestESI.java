@@ -8,8 +8,8 @@ import org.junit.Test;
 
 public class TestESI extends BaseTestSubstitution {
 
-	public TestESI(String clientImplementation) throws Exception {
-	    super(clientImplementation);
+	public TestESI() throws Exception {
+	    super();
     }
 
 	@Test

@@ -1,27 +1,31 @@
 package com.fotonauts.lackr;
 
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+
 public class BackendRequest {
 
 	private final byte[] body;
 
-	public static enum Target {
-		PICOR, FEMTOR
-	};
-	
-	private final Target target;
 	private final String method;
 	private final String parent;
 	private final int parentId;
 	private final String query;
 	private final LackrFrontendRequest frontendRequest;
 
+	private AtomicReference<LackrBackendExchange> lastExchange = new AtomicReference<LackrBackendExchange>();
+	
 	private final String syntax;
 
-	public BackendRequest(Target target, LackrFrontendRequest frontendRequest, String method,
+	private AtomicInteger triedBackend = new AtomicInteger(0);
+	
+	public BackendRequest(LackrFrontendRequest frontendRequest, String method,
 			String query, String parent, int parentId, String syntax,
 			byte[] body) {
 		super();
-		this.target = target;
 		this.frontendRequest = frontendRequest;
 		this.method = method;
 		this.query = query;
@@ -67,7 +71,27 @@ public class BackendRequest {
 		return query.indexOf('?') == -1 ? null : query.substring(query.indexOf('?') + 1);
 	}
 
-	public Object getTarget() {
-	    return target;
+	public void start() throws IOException, NotAvailableException {
+		tryNext();
     }
+	
+	protected void tryNext() throws IOException, NotAvailableException {
+		int next = triedBackend.get();
+		LackrBackendExchange exchange = getFrontendRequest().getService().getBackends()[next].createExchange(this);
+		lastExchange.set(exchange);
+		exchange.start();
+	}
+	public LackrBackendExchange getExchange() {
+		return lastExchange.get();
+    }
+
+	public void postProcess() {
+/*		LackrBackendExchange exchange = getExchange();
+		if(exchange.getResponseStatus() == 404) {
+			
+		} else { */
+			getFrontendRequest().notifySubRequestDone();
+//		}
+    }
+
 }

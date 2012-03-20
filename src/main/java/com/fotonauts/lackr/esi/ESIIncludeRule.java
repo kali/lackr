@@ -20,10 +20,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 	public ESIIncludeRule(String markup) {
 		super(markup);
 	}
-	
-	protected BackendRequest.Target getTarget() {
-		return BackendRequest.Target.PICOR;
-	}
+
 
 	protected String getMimeType(LackrBackendExchange exchange) {
 		return exchange.getResponseHeaderValue(HttpHeaders.CONTENT_TYPE);
@@ -50,16 +47,16 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 	public Chunk substitute(byte[] buffer, int[] boundPairs, Object context) {
 		LackrBackendExchange exchange = (LackrBackendExchange) context;
 		String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
-		LackrBackendExchange sub;
+		BackendRequest sub;
 		try {
 			LackrFrontendRequest front = exchange.getBackendRequest()
 					.getFrontendRequest();
-			sub = front.getSubBackendExchange(getTarget(), url, getSyntaxIdentifier(), exchange);
+			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), exchange.getBackendRequest());
 		} catch (NotAvailableException e) {
 			throw new RuntimeException("no backend available for fragment: "
 					+ exchange.getBackendRequest().getQuery());
 		}
-		return new ExchangeChunk(sub, this);
+		return new RequestChunk(sub, this);
 	}
 
 	public abstract String getSyntaxIdentifier();

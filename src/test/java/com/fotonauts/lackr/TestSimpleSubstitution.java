@@ -6,8 +6,8 @@ import org.junit.Test;
 
 public class TestSimpleSubstitution extends BaseTestSubstitution {
 
-	public TestSimpleSubstitution(String clientImplementation) throws Exception {
-		super(clientImplementation);
+	public TestSimpleSubstitution() throws Exception {
+		super();
 	}
 
 	@Test

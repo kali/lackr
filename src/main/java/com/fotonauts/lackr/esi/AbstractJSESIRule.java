@@ -8,8 +8,6 @@ import java.util.Map;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.BackendRequest.Target;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
@@ -18,16 +16,8 @@ import com.fotonauts.lackr.interpolr.Chunk;
 
 public class AbstractJSESIRule extends ESIIncludeRule {
 
-	private Target target;
-
-	public AbstractJSESIRule(String pattern, BackendRequest.Target target) {
+	public AbstractJSESIRule(String pattern) {
 		super(pattern);
-		this.target = target;
-	}
-
-	@Override
-	protected BackendRequest.Target getTarget() {
-		return target;
 	}
 
 	@Override

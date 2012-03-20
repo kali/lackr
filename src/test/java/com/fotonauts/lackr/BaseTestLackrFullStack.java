@@ -32,8 +32,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.Log4jConfigurer;
 
+import com.fotonauts.lackr.client.JettyBackend;
+import com.fotonauts.lackr.hashring.HashRing;
+
 @Ignore
-@RunWith(Parameterized.class)
 public class BaseTestLackrFullStack {
 
 	protected Server backend;
@@ -43,12 +45,7 @@ public class BaseTestLackrFullStack {
 
 	protected AtomicReference<Handler> currentHandler;
 
-	@Parameters
-	public static Collection<Object[]> data() {
-		return Arrays.asList(new Object[][] { { "jettyClient" }, /*{ "ahcClient" }, { "apacheClient" } */ });
-	}
-
-	public BaseTestLackrFullStack(String clientImplementation) throws Exception {
+	public BaseTestLackrFullStack() throws Exception {
 		Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
 
 		currentHandler = new AtomicReference<Handler>();
@@ -57,19 +54,19 @@ public class BaseTestLackrFullStack {
 		backend.addConnector(new SelectChannelConnector());
 		backend.setHandler(new AbstractHandler() {
 
-			public void handle(String target, Request baseRequest, HttpServletRequest request,
-			        HttpServletResponse response) throws IOException, ServletException {
+			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+			        throws IOException, ServletException {
 				currentHandler.get().handle(target, baseRequest, request, response);
 			}
 		});
 		backend.start();
-		
+
 		femtorStub = new Server();
 		femtorStub.addConnector(new SelectChannelConnector());
 		femtorStub.setHandler(new AbstractHandler() {
 
-			public void handle(String target, Request baseRequest, HttpServletRequest request,
-			        HttpServletResponse response) throws IOException, ServletException {
+			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+			        throws IOException, ServletException {
 				writeResponse(response, "Femtor says hi!".getBytes("UTF-8"), "text/plain");
 			}
 		});
@@ -77,18 +74,21 @@ public class BaseTestLackrFullStack {
 
 		File propFile = File.createTempFile("lackr.test.", ".props");
 		propFile.deleteOnExit();
-		
+
 		Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
-		props.setProperty("lackr.clientImpl", clientImplementation);
 		props.store(new FileOutputStream(propFile), "properties for lackr test run");
-		
+
 		System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
 		Service service = (Service) ctx.getBean("proxyService");
-		service.setFemtorBackend("http://localhost:" + femtorStub.getConnectors()[0].getLocalPort());
-		service.setBackends("http://localhost:" + backend.getConnectors()[0].getLocalPort());
-		service.buildRing();
+		// service.setFemtorBackend("http://localhost:" +
+		// femtorStub.getConnectors()[0].getLocalPort());
+		JettyBackend jettyBackend = (JettyBackend) ctx.getBean("picorBackend");
+		jettyBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
+		service.setBackends(new Backend[] { jettyBackend });
+		// service.setBackends(new Backend[] { new HashRing("http://localhost:"
+		// + backend.getConnectors()[0].getLocalPort(), service, null) } );
 		lackrServer = (Server) ctx.getBean("Server");
 		lackrServer.start();
 

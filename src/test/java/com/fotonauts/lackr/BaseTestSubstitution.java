@@ -28,8 +28,8 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     	System.setProperty("lackr.properties", "classpath:/lackr.test.properties");
 	}
 	
-	public BaseTestSubstitution(String clientImplementation) throws Exception {
-		super(clientImplementation);
+	public BaseTestSubstitution() throws Exception {
+		super();
     	currentHandler.set(new AbstractHandler() {
     
     		public void handle(String target, Request baseRequest, HttpServletRequest request,

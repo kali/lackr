@@ -7,7 +7,7 @@ public abstract class TextSubstitutionEngine implements SubstitutionEngine {
 	}
 
 	protected boolean parseable(LackrFrontendRequest lackrRequest) {
-		String mimeType = lackrRequest.rootExchange.getResponseHeaderValue("Content-Type");
+		String mimeType = lackrRequest.getRootRequest().getExchange().getResponseHeaderValue("Content-Type");
 		return mimeType != null && (MimeType.isML(mimeType) || MimeType.isJS(mimeType));
 	}
 }

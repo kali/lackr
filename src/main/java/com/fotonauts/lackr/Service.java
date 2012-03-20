@@ -1,16 +1,10 @@
 package com.fotonauts.lackr;
 
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import com.fotonauts.commons.RapportrService;
-import com.fotonauts.lackr.hashring.HashRing;
-import com.fotonauts.lackr.hashring.Host;
 import com.fotonauts.lackr.interpolr.Interpolr;
 
 
@@ -33,7 +25,6 @@ public class Service extends AbstractHandler {
     private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
     static Logger log = LoggerFactory.getLogger(Service.class);
 
-    protected BackendClient client;
     private int timeout;
     
     protected RapportrService rapportr;
@@ -52,24 +43,15 @@ public class Service extends AbstractHandler {
         this.interpolr = interpolr;
     }
 
+    private Backend[] backends;
+    
     private Executor executor;
-    private HashRing ring;
     private String femtorBackend;
-    private String backends;
-    private String probeUrl;
     private ObjectMapper objectMapper = new ObjectMapper();
     @Override
     protected void doStart() throws Exception {
         setExecutor(Executors.newFixedThreadPool(16));
         super.doStart();
-    }
-
-    public BackendClient getClient() {
-        return client;
-    }
-
-    public void setClient(BackendClient client) {
-        this.client = client;
     }
 
     @Override
@@ -92,6 +74,7 @@ public class Service extends AbstractHandler {
     }
     
     protected void handleStatusQuery(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    	/*
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/plain");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -116,25 +99,7 @@ public class Service extends AbstractHandler {
         
         response.setContentLength(baos.size());
         response.getOutputStream().write(baos.toByteArray());
-    }
-
-    public void setBackends(String backends) {
-        this.backends = backends;
-    }
-
-    public void setProbeUrl(String probeUrl) {
-        this.probeUrl = probeUrl;
-    }
-
-    @PostConstruct
-    public void buildRing() {
-        if (ring == null && backends != null && !backends.equals("")) {
-            String[] hostnames = backends.split(",");
-            Host[] hosts = new Host[hostnames.length];
-            for (int i = 0; i < hostnames.length; i++)
-                hosts[i] = new Host(rapportr, hostnames[i], probeUrl);
-            ring = new HashRing(rapportr, hosts);
-        }
+        */
     }
 
     public void setExecutor(Executor executor) {
@@ -145,13 +110,6 @@ public class Service extends AbstractHandler {
         return executor;
     }
 
-    public HashRing getRing() {
-        return ring;
-    }
-
-    public void setRing(HashRing ring) {
-        this.ring = ring;
-    }
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
@@ -179,5 +137,13 @@ public class Service extends AbstractHandler {
 
 	public void setRapportr(RapportrService rapportr) {
     	this.rapportr = rapportr;
+    }
+
+	public Backend[] getBackends() {
+	    return backends;
+    }
+
+	public void setBackends(Backend[] backends) {
+	    this.backends = backends;
     }
 }

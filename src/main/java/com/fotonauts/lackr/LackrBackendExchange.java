@@ -97,10 +97,7 @@ public abstract class LackrBackendExchange {
 			logLine.put(PARENT.getPrettyName(), backendRequest.getParent());
 		}
 		
-		if(backendRequest.getTarget() == BackendRequest.Target.PICOR)
-			doStart(backendRequest.getFrontendRequest().getService().getRing().getHostnameFor(backendRequest));
-		else
-			doStart(backendRequest.getFrontendRequest().getService().getFemtorBackend());
+		doStart();
 	}
 
 	public void onResponseComplete() {
@@ -125,10 +122,10 @@ public abstract class LackrBackendExchange {
 
 	}
 
-	protected abstract void doStart(String host) throws IOException;
+	protected abstract void doStart() throws IOException, NotAvailableException;
 
 	protected void postProcess() {
-		if (this != backendRequest.getFrontendRequest().rootExchange
+		if (backendRequest != backendRequest.getFrontendRequest().getRootRequest()
 				&& (getResponseStatus() / 100 == 4 || getResponseStatus() / 100 == 5)
 				&& getResponseHeader("X-SSI-AWARE") == null)
 			backendRequest.getFrontendRequest().addBackendExceptions(
@@ -151,7 +148,7 @@ public abstract class LackrBackendExchange {
 			e.printStackTrace();
 			backendRequest.getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
 		}
-		backendRequest.getFrontendRequest().notifySubRequestDone();
+		backendRequest.postProcess();
 	}
 
 	public Document getParsedDocument() {

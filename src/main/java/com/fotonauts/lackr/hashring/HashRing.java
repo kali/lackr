@@ -34,17 +34,41 @@ public class HashRing implements HttpDirectorInterface {
 	private NavigableMap<Integer, Host> ring;
 
 	private RapportrInterface rapportrInterface;
+	private String[] hostnames;
+	private String probeUrl;
 
-	public HashRing(RapportrInterface rapportrInterface, Host[] backends) {
-		this.rapportrInterface = rapportrInterface;
-		hosts = backends;
-		init();
+	public String getProbeUrl() {
+		return probeUrl;
+	}
+
+	public void setProbeUrl(String probeUrl) {
+		this.probeUrl = probeUrl;
+	}
+
+	/*
+	 * 
+	 * public HashRing(String backendString, RapportrInterface rapportr, String
+	 * probeUrl) { String[] backends = backendString.split(","); Host[] hosts =
+	 * new Host[backends.length]; for (int i = 0; i < backends.length; i++)
+	 * hosts[i] = new Host(rapportr, backends[i], probeUrl); }
+	 * 
+	 * public HashRing(String... backends) { hosts = new Host[backends.length];
+	 * for (int i = 0; i < backends.length; i++) hosts[i] = new
+	 * Host(backends[i]); init(); }
+	 */
+	public HashRing() {
+	}
+
+	public void setHostnames(String hostnames) {
+		this.hostnames = hostnames.split(",");
+	}
+
+	public void setHosts(Host[] hosts) {
+		this.hosts = hosts;
 	}
 
 	public HashRing(String... backends) {
-		hosts = new Host[backends.length];
-		for (int i = 0; i < backends.length; i++)
-			hosts[i] = new Host(backends[i]);
+		hostnames = backends;
 		init();
 	}
 
@@ -53,12 +77,13 @@ public class HashRing implements HttpDirectorInterface {
 		init();
 	}
 
-	public void setHosts(Host[] hosts) {
-		this.hosts = hosts;
-	}
-
 	@PostConstruct
 	public void init() {
+		if (hosts == null && hostnames != null) {
+			hosts = new Host[hostnames.length];
+			for (int i = 0; i < hostnames.length; i++)
+				hosts[i] = new Host(rapportrInterface, hostnames[i], probeUrl);
+		}
 		ring = new TreeMap<Integer, Host>();
 		for (Host h : hosts) {
 			h.setRing(this);
@@ -136,8 +161,16 @@ public class HashRing implements HttpDirectorInterface {
 	}
 
 	@Override
-    public String getHostnameFor(BackendRequest request) throws NotAvailableException {
+	public String getHostnameFor(BackendRequest request) throws NotAvailableException {
 		return getHostFor(request.getQuery()).getHostname();
-    }
+	}
+
+	public RapportrInterface getRapportrInterface() {
+		return rapportrInterface;
+	}
+
+	public void setRapportrInterface(RapportrInterface rapportrInterface) {
+		this.rapportrInterface = rapportrInterface;
+	}
 
 }

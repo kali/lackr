@@ -15,8 +15,8 @@ import org.springframework.util.FileCopyUtils;
 
 public class TestPropagation extends BaseTestLackrFullStack {
 
-	public TestPropagation(String clientImplementation) throws Exception {
-	    super(clientImplementation);
+	public TestPropagation() throws Exception {
+	    super();
     }
 
 	@Test

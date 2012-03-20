@@ -8,8 +8,8 @@ import org.junit.Test;
 
 public class TestStatus extends BaseTestLackrFullStack {
 
-	public TestStatus(String clientImplementation) throws Exception {
-	    super(clientImplementation);
+	public TestStatus() throws Exception {
+	    super();
     }
 
 
