@@ -11,16 +11,13 @@ import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
 import com.fotonauts.lackr.interpolr.Rule;
 
-abstract public class ESIIncludeRule extends MarkupDetectingRule implements
-		Rule {
+abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule {
 
-	protected static ConstantChunk NULL_CHUNK = new ConstantChunk(
-			"null".getBytes());
+	protected static ConstantChunk NULL_CHUNK = new ConstantChunk("null".getBytes());
 
 	public ESIIncludeRule(String markup) {
 		super(markup);
 	}
-
 
 	protected String getMimeType(LackrBackendExchange exchange) {
 		return exchange.getResponseHeaderValue(HttpHeaders.CONTENT_TYPE);
@@ -28,9 +25,9 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 
 	protected String makeUrl(byte[] buffer, int start, int stop) {
 		StringBuilder builder = new StringBuilder();
-		for(int i = start; i<stop; i++) {
+		for (int i = start; i < stop; i++) {
 			byte b = buffer[i];
-			if(b < 0) {
+			if (b < 0) {
 				builder.append('%');
 				builder.append(Integer.toHexString(b + 256).toUpperCase());
 			} else if (b < 32) {
@@ -42,26 +39,24 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements
 		}
 		return builder.toString();
 	}
-	
+
 	@Override
 	public Chunk substitute(byte[] buffer, int[] boundPairs, Object context) {
-		LackrBackendExchange exchange = (LackrBackendExchange) context;
+		BackendRequest request = (BackendRequest) context;
 		String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
 		BackendRequest sub;
 		try {
-			LackrFrontendRequest front = exchange.getBackendRequest()
-					.getFrontendRequest();
-			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), exchange.getBackendRequest());
+			LackrFrontendRequest front = request.getFrontendRequest();
+			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), request);
 		} catch (NotAvailableException e) {
-			throw new RuntimeException("no backend available for fragment: "
-					+ exchange.getBackendRequest().getQuery());
+			throw new RuntimeException("no backend available for fragment: " + request.getQuery());
 		}
 		return new RequestChunk(sub, this);
 	}
 
 	public abstract String getSyntaxIdentifier();
 
-	public abstract Chunk filterDocumentAsChunk(LackrBackendExchange exchange);
+	public abstract Chunk filterDocumentAsChunk(BackendRequest exchange);
 
-	public abstract void check(LackrBackendExchange exchange);
+	public abstract void check(BackendRequest request);
 }

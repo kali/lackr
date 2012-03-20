@@ -152,8 +152,8 @@ public class LackrFrontendRequest {
 
 	private void preflightCheck() {
 		getMustacheContext().checkAndCompileAll(backendExceptions);
-		if (rootRequest.getExchange().getParsedDocument() != null) {
-			rootRequest.getExchange().getParsedDocument().check();
+		if (rootRequest.getParsedDocument() != null) {
+			rootRequest.getParsedDocument().check();
 		}
 	}
 
@@ -210,8 +210,8 @@ public class LackrFrontendRequest {
 		response.setStatus(rootExchange.getResponseStatus());
 		copyResponseHeaders(response);
 		log.debug("writing success response for " + rootRequest.getQuery());
-		if (rootExchange.getParsedDocument().length() > 0) {
-			String etag = generateEtag(rootExchange.getParsedDocument());
+		if (rootRequest.getParsedDocument().length() > 0) {
+			String etag = generateEtag(rootRequest.getParsedDocument());
 			response.setHeader(HttpHeaders.ETAG, etag);
 			if (log.isDebugEnabled()) {
 				log.debug("etag: " + etag);
@@ -224,12 +224,12 @@ public class LackrFrontendRequest {
 				logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
 			} else {
 				logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
-				response.setContentLength(rootExchange.getParsedDocument().length());
+				response.setContentLength(rootRequest.getParsedDocument().length());
 				if (request.getMethod() != "HEAD")
-					rootExchange.getParsedDocument().writeTo(response.getOutputStream());
+					rootRequest.getParsedDocument().writeTo(response.getOutputStream());
 				response.flushBuffer();
 			}
-			logLine.put(SIZE.getPrettyName(), rootExchange.getParsedDocument().length());
+			logLine.put(SIZE.getPrettyName(), rootRequest.getParsedDocument().length());
 		} else {
 			logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
 			response.flushBuffer(); // force commiting

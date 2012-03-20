@@ -8,6 +8,7 @@ import java.util.Map;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
@@ -21,8 +22,8 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
-		String mimeType = getMimeType(exchange);
+	public Chunk filterDocumentAsChunk(BackendRequest exchange) {
+		String mimeType = getMimeType(exchange.getExchange());
 		if (MimeType.isJS(mimeType))
 			return exchange.getParsedDocument();
 		else if (MimeType.isML(mimeType)) {
@@ -42,7 +43,8 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public void check(LackrBackendExchange exchange) {
+	public void check(BackendRequest request) {
+		LackrBackendExchange exchange = request.getExchange();
 		// FIXME this is here to find a bug. it is probably unecessary as it
 		// will be parsed later
 		if(!MimeType.isJS(exchange.getResponseHeaderValue("Content-Type")))
@@ -53,7 +55,7 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			baos.write("{ \"placeholder\" : ".getBytes());
-			exchange.getParsedDocument().writeTo(baos);
+			request.getParsedDocument().writeTo(baos);
 			baos.write("}".getBytes());
 			data = mapper.readValue(baos.toByteArray(), Map.class);
 		} catch (JsonParseException e) {

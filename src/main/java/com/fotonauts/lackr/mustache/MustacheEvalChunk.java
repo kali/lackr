@@ -10,7 +10,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
@@ -22,36 +22,36 @@ public class MustacheEvalChunk implements Chunk {
 	private static Chunk EMPTY = new ConstantChunk(new byte[0]);
 
 	private Document inner;
-	private LackrBackendExchange exchange;
+	private BackendRequest request;
 	private Chunk result = EMPTY;
 	private String name;
 
-	public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, LackrBackendExchange exchange) {
-		this.exchange = exchange;
+	public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, BackendRequest request) {
+		this.request = request;
 		this.name = name;
-		inner = exchange.getBackendRequest().getFrontendRequest().getService().getInterpolr()
-		        .parse(buffer, start, stop, exchange);
+		inner = request.getFrontendRequest().getService().getInterpolr()
+		        .parse(buffer, start, stop, request);
 	}
 
 	@Override
 	public void check() {
 		inner.check();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService()
+        ObjectMapper mapper = request.getFrontendRequest().getService()
         .getJacksonObjectMapper();
         @SuppressWarnings("unchecked") Map data = null;
 		try {
 			inner.writeTo(baos);
 			data = mapper.readValue(baos.toByteArray(), Map.class);
 			data.put("_ftn_inline_images",
-					exchange.getBackendRequest().getFrontendRequest().getUserAgent()
+					request.getFrontendRequest().getUserAgent()
 							.supportsInlineImages());
-			MustacheContext context = exchange.getBackendRequest().getFrontendRequest().getMustacheContext();
+			MustacheContext context = request.getFrontendRequest().getMustacheContext();
 			Template template = context.get(name);
 			if (template == null) {
 				StringBuilder builder = new StringBuilder();
 				builder.append("Mustache template not found\n");
-				builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
+				builder.append("url: " + request.getQuery() + "\n");
 				builder.append("template name: " + name + "\n");
 				builder.append("\nexpanded data:\n");
 				String[] lines = baos.toString().split("\n");
@@ -65,14 +65,14 @@ public class MustacheEvalChunk implements Chunk {
 					builder.append(" ");
 				}
 				builder.append("\n");
-				exchange.getBackendRequest().getFrontendRequest()
+				request.getFrontendRequest()
 				        .addBackendExceptions(new LackrPresentableError(builder.toString()));
 			} else
 				result = new ConstantChunk(template.execute(data).getBytes("UTF-8"));
 		} catch (JsonParseException e) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("JsonParseException\n");
-			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
+			builder.append("url: " + request.getQuery() + "\n");
 			builder.append(e.getMessage() + "\n");
 			builder.append("template name: " + name + "\n");
 			String lines[] = baos.toString().split("\n");
@@ -86,17 +86,17 @@ public class MustacheEvalChunk implements Chunk {
 				}
 			}
 			builder.append("\n");
-			exchange.getBackendRequest().getFrontendRequest()
+			request.getFrontendRequest()
 			        .addBackendExceptions(new LackrPresentableError(builder.toString()));
 		} catch (Exception e) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("MustacheException\n");
-			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
+			builder.append("url: " + request.getQuery() + "\n");
 			builder.append(e.getMessage() + "\n");
 			builder.append("template name: " + name + "\n");
             String[] lines;
             try {
-                lines = exchange.getBackendRequest().getFrontendRequest().getMustacheContext()
+                lines = request.getFrontendRequest().getMustacheContext()
                         .getExpandedTemplate(name).split("\n");
                 for (int i = 0; i < lines.length; i++) {
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
@@ -122,7 +122,7 @@ public class MustacheEvalChunk implements Chunk {
                 }
 			}
 			builder.append("\n");
-			exchange.getBackendRequest().getFrontendRequest()
+			request.getFrontendRequest()
 			        .addBackendExceptions(new LackrPresentableError(builder.toString()));
 		}
 	}

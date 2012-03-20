@@ -1,8 +1,11 @@
 package com.fotonauts.lackr.hashring;
 
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Random;
@@ -171,6 +174,25 @@ public class HashRing implements HttpDirectorInterface {
 
 	public void setRapportrInterface(RapportrInterface rapportrInterface) {
 		this.rapportrInterface = rapportrInterface;
+	}
+
+	@Override
+	public void dumpStatus(PrintStream ps) {
+		Map<Host, Long> weights = new HashMap<Host, Long>();
+		for (Host h : getHosts())
+			weights.put(h, 0L);
+		Entry<Integer, Host> previous = null;
+		for (Entry<Integer, Host> e : getRing().entrySet()) {
+			if (previous != null)
+				weights.put(previous.getValue(), weights.get(previous.getValue()) + e.getKey() - previous.getKey());
+			ps.format("ring-boundary\t%08x\t\n", e.getKey(), e.getValue().getHostname());
+			previous = e;
+		}
+		weights.put(previous.getValue(), weights.get(previous.getValue()) + (getRing().firstKey() - Integer.MIN_VALUE));
+		weights.put(previous.getValue(), weights.get(previous.getValue()) + (Integer.MAX_VALUE - getRing().lastKey()));
+		for (Host h : getHosts()) {
+			ps.format("picor-ring-weight\t%s\t%s\t%d\n", h.getHostname(), h.isUp() ? "UP" : "DOWN", weights.get(h));
+		}
 	}
 
 }

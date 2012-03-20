@@ -16,15 +16,12 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 
-import org.eclipse.jetty.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.client.JettyLackrBackendExchange;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
-import com.fotonauts.lackr.interpolr.DataChunk;
-import com.fotonauts.lackr.interpolr.Document;
 import com.mongodb.BasicDBObject;
 
 public abstract class LackrBackendExchange {
@@ -47,7 +44,6 @@ public abstract class LackrBackendExchange {
 	protected BasicDBObject logLine;
 	protected long startTimestamp;
 	private byte[] rawResponseContent;
-	private Document parsedDocument;
 	protected BackendRequest backendRequest;
 
 	public BackendRequest getBackendRequest() {
@@ -125,34 +121,7 @@ public abstract class LackrBackendExchange {
 	protected abstract void doStart() throws IOException, NotAvailableException;
 
 	protected void postProcess() {
-		if (backendRequest != backendRequest.getFrontendRequest().getRootRequest()
-				&& (getResponseStatus() / 100 == 4 || getResponseStatus() / 100 == 5)
-				&& getResponseHeader("X-SSI-AWARE") == null)
-			backendRequest.getFrontendRequest().addBackendExceptions(
-			        new LackrPresentableError("Fragment " + getBackendRequest().getQuery()
-							+ " returned code " + getResponseStatus()));
-
-		try {
-			if (rawResponseContent != null && rawResponseContent.length > 0) {
-				String mimeType = getResponseHeader(HttpHeaders.CONTENT_TYPE);
-				if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-					parsedDocument = backendRequest.getFrontendRequest()
-							.getService().getInterpolr()
-							.parse(rawResponseContent, this);
-				else
-					parsedDocument = new Document(new DataChunk(
-							rawResponseContent));
-			} else
-				parsedDocument = new Document(new DataChunk(new byte[0]));
-		} catch (Throwable e) {
-			e.printStackTrace();
-			backendRequest.getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
-		}
 		backendRequest.postProcess();
-	}
-
-	public Document getParsedDocument() {
-		return parsedDocument;
 	}
 
 	public String getResponseHeaderValue(String name) {
@@ -167,4 +136,8 @@ public abstract class LackrBackendExchange {
 		else
 			return values.get(0);
 	}
+
+	public byte[] getRawResponseContent() {
+		return rawResponseContent;
+    }
 }

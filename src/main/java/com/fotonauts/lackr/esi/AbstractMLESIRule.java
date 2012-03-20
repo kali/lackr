@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.esi;
 
+import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
@@ -18,23 +19,23 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
     }
 
     @Override
-    public Chunk filterDocumentAsChunk(LackrBackendExchange exchange) {
-        String mimeType = getMimeType(exchange);
+    public Chunk filterDocumentAsChunk(BackendRequest request) {
+        String mimeType = getMimeType(request.getExchange());
         // JS is detected by check()
         if (MimeType.isML(mimeType))
-            return exchange.getParsedDocument();
+            return request.getParsedDocument();
         else
             // so this is most likely plain text
-            return new AmpersandEscapeChunk(exchange.getParsedDocument());
+            return new AmpersandEscapeChunk(request.getParsedDocument());
     }
 
     @Override
-    public void check(LackrBackendExchange exchange) {
-        String mimeType = getMimeType(exchange);
+    public void check(BackendRequest request) {
+        String mimeType = getMimeType(request.getExchange());
         if (MimeType.isJS(mimeType))
-            exchange.getBackendRequest()
+            request
                     .getFrontendRequest()
                     .addBackendExceptions(
-                            new LackrPresentableError("unsupported ESI type (js* in *ML context)", exchange));
+                            new LackrPresentableError("unsupported ESI type (js* in *ML context)", request.getExchange()));
     }
 }

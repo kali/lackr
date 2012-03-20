@@ -1,5 +1,7 @@
 package com.fotonauts.lackr.client;
 
+import java.io.PrintStream;
+
 import org.eclipse.jetty.client.HttpClient;
 
 import com.fotonauts.lackr.Backend;
@@ -24,6 +26,12 @@ public class JettyBackend implements Backend {
 
 	public void setDirector(HttpDirectorInterface director) {
 	    this.director = director;
+    }
+
+	@Override
+    public void dumpStatus(PrintStream ps) {
+		ps.format("Jetty HTTP Client\n");
+		director.dumpStatus(ps);
     }
 
 }
