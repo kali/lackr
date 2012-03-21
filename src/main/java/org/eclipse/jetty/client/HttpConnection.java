@@ -17,6 +17,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.jetty.client.security.Authentication;
@@ -36,17 +37,23 @@ import org.eclipse.jetty.io.Buffers;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.io.EndPoint;
+import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.View;
 import org.eclipse.jetty.io.nio.SslSelectChannelEndPoint;
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.thread.Timeout;
 
 /**
  *
  * @version $Revision: 879 $ $Date: 2009-09-11 16:13:28 +0200 (Fri, 11 Sep 2009) $
  */
-public class HttpConnection extends AbstractConnection
+public class HttpConnection extends AbstractConnection implements Dumpable
 {
+    private static final Logger LOG = Log.getLogger(HttpConnection.class);
+
     private HttpDestination _destination;
     private HttpGenerator _generator;
     private HttpParser _parser;
@@ -63,16 +70,6 @@ public class HttpConnection extends AbstractConnection
     private final Timeout.Task _idleTimeout = new ConnectionIdleTask();
     private AtomicBoolean _idle = new AtomicBoolean(false);
 
-    public void dump() throws IOException
-    {
-        // TODO update to dumpable
-        Log.info("endp=" + _endp + " " + _endp.isBufferingInput() + " " + _endp.isBufferingOutput());
-        Log.info("generator=" + _generator);
-        Log.info("parser=" + _parser.getState() + " " + _parser.isMoreInBuffer());
-        Log.info("exchange=" + _exchange);
-        if (_endp instanceof SslSelectChannelEndPoint)
-            ((SslSelectChannelEndPoint)_endp).dump();
-    }
 
     HttpConnection(Buffers requestBuffers, Buffers responseBuffers, EndPoint endp)
     {
@@ -202,7 +199,7 @@ public class HttpConnection extends AbstractConnection
                                 _parser.skipCRLF();
                                 if (_parser.isMoreInBuffer())
                                 {
-                                    Log.warn("Unexpected data received but no request sent");
+                                    LOG.warn("Unexpected data received but no request sent");
                                     close();
                                 }
                             }
@@ -281,6 +278,9 @@ public class HttpConnection extends AbstractConnection
                     {
                         long filled = _parser.parseAvailable();
                         io += filled;
+
+                        if (_parser.isIdle() && (_endp.isInputShutdown() || !_endp.isOpen()))
+                            throw new EofException();
                     }
 
                     if (io > 0)
@@ -299,7 +299,7 @@ public class HttpConnection extends AbstractConnection
                 }
                 catch (Throwable e)
                 {
-                    Log.debug("Failure on " + _exchange, e);
+                    LOG.debug("Failure on " + _exchange, e);
 
                     if (e instanceof ThreadDeath)
                         throw (ThreadDeath)e;
@@ -357,16 +357,34 @@ public class HttpConnection extends AbstractConnection
                                 complete = true;
                             }
                         }
+
+                        // if the endpoint is closed, but the parser incomplete
+                        if (!_endp.isOpen() && !(_parser.isComplete()||_parser.isIdle()))
+                        {
+                            // we wont be called again so let the parser see the close
+                            complete=true;
+                            _parser.parseAvailable();
+                            // TODO should not need this
+                            if (!(_parser.isComplete()||_parser.isIdle()))
+                            {
+                                LOG.warn("Incomplete {} {}",_parser,_endp);
+                                if (_exchange!=null && !_exchange.isDone())
+                                {
+                                    _exchange.setStatus(HttpExchange.STATUS_EXCEPTED);
+                                    _exchange.getEventListener().onException(new EOFException("Incomplete"));
+                                }
+                            }
+                        }
                     }
 
-                    if (_generator.isComplete() && !_parser.isComplete())
+                    if (_endp.isInputShutdown() && !_parser.isComplete() && !_parser.isIdle())
                     {
-                        if (!_endp.isOpen() || _endp.isInputShutdown())
+                        if (_exchange!=null && !_exchange.isDone())
                         {
-                            complete=true;
-                            close=true;
-                            close();
+                            _exchange.setStatus(HttpExchange.STATUS_EXCEPTED);
+                            _exchange.getEventListener().onException(new EOFException("Incomplete"));
                         }
+                        _endp.close();
                     }
 
                     if (complete || failed)
@@ -434,8 +452,10 @@ public class HttpConnection extends AbstractConnection
         }
         finally
         {
+            _parser.returnBuffers();
+
             // Do we have more stuff to write?
-            if (!_generator.isComplete() && _generator.getBytesBuffered()>0 && _endp instanceof AsyncEndPoint)
+            if (!_generator.isComplete() && _generator.getBytesBuffered()>0 && _endp.isOpen() && _endp instanceof AsyncEndPoint)
             {
                 // Assume we are write blocked!
                 ((AsyncEndPoint)_endp).scheduleWrite();
@@ -542,13 +562,17 @@ public class HttpConnection extends AbstractConnection
     {
         _requestComplete = false;
         _connectionHeader = null;
-        _parser.reset(returnBuffers);
+        _parser.reset();
+        if (returnBuffers)
+            _parser.returnBuffers();
         _generator.reset(returnBuffers);
         _http11 = true;
     }
 
     private boolean shouldClose()
     {
+        if (_endp.isInputShutdown())
+            return true;
         if (_connectionHeader!=null)
         {
             if (HttpHeaderValues.CLOSE_BUFFER.equals(_connectionHeader))
@@ -577,6 +601,21 @@ public class HttpConnection extends AbstractConnection
             HttpExchange exchange = _exchange;
             if (exchange!=null)
             {
+                switch(status)
+                {
+                    case HttpStatus.CONTINUE_100:
+                    case HttpStatus.PROCESSING_102:
+                        // TODO check if appropriate expect was sent in the request.
+                        exchange.setEventListener(new NonFinalResponseListener(exchange));
+                        break;
+
+                    case HttpStatus.OK_200:
+                        // handle special case for CONNECT 200 responses
+                        if (HttpMethods.CONNECT.equalsIgnoreCase(exchange.getMethod()))
+                            _parser.setHeadResponse(true);
+                        break;
+                }
+
                 _http11 = HttpVersions.HTTP_1_1_BUFFER.equals(version);
                 _status=status;
                 exchange.getEventListener().onResponseStatus(version,status,reason);
@@ -643,9 +682,10 @@ public class HttpConnection extends AbstractConnection
         //if there is a live, unfinished exchange, set its status to be
         //excepted and wake up anyone waiting on waitForDone()
 
-        if (_exchange != null && !_exchange.isDone())
+        HttpExchange exchange = _exchange;
+        if (exchange != null && !exchange.isDone())
         {
-            switch (_exchange.getStatus())
+            switch (exchange.getStatus())
             {
                 case HttpExchange.STATUS_CANCELLED:
                 case HttpExchange.STATUS_CANCELLING:
@@ -653,9 +693,14 @@ public class HttpConnection extends AbstractConnection
                 case HttpExchange.STATUS_EXCEPTED:
                 case HttpExchange.STATUS_EXPIRED:
                     break;
+                case HttpExchange.STATUS_PARSING_CONTENT:
+                    if (_endp.isInputShutdown() && _parser.isState(HttpParser.STATE_EOF_CONTENT))
+                        break;
                 default:
-                    _exchange.setStatus(HttpExchange.STATUS_EXCEPTED);
-                    _exchange.getEventListener().onException(new EOFException("local close"));
+                    String exch= exchange.toString();
+                    String reason = _endp.isOpen()?(_endp.isInputShutdown()?"half closed: ":"local close: "):"closed: ";
+                    exchange.setStatus(HttpExchange.STATUS_EXCEPTED);
+                    exchange.getEventListener().onException(new EOFException(reason+exch));
             }
         }
 
@@ -701,14 +746,38 @@ public class HttpConnection extends AbstractConnection
                 }
                 catch (IOException x)
                 {
-                    Log.ignore(x);
+                    LOG.ignore(x);
                 }
             }
         }
     }
 
+    /* ------------------------------------------------------------ */
+    /**
+     * @see org.eclipse.jetty.util.component.Dumpable#dump()
+     */
+    public String dump()
+    {
+        return AggregateLifeCycle.dump(this);
+    }
+
+    /* ------------------------------------------------------------ */
+    /**
+     * @see org.eclipse.jetty.util.component.Dumpable#dump(java.lang.Appendable, java.lang.String)
+     */
+    public void dump(Appendable out, String indent) throws IOException
+    {
+        synchronized (this)
+        {
+            out.append(String.valueOf(this)).append("\n");
+            AggregateLifeCycle.dump(out,indent,Collections.singletonList(_endp));
+        }
+    }
+
+    /* ------------------------------------------------------------ */
     private class ConnectionIdleTask extends Timeout.Task
     {
+        /* ------------------------------------------------------------ */
         @Override
         public void expired()
         {
@@ -717,6 +786,89 @@ public class HttpConnection extends AbstractConnection
             {
                 _destination.returnIdleConnection(HttpConnection.this);
             }
+        }
+    }
+
+
+    /* ------------------------------------------------------------ */
+    private class NonFinalResponseListener implements HttpEventListener
+    {
+        final HttpExchange _exchange;
+        final HttpEventListener _next;
+
+        /* ------------------------------------------------------------ */
+        public NonFinalResponseListener(HttpExchange exchange)
+        {
+            _exchange=exchange;
+            _next=exchange.getEventListener();
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onRequestCommitted() throws IOException
+        {
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onRequestComplete() throws IOException
+        {
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onResponseStatus(Buffer version, int status, Buffer reason) throws IOException
+        {
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onResponseHeader(Buffer name, Buffer value) throws IOException
+        {
+            _next.onResponseHeader(name,value);
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onResponseHeaderComplete() throws IOException
+        {
+            _next.onResponseHeaderComplete();
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onResponseContent(Buffer content) throws IOException
+        {
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onResponseComplete() throws IOException
+        {
+            _exchange.setEventListener(_next);
+            _exchange.setStatus(HttpExchange.STATUS_WAITING_FOR_RESPONSE);
+            _parser.reset();
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onConnectionFailed(Throwable ex)
+        {
+            _exchange.setEventListener(_next);
+            _next.onConnectionFailed(ex);
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onException(Throwable ex)
+        {
+            _exchange.setEventListener(_next);
+            _next.onException(ex);
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onExpire()
+        {
+            _exchange.setEventListener(_next);
+            _next.onExpire();
+        }
+
+        /* ------------------------------------------------------------ */
+        public void onRetry()
+        {
+            _exchange.setEventListener(_next);
+            _next.onRetry();
         }
     }
 }

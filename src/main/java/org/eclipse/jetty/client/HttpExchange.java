@@ -15,6 +15,7 @@ package org.eclipse.jetty.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.jetty.client.security.SecurityListener;
@@ -30,15 +31,18 @@ import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.thread.Timeout;
 
 /**
- * <p>An HTTP client API that encapsulates an exchange (a request and its response) with a HTTP server.</p>
+ * <p>
+ * An HTTP client API that encapsulates an exchange (a request and its response) with a HTTP server.
+ * </p>
  *
  * This object encapsulates:
  * <ul>
- * <li>The HTTP server address, see {@link #setAddress(Address)} or {@link #setURL(String)})
- * <li>The HTTP request method, URI and HTTP version (see {@link #setMethod(String)}, {@link #setURI(String)}, and {@link #setVersion(int)}
+ * <li>The HTTP server address, see {@link #setAddress(Address)}, or {@link #setURI(URI)}, or {@link #setURL(String)})
+ * <li>The HTTP request method, URI and HTTP version (see {@link #setMethod(String)}, {@link #setRequestURI(String)}, and {@link #setVersion(int)})
  * <li>The request headers (see {@link #addRequestHeader(String, String)} or {@link #setRequestHeader(String, String)})
  * <li>The request content (see {@link #setRequestContent(Buffer)} or {@link #setRequestContentSource(InputStream)})
  * <li>The status of the exchange (see {@link #getStatus()})
@@ -46,26 +50,30 @@ import org.eclipse.jetty.util.thread.Timeout;
  * <li>The ability to intercept callbacks (see {@link #setEventListener(HttpEventListener)}
  * </ul>
  *
- * <p>The HttpExchange class is intended to be used by a developer wishing to have close asynchronous
- * interaction with the the exchange.<br />
- * Typically a developer will extend the HttpExchange class with a derived
- * class that overrides some or all of the onXxx callbacks. <br />
- * There are also some predefined HttpExchange subtypes that can be used as a basis,
- * see {@link org.eclipse.jetty.client.ContentExchange} and {@link org.eclipse.jetty.client.CachedExchange}.</p>
+ * <p>
+ * The HttpExchange class is intended to be used by a developer wishing to have close asynchronous interaction with the the exchange.<br />
+ * Typically a developer will extend the HttpExchange class with a derived class that overrides some or all of the onXxx callbacks. <br />
+ * There are also some predefined HttpExchange subtypes that can be used as a basis, see {@link org.eclipse.jetty.client.ContentExchange} and
+ * {@link org.eclipse.jetty.client.CachedExchange}.
+ * </p>
  *
- * <p>Typically the HttpExchange is passed to the {@link HttpClient#send(HttpExchange)} method, which in
- * turn selects a {@link HttpDestination} and calls its {@link HttpDestination#send(HttpExchange)}, which
- * then creates or selects a {@link HttpConnection} and calls its {@link HttpConnection#send(HttpExchange)}.
- * A developer may wish to directly call send on the destination or connection if they wish to bypass
- * some handling provided (eg Cookie handling in the HttpDestination).</p>
+ * <p>
+ * Typically the HttpExchange is passed to the {@link HttpClient#send(HttpExchange)} method, which in turn selects a {@link HttpDestination} and calls its
+ * {@link HttpDestination#send(HttpExchange)}, which then creates or selects a {@link HttpConnection} and calls its {@link HttpConnection#send(HttpExchange)}. A
+ * developer may wish to directly call send on the destination or connection if they wish to bypass some handling provided (eg Cookie handling in the
+ * HttpDestination).
+ * </p>
  *
- * <p>In some circumstances, the HttpClient or HttpDestination may wish to retry a HttpExchange (eg. failed
- * pipeline request, authentication retry or redirection).  In such cases, the HttpClient and/or HttpDestination
- * may insert their own HttpExchangeListener to intercept and filter the call backs intended for the
- * HttpExchange.</p>
+ * <p>
+ * In some circumstances, the HttpClient or HttpDestination may wish to retry a HttpExchange (eg. failed pipeline request, authentication retry or redirection).
+ * In such cases, the HttpClient and/or HttpDestination may insert their own HttpExchangeListener to intercept and filter the call backs intended for the
+ * HttpExchange.
+ * </p>
  */
 public class HttpExchange
 {
+    private static final Logger LOG = Log.getLogger(HttpExchange.class);
+
     public static final int STATUS_START = 0;
     public static final int STATUS_WAITING_FOR_CONNECTION = 1;
     public static final int STATUS_WAITING_FOR_COMMIT = 2;
@@ -102,6 +110,10 @@ public class HttpExchange
     // a timeout for this exchange
     private long _timeout = -1;
     private volatile Timeout.Task _timeoutTask;
+    private long _lastStateChange=System.currentTimeMillis();
+    private long _sent=-1;
+    private int _lastState=-1;
+    private int _lastStatePeriod=-1;
 
     boolean _onRequestCompleteDone;
     boolean _onResponseCompleteDone;
@@ -124,8 +136,10 @@ public class HttpExchange
     }
 
     /**
-     * @param status the status to wait for
-     * @throws InterruptedException if the waiting thread is interrupted
+     * @param status
+     *            the status to wait for
+     * @throws InterruptedException
+     *             if the waiting thread is interrupted
      * @deprecated Use {@link #waitForDone()} instead
      */
     @Deprecated
@@ -135,21 +149,17 @@ public class HttpExchange
     }
 
     /**
-     * Wait until the exchange is "done".
-     * Done is defined as when a final state has been passed to the
-     * HttpExchange via the associated onXxx call.  Note that an
-     * exchange can transit a final state when being used as part
-     * of a dialog (eg {@link SecurityListener}.   Done status
-     * is thus defined as:<pre>
-     *   done == onConnectionFailed
-     *        || onException
-     *        || onExpire
-     *        || onRequestComplete && onResponseComplete
+     * Wait until the exchange is "done". Done is defined as when a final state has been passed to the HttpExchange via the associated onXxx call. Note that an
+     * exchange can transit a final state when being used as part of a dialog (eg {@link SecurityListener}. Done status is thus defined as:
+     *
+     * <pre>
+     * done == onConnectionFailed || onException || onExpire || onRequestComplete &amp;&amp; onResponseComplete
      * </pre>
+     *
      * @return the done status
      * @throws InterruptedException
      */
-    public int waitForDone () throws InterruptedException
+    public int waitForDone() throws InterruptedException
     {
         synchronized (this)
         {
@@ -163,12 +173,12 @@ public class HttpExchange
     {
         // TODO - this should do a cancel and wakeup everybody that was waiting.
         // might need a version number concept
-        synchronized(this)
+        synchronized (this)
         {
-            _timeoutTask=null;
-            _onRequestCompleteDone=false;
-            _onResponseCompleteDone=false;
-            _onDone=false;
+            _timeoutTask = null;
+            _onRequestCompleteDone = false;
+            _onResponseCompleteDone = false;
+            _onDone = false;
             setStatus(STATUS_START);
         }
     }
@@ -179,6 +189,15 @@ public class HttpExchange
         {
             int oldStatus = _status.get();
             boolean set = false;
+            if (oldStatus != newStatus)
+            {
+                long now = System.currentTimeMillis();
+                _lastStatePeriod=(int)(now-_lastStateChange);
+                _lastState=oldStatus;
+                _lastStateChange=now;
+                if (newStatus==STATUS_SENDING_REQUEST)
+                    _sent=_lastStateChange;
+            }
 
             // State machine: from which old status you can go into which new status
             switch (oldStatus)
@@ -191,7 +210,10 @@ public class HttpExchange
                         case STATUS_WAITING_FOR_COMMIT:
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
+                            break;
+                        case STATUS_EXPIRED:
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -201,11 +223,10 @@ public class HttpExchange
                         case STATUS_WAITING_FOR_COMMIT:
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_EXPIRED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
-                                getEventListener().onExpire();
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -215,11 +236,10 @@ public class HttpExchange
                         case STATUS_SENDING_REQUEST:
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_EXPIRED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
-                                getEventListener().onExpire();
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -227,16 +247,15 @@ public class HttpExchange
                     switch (newStatus)
                     {
                         case STATUS_WAITING_FOR_RESPONSE:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
+                            if (set = _status.compareAndSet(oldStatus,newStatus))
                                 getEventListener().onRequestCommitted();
                             break;
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_EXPIRED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
-                                getEventListener().onExpire();
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -246,11 +265,10 @@ public class HttpExchange
                         case STATUS_PARSING_HEADERS:
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_EXPIRED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
-                                getEventListener().onExpire();
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -258,16 +276,15 @@ public class HttpExchange
                     switch (newStatus)
                     {
                         case STATUS_PARSING_CONTENT:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
+                            if (set = _status.compareAndSet(oldStatus,newStatus))
                                 getEventListener().onResponseHeaderComplete();
                             break;
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_EXPIRED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
-                                getEventListener().onExpire();
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -275,16 +292,15 @@ public class HttpExchange
                     switch (newStatus)
                     {
                         case STATUS_COMPLETED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
+                            if (set = _status.compareAndSet(oldStatus,newStatus))
                                 getEventListener().onResponseComplete();
                             break;
                         case STATUS_CANCELLING:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_EXPIRED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
-                                getEventListener().onExpire();
+                            set = setStatusExpired(newStatus,oldStatus);
                             break;
                     }
                     break;
@@ -293,12 +309,13 @@ public class HttpExchange
                     {
                         case STATUS_START:
                         case STATUS_EXCEPTED:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                        case STATUS_WAITING_FOR_RESPONSE:
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         case STATUS_CANCELLING:
                         case STATUS_EXPIRED:
                             // Don't change the status, it's too late
-                            set=true;
+                            set = true;
                             break;
                     }
                     break;
@@ -307,12 +324,12 @@ public class HttpExchange
                     {
                         case STATUS_EXCEPTED:
                         case STATUS_CANCELLED:
-                            if (set=_status.compareAndSet(oldStatus,newStatus))
+                            if (set = _status.compareAndSet(oldStatus,newStatus))
                                 done();
                             break;
                         default:
                             // Ignore other statuses, we're cancelling
-                            set=true;
+                            set = true;
                             break;
                     }
                     break;
@@ -322,10 +339,10 @@ public class HttpExchange
                     switch (newStatus)
                     {
                         case STATUS_START:
-                            set=_status.compareAndSet(oldStatus,newStatus);
+                            set = _status.compareAndSet(oldStatus,newStatus);
                             break;
                         default:
-                            set=true;
+                            set = true;
                             break;
                     }
                     break;
@@ -335,12 +352,20 @@ public class HttpExchange
             }
 
             if (!set)
-                throw new IllegalStateException(oldStatus + " => " + newStatus);
+                throw new IllegalStateException(toState(oldStatus) + " => " + toState(newStatus));
         }
         catch (IOException x)
         {
-            Log.warn(x);
+            LOG.warn(x);
         }
+    }
+
+    private boolean setStatusExpired(int newStatus, int oldStatus)
+    {
+        boolean set;
+        if (set = _status.compareAndSet(oldStatus,newStatus))
+            getEventListener().onExpire();
+        return set;
     }
 
     public boolean isDone()
@@ -355,7 +380,7 @@ public class HttpExchange
      * @deprecated
      */
     @Deprecated
-    public boolean isDone (int status)
+    public boolean isDone(int status)
     {
         return isDone();
     }
@@ -367,10 +392,10 @@ public class HttpExchange
 
     public void setEventListener(HttpEventListener listener)
     {
-        _listener=listener;
+        _listener = listener;
     }
 
-    public void setTimeout( long timeout )
+    public void setTimeout(long timeout)
     {
         _timeout = timeout;
     }
@@ -381,37 +406,17 @@ public class HttpExchange
     }
 
     /**
-     * @param url Including protocol, host and port
+     * @param url
+     *            an absolute URL (for example 'http://localhost/foo/bar?a=1')
      */
     public void setURL(String url)
     {
-        HttpURI uri = new HttpURI(url);
-        String scheme = uri.getScheme();
-        if (scheme != null)
-        {
-            if (HttpSchemes.HTTP.equalsIgnoreCase(scheme))
-                setScheme(HttpSchemes.HTTP_BUFFER);
-            else if (HttpSchemes.HTTPS.equalsIgnoreCase(scheme))
-                setScheme(HttpSchemes.HTTPS_BUFFER);
-            else
-                setScheme(new ByteArrayBuffer(scheme));
-        }
-
-        int port = uri.getPort();
-        if (port <= 0)
-            port = "https".equalsIgnoreCase(scheme)?443:80;
-
-        setAddress(new Address(uri.getHost(),port));
-
-        String completePath = uri.getCompletePath();
-        if (completePath == null)
-            completePath = "/";
-
-        setURI(completePath);
+        setURI(URI.create(url));
     }
 
     /**
-     * @param address the address of the server
+     * @param address
+     *            the address of the server
      */
     public void setAddress(Address address)
     {
@@ -429,8 +434,7 @@ public class HttpExchange
     /**
      * the local address used by the connection
      *
-     * Note: this method will not be populated unless the exchange
-     * has been executed by the HttpClient
+     * Note: this method will not be populated unless the exchange has been executed by the HttpClient
      *
      * @return the local address used for the running of the exchange if available, null otherwise.
      */
@@ -440,11 +444,29 @@ public class HttpExchange
     }
 
     /**
-     * @param scheme the scheme of the URL (for example 'http')
+     * @param scheme
+     *            the scheme of the URL (for example 'http')
      */
     public void setScheme(Buffer scheme)
     {
         _scheme = scheme;
+    }
+
+    /**
+     * @param scheme
+     *            the scheme of the URL (for example 'http')
+     */
+    public void setScheme(String scheme)
+    {
+        if (scheme != null)
+        {
+            if (HttpSchemes.HTTP.equalsIgnoreCase(scheme))
+                setScheme(HttpSchemes.HTTP_BUFFER);
+            else if (HttpSchemes.HTTPS.equalsIgnoreCase(scheme))
+                setScheme(HttpSchemes.HTTPS_BUFFER);
+            else
+                setScheme(new ByteArrayBuffer(scheme));
+        }
     }
 
     /**
@@ -456,7 +478,8 @@ public class HttpExchange
     }
 
     /**
-     * @param version the HTTP protocol version as integer, 9, 10 or 11 for 0.9, 1.0 or 1.1
+     * @param version
+     *            the HTTP protocol version as integer, 9, 10 or 11 for 0.9, 1.0 or 1.1
      */
     public void setVersion(int version)
     {
@@ -464,7 +487,8 @@ public class HttpExchange
     }
 
     /**
-     * @param version the HTTP protocol version as string
+     * @param version
+     *            the HTTP protocol version as string
      */
     public void setVersion(String version)
     {
@@ -485,7 +509,8 @@ public class HttpExchange
     }
 
     /**
-     * @param method the HTTP method (for example 'GET')
+     * @param method
+     *            the HTTP method (for example 'GET')
      */
     public void setMethod(String method)
     {
@@ -501,25 +526,96 @@ public class HttpExchange
     }
 
     /**
-     * @return the path of the URL
+     * @return request URI
+     * @see #getRequestURI()
+     * @deprecated
      */
+    @Deprecated
     public String getURI()
+    {
+        return getRequestURI();
+    }
+
+    /**
+     * @return request URI
+     */
+    public String getRequestURI()
     {
         return _uri;
     }
 
     /**
-     * @param uri the path of the URL (for example '/foo/bar?a=1')
+     * Set the request URI
+     *
+     * @param uri
+     *            new request URI
+     * @see #setRequestURI(String)
+     * @deprecated
      */
+    @Deprecated
     public void setURI(String uri)
+    {
+        setRequestURI(uri);
+    }
+
+    /**
+     * Set the request URI
+     *
+     * Per RFC 2616 sec5, Request-URI = "*" | absoluteURI | abs_path | authority<br/>
+     * where:<br/>
+     * <br/>
+     * "*" - request applies to server itself<br/>
+     * absoluteURI - required for proxy requests, e.g. http://localhost:8080/context<br/>
+     * (this form is generated automatically by HttpClient)<br/>
+     * abs_path - used for most methods, e.g. /context<br/>
+     * authority - used for CONNECT method only, e.g. localhost:8080<br/>
+     * <br/>
+     * For complete definition of URI components, see RFC 2396 sec3.<br/>
+     *
+     * @param uri
+     *            new request URI
+     */
+    public void setRequestURI(String uri)
     {
         _uri = uri;
     }
 
+    /* ------------------------------------------------------------ */
+    /**
+     * @param uri
+     *            an absolute URI (for example 'http://localhost/foo/bar?a=1')
+     */
+    public void setURI(URI uri)
+    {
+        if (!uri.isAbsolute())
+            throw new IllegalArgumentException("!Absolute URI: " + uri);
+
+        if (uri.isOpaque())
+            throw new IllegalArgumentException("Opaque URI: " + uri);
+
+        if (LOG.isDebugEnabled())
+            LOG.debug("URI = {}",uri.toASCIIString());
+
+        String scheme = uri.getScheme();
+        int port = uri.getPort();
+        if (port <= 0)
+            port = "https".equalsIgnoreCase(scheme)?443:80;
+
+        setScheme(scheme);
+        setAddress(new Address(uri.getHost(),port));
+
+        HttpURI httpUri = new HttpURI(uri);
+        String completePath = httpUri.getCompletePath();
+        setRequestURI(completePath == null?"/":completePath);
+    }
+
     /**
      * Adds the specified request header
-     * @param name the header name
-     * @param value the header value
+     *
+     * @param name
+     *            the header name
+     * @param value
+     *            the header value
      */
     public void addRequestHeader(String name, String value)
     {
@@ -528,8 +624,11 @@ public class HttpExchange
 
     /**
      * Adds the specified request header
-     * @param name the header name
-     * @param value the header value
+     *
+     * @param name
+     *            the header name
+     * @param value
+     *            the header value
      */
     public void addRequestHeader(Buffer name, Buffer value)
     {
@@ -538,30 +637,37 @@ public class HttpExchange
 
     /**
      * Sets the specified request header
-     * @param name the header name
-     * @param value the header value
+     *
+     * @param name
+     *            the header name
+     * @param value
+     *            the header value
      */
     public void setRequestHeader(String name, String value)
     {
-        getRequestFields().put(name, value);
+        getRequestFields().put(name,value);
     }
 
     /**
      * Sets the specified request header
-     * @param name the header name
-     * @param value the header value
+     *
+     * @param name
+     *            the header name
+     * @param value
+     *            the header value
      */
     public void setRequestHeader(Buffer name, Buffer value)
     {
-        getRequestFields().put(name, value);
+        getRequestFields().put(name,value);
     }
 
     /**
-     * @param value the content type of the request
+     * @param value
+     *            the content type of the request
      */
     public void setRequestContentType(String value)
     {
-        getRequestFields().put(HttpHeaders.CONTENT_TYPE_BUFFER, value);
+        getRequestFields().put(HttpHeaders.CONTENT_TYPE_BUFFER,value);
     }
 
     /**
@@ -573,7 +679,8 @@ public class HttpExchange
     }
 
     /**
-     * @param requestContent the request content
+     * @param requestContent
+     *            the request content
      */
     public void setRequestContent(Buffer requestContent)
     {
@@ -581,12 +688,13 @@ public class HttpExchange
     }
 
     /**
-     * @param stream the request content as a stream
+     * @param stream
+     *            the request content as a stream
      */
     public void setRequestContentSource(InputStream stream)
     {
         _requestContentSource = stream;
-        if (_requestContentSource.markSupported())
+        if (_requestContentSource != null && _requestContentSource.markSupported())
             _requestContentSource.mark(Integer.MAX_VALUE);
     }
 
@@ -639,7 +747,8 @@ public class HttpExchange
     }
 
     /**
-     * @param retryStatus whether a retry will be attempted or not
+     * @param retryStatus
+     *            whether a retry will be attempted or not
      */
     public void setRetryStatus(boolean retryStatus)
     {
@@ -647,13 +756,10 @@ public class HttpExchange
     }
 
     /**
-     * Initiates the cancelling of this exchange.
-     * The status of the exchange is set to {@link #STATUS_CANCELLING}.
-     * Cancelling the exchange is an asynchronous operation with respect to the request/response,
-     * and as such checking the request/response status of a cancelled exchange may return undefined results
-     * (for example it may have only some of the response headers being sent by the server).
-     * The cancelling of the exchange is completed when the exchange status (see {@link #getStatus()}) is
-     * {@link #STATUS_CANCELLED}, and this can be waited using {@link #waitForDone()}.
+     * Initiates the cancelling of this exchange. The status of the exchange is set to {@link #STATUS_CANCELLING}. Cancelling the exchange is an asynchronous
+     * operation with respect to the request/response, and as such checking the request/response status of a cancelled exchange may return undefined results
+     * (for example it may have only some of the response headers being sent by the server). The cancelling of the exchange is completed when the exchange
+     * status (see {@link #getStatus()}) is {@link #STATUS_CANCELLED}, and this can be waited using {@link #waitForDone()}.
      */
     public void cancel()
     {
@@ -663,10 +769,10 @@ public class HttpExchange
 
     private void done()
     {
-        synchronized(this)
+        synchronized (this)
         {
             disassociate();
-            _onDone=true;
+            _onDone = true;
             notifyAll();
         }
     }
@@ -684,7 +790,7 @@ public class HttpExchange
             }
             catch (IOException x)
             {
-                Log.debug(x);
+                LOG.debug(x);
             }
             finally
             {
@@ -695,8 +801,8 @@ public class HttpExchange
 
     void associate(HttpConnection connection)
     {
-       if (connection.getEndPoint().getLocalHost() != null)
-           _localAddress = new Address(connection.getEndPoint().getLocalHost(), connection.getEndPoint().getLocalPort());
+        if (connection.getEndPoint().getLocalHost() != null)
+            _localAddress = new Address(connection.getEndPoint().getLocalHost(),connection.getEndPoint().getLocalPort());
 
         _connection = connection;
         if (getStatus() == STATUS_CANCELLING)
@@ -717,10 +823,65 @@ public class HttpExchange
         return result;
     }
 
+    public static String toState(int s)
+    {
+        String state;
+        switch (s)
+        {
+            case STATUS_START:
+                state = "START";
+                break;
+            case STATUS_WAITING_FOR_CONNECTION:
+                state = "CONNECTING";
+                break;
+            case STATUS_WAITING_FOR_COMMIT:
+                state = "CONNECTED";
+                break;
+            case STATUS_SENDING_REQUEST:
+                state = "SENDING";
+                break;
+            case STATUS_WAITING_FOR_RESPONSE:
+                state = "WAITING";
+                break;
+            case STATUS_PARSING_HEADERS:
+                state = "HEADERS";
+                break;
+            case STATUS_PARSING_CONTENT:
+                state = "CONTENT";
+                break;
+            case STATUS_COMPLETED:
+                state = "COMPLETED";
+                break;
+            case STATUS_EXPIRED:
+                state = "EXPIRED";
+                break;
+            case STATUS_EXCEPTED:
+                state = "EXCEPTED";
+                break;
+            case STATUS_CANCELLING:
+                state = "CANCELLING";
+                break;
+            case STATUS_CANCELLED:
+                state = "CANCELLED";
+                break;
+            default:
+                state = "UNKNOWN";
+        }
+        return state;
+    }
+
     @Override
     public String toString()
     {
-        return getClass().getSimpleName() + "@" + hashCode() + "=" + _method + "//" + _address + _uri + "#" + getStatus();
+        String state=toState(getStatus());
+        long now=System.currentTimeMillis();
+        long forMs = now -_lastStateChange;
+        String s= _lastState>=0
+            ?String.format("%s@%x=%s//%s%s#%s(%dms)->%s(%dms)",getClass().getSimpleName(),hashCode(),_method,_address,_uri,toState(_lastState),_lastStatePeriod,state,forMs)
+            :String.format("%s@%x=%s//%s%s#%s(%dms)",getClass().getSimpleName(),hashCode(),_method,_address,_uri,state,forMs);
+        if (getStatus()>=STATUS_SENDING_REQUEST && _sent>0)
+            s+="sent="+(now-_sent)+"ms";
+        return s;
     }
 
     /**
@@ -731,108 +892,123 @@ public class HttpExchange
     }
 
     /**
-     * Callback called when the request headers have been sent to the server.
-     * This implementation does nothing.
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called when the request headers have been sent to the server. This implementation does nothing.
+     *
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onRequestCommitted() throws IOException
     {
     }
 
     /**
-     * Callback called when the request and its body have been sent to the server.
-     * This implementation does nothing.
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called when the request and its body have been sent to the server. This implementation does nothing.
+     *
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onRequestComplete() throws IOException
     {
     }
 
     /**
-     * Callback called when a response status line has been received from the server.
-     * This implementation does nothing.
-     * @param version the HTTP version
-     * @param status the HTTP status code
-     * @param reason the HTTP status reason string
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called when a response status line has been received from the server. This implementation does nothing.
+     *
+     * @param version
+     *            the HTTP version
+     * @param status
+     *            the HTTP status code
+     * @param reason
+     *            the HTTP status reason string
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onResponseStatus(Buffer version, int status, Buffer reason) throws IOException
     {
     }
 
     /**
-     * Callback called for each response header received from the server.
-     * This implementation does nothing.
-     * @param name the header name
-     * @param value the header value
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called for each response header received from the server. This implementation does nothing.
+     *
+     * @param name
+     *            the header name
+     * @param value
+     *            the header value
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onResponseHeader(Buffer name, Buffer value) throws IOException
     {
     }
 
     /**
-     * Callback called when the response headers have been completely received from the server.
-     * This implementation does nothing.
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called when the response headers have been completely received from the server. This implementation does nothing.
+     *
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onResponseHeaderComplete() throws IOException
     {
     }
 
     /**
-     * Callback called for each chunk of the response content received from the server.
-     * This implementation does nothing.
-     * @param content the buffer holding the content chunk
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called for each chunk of the response content received from the server. This implementation does nothing.
+     *
+     * @param content
+     *            the buffer holding the content chunk
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onResponseContent(Buffer content) throws IOException
     {
     }
 
     /**
-     * Callback called when the entire response has been received from the server
-     * This implementation does nothing.
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called when the entire response has been received from the server This implementation does nothing.
+     *
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onResponseComplete() throws IOException
     {
     }
 
     /**
-     * Callback called when an exception was thrown during an attempt to establish the connection
-     * with the server (for example the server is not listening).
+     * Callback called when an exception was thrown during an attempt to establish the connection with the server (for example the server is not listening).
      * This implementation logs a warning.
-     * @param x the exception thrown attempting to establish the connection with the server
+     *
+     * @param x
+     *            the exception thrown attempting to establish the connection with the server
      */
     protected void onConnectionFailed(Throwable x)
     {
-        Log.warn("CONNECTION FAILED " + this,x);
+        LOG.warn("CONNECTION FAILED " + this,x);
     }
 
     /**
-     * Callback called when any other exception occurs during the handling of this exchange.
-     * This implementation logs a warning.
-     * @param x the exception thrown during the handling of this exchange
+     * Callback called when any other exception occurs during the handling of this exchange. This implementation logs a warning.
+     *
+     * @param x
+     *            the exception thrown during the handling of this exchange
      */
     protected void onException(Throwable x)
     {
-        Log.warn("EXCEPTION " + this,x);
+        LOG.warn("EXCEPTION " + this,x);
     }
 
     /**
-     * Callback called when no response has been received within the timeout.
-     * This implementation logs a warning.
+     * Callback called when no response has been received within the timeout. This implementation logs a warning.
      */
     protected void onExpire()
     {
-        Log.warn("EXPIRED " + this);
+        LOG.warn("EXPIRED " + this);
     }
 
     /**
-     * Callback called when the request is retried (due to failures or authentication).
-     * Implementations must reset any consumable content that needs to be sent.
-     * @throws IOException allowed to be thrown by overriding code
+     * Callback called when the request is retried (due to failures or authentication). Implementations must reset any consumable content that needs to be sent.
+     *
+     * @throws IOException
+     *             allowed to be thrown by overriding code
      */
     protected void onRetry() throws IOException
     {
@@ -851,8 +1027,7 @@ public class HttpExchange
     }
 
     /**
-     * @return true if the exchange should have listeners configured for it by the destination,
-     * false if this is being managed elsewhere
+     * @return true if the exchange should have listeners configured for it by the destination, false if this is being managed elsewhere
      * @see #setConfigureListeners(boolean)
      */
     public boolean configureListeners()
@@ -861,7 +1036,8 @@ public class HttpExchange
     }
 
     /**
-     * @param autoConfigure whether the listeners are configured by the destination or elsewhere
+     * @param autoConfigure
+     *            whether the listeners are configured by the destination or elsewhere
      */
     public void setConfigureListeners(boolean autoConfigure)
     {
@@ -884,7 +1060,7 @@ public class HttpExchange
         HttpClient httpClient = destination.getHttpClient();
         long timeout = getTimeout();
         if (timeout > 0)
-            httpClient.schedule(_timeoutTask, timeout);
+            httpClient.schedule(_timeoutTask,timeout);
         else
             httpClient.schedule(_timeoutTask);
     }
@@ -948,7 +1124,7 @@ public class HttpExchange
             }
             finally
             {
-                synchronized(HttpExchange.this)
+                synchronized (HttpExchange.this)
                 {
                     _onRequestCompleteDone = true;
                     // Member _onDone may already be true, for example
@@ -969,7 +1145,7 @@ public class HttpExchange
             }
             finally
             {
-                synchronized(HttpExchange.this)
+                synchronized (HttpExchange.this)
                 {
                     _onResponseCompleteDone = true;
                     // Member _onDone may already be true, for example
@@ -1004,14 +1180,14 @@ public class HttpExchange
 
         public void onRetry()
         {
-            HttpExchange.this.setRetryStatus( true );
+            HttpExchange.this.setRetryStatus(true);
             try
             {
                 HttpExchange.this.onRetry();
             }
             catch (IOException e)
             {
-                Log.debug(e);
+                LOG.debug(e);
             }
         }
     }

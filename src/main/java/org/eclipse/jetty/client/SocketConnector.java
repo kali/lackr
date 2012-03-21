@@ -24,9 +24,12 @@ import org.eclipse.jetty.io.EndPoint;
 import org.eclipse.jetty.io.bio.SocketEndPoint;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 
 class SocketConnector extends AbstractLifeCycle implements HttpClient.Connector
 {
+    private static final Logger LOG = Log.getLogger(SocketConnector.class);
+
     /**
      *
      */
@@ -42,18 +45,9 @@ class SocketConnector extends AbstractLifeCycle implements HttpClient.Connector
 
     public void startConnection(final HttpDestination destination) throws IOException
     {
-        Socket socket=null;
-
-        if ( destination.isSecure() )
-        {
-            SSLContext sslContext = _httpClient.getSSLContext();
-            socket = sslContext.getSocketFactory().createSocket();
-        }
-        else
-        {
-            Log.debug("Using Regular Socket");
-            socket = SocketFactory.getDefault().createSocket();
-        }
+        Socket socket= destination.isSecure()
+            ?_httpClient.getSslContextFactory().newSslSocket()
+            :SocketFactory.getDefault().createSocket();
 
         socket.setSoTimeout(0);
         socket.setTcpNoDelay(true);
@@ -87,11 +81,22 @@ class SocketConnector extends AbstractLifeCycle implements HttpClient.Connector
                 catch (IOException e)
                 {
                     if (e instanceof InterruptedIOException)
-                        Log.ignore(e);
+                        LOG.ignore(e);
                     else
                     {
-                        Log.debug(e);
+                        LOG.debug(e);
                         destination.onException(e);
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        destination.returnConnection(connection,true);
+                    }
+                    catch (IOException e)
+                    {
+                        LOG.debug(e);
                     }
                 }
             }

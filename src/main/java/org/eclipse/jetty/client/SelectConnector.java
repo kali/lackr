@@ -15,16 +15,20 @@ package org.eclipse.jetty.client;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 
 import org.eclipse.jetty.http.HttpGenerator;
 import org.eclipse.jetty.http.HttpParser;
+import org.eclipse.jetty.http.ssl.SslContextFactory;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.Buffers;
 import org.eclipse.jetty.io.Buffers.Type;
@@ -37,19 +41,20 @@ import org.eclipse.jetty.io.nio.SelectorManager;
 import org.eclipse.jetty.io.nio.SslSelectChannelEndPoint;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 import org.eclipse.jetty.util.thread.Timeout;
 
-class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector, Runnable
+class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector
 {
+    private static final Logger LOG = Log.getLogger(SelectConnector.class);
+
     private final HttpClient _httpClient;
     private final Manager _selectorManager=new Manager();
     private final Map<SocketChannel, Timeout.Task> _connectingChannels = new ConcurrentHashMap<SocketChannel, Timeout.Task>();
-    private SSLContext _sslContext;
     private Buffers _sslBuffers;
-    private int _maxBuffers=1024;
 
     /**
-     * @param httpClient
+     * @param httpClient the HttpClient this connector is associated to
      */
     SelectConnector(HttpClient httpClient)
     {
@@ -62,18 +67,17 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
     {
         super.doStart();
 
-        _selectorManager.start();
 
         final boolean direct=_httpClient.getUseDirectBuffers();
 
-        SSLEngine sslEngine=_selectorManager.newSslEngine();
+        SSLEngine sslEngine=_selectorManager.newSslEngine(null);
         final SSLSession ssl_session=sslEngine.getSession();
         _sslBuffers = BuffersFactory.newBuffers(
                 direct?Type.DIRECT:Type.INDIRECT,ssl_session.getApplicationBufferSize(),
                 direct?Type.DIRECT:Type.INDIRECT,ssl_session.getApplicationBufferSize(),
-                direct?Type.DIRECT:Type.INDIRECT,_maxBuffers);
+                direct?Type.DIRECT:Type.INDIRECT,1024);
 
-        _httpClient._threadPool.dispatch(this);
+        _selectorManager.start();
     }
 
     /* ------------------------------------------------------------ */
@@ -87,51 +91,40 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
     public void startConnection( HttpDestination destination )
         throws IOException
     {
+        SocketChannel channel = null;
         try
         {
-            SocketChannel channel = SocketChannel.open();
+            channel = SocketChannel.open();
             Address address = destination.isProxied() ? destination.getProxy() : destination.getAddress();
             channel.socket().setTcpNoDelay(true);
 
-            if (!_httpClient.isConnectBlocking())
+            if (_httpClient.isConnectBlocking())
             {
-                channel.configureBlocking( false );
-                channel.connect(address.toSocketAddress());
-                _selectorManager.register( channel, destination );
-                ConnectTimeout connectTimeout = new ConnectTimeout(channel, destination);
-                _httpClient.schedule(connectTimeout,_httpClient.getConnectTimeout());
-                _connectingChannels.put(channel, connectTimeout);
+                    channel.socket().connect(address.toSocketAddress(), _httpClient.getConnectTimeout());
+                    channel.configureBlocking(false);
+                    _selectorManager.register( channel, destination );
             }
             else
             {
-                channel.socket().connect(address.toSocketAddress(), _httpClient.getConnectTimeout());
                 channel.configureBlocking(false);
-                _selectorManager.register( channel, destination );
+                channel.connect(address.toSocketAddress());            
+                _selectorManager.register(channel,destination);
+                ConnectTimeout connectTimeout = new ConnectTimeout(channel,destination);
+                _httpClient.schedule(connectTimeout,_httpClient.getConnectTimeout());
+                _connectingChannels.put(channel,connectTimeout);
             }
-
+        }
+        catch (UnresolvedAddressException ex)
+        {
+            if (channel != null)
+                channel.close();
+            destination.onConnectionFailed(ex);
         }
         catch(IOException ex)
         {
+            if (channel != null)
+                channel.close();
             destination.onConnectionFailed(ex);
-        }
-
-    }
-
-    /* ------------------------------------------------------------ */
-    public void run()
-    {
-        while (_httpClient.isRunning())
-        {
-            try
-            {
-                _selectorManager.doSelect(0);
-            }
-            catch (Exception e)
-            {
-                Log.warn(e.toString());
-                Log.debug(e);
-                Thread.yield();
-            }
         }
     }
 
@@ -141,7 +134,7 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
         @Override
         public boolean dispatch(Runnable task)
         {
-            return SelectConnector.this._httpClient._threadPool.dispatch(task);
+            return _httpClient._threadPool.dispatch(task);
         }
 
         @Override
@@ -175,7 +168,8 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
             Timeout.Task connectTimeout = _connectingChannels.remove(channel);
             if (connectTimeout != null)
                 connectTimeout.cancel();
-            Log.debug("Channels with connection pending: {}", _connectingChannels.size());
+            if (LOG.isDebugEnabled())
+                LOG.debug("Channels with connection pending: {}", _connectingChannels.size());
 
             // key should have destination at this point (will be replaced by endpoint after this call)
             HttpDestination dest=(HttpDestination)key.attachment();
@@ -186,13 +180,15 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
             {
                 if (dest.isProxied())
                 {
-                    SSLEngine engine=newSslEngine();
+                    SSLEngine engine=newSslEngine(channel);
                     ep = new ProxySelectChannelEndPoint(channel, selectSet, key, _sslBuffers, engine, (int)_httpClient.getIdleTimeout());
                 }
                 else
                 {
-                    SSLEngine engine=newSslEngine();
-                    ep = new SslSelectChannelEndPoint(_sslBuffers, channel, selectSet, key, engine, (int)_httpClient.getIdleTimeout());
+                    SSLEngine engine=newSslEngine(channel);
+                    SslSelectChannelEndPoint sslEp = new SslSelectChannelEndPoint(_sslBuffers, channel, selectSet, key, engine, (int)_httpClient.getIdleTimeout());
+                    sslEp.setAllowRenegotiate(_httpClient.getSslContextFactory().isAllowRenegotiate());
+                    ep = sslEp;
                 }
             }
             else
@@ -206,14 +202,20 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
             return ep;
         }
 
-        private synchronized SSLEngine newSslEngine() throws IOException
+        private synchronized SSLEngine newSslEngine(SocketChannel channel) throws IOException
         {
-            if (_sslContext==null)
+            SslContextFactory sslContextFactory = _httpClient.getSslContextFactory();
+            SSLEngine sslEngine;
+            if (channel != null)
             {
-                _sslContext = SelectConnector.this._httpClient.getSSLContext();
+                String peerHost = channel.socket().getInetAddress().getHostAddress();
+                int peerPort = channel.socket().getPort();
+                sslEngine = sslContextFactory.newSslEngine(peerHost, peerPort);
             }
-
-            SSLEngine sslEngine = _sslContext.createSSLEngine();
+            else
+            {
+                sslEngine = sslContextFactory.newSslEngine();
+            }
             sslEngine.setUseClientMode(true);
             sslEngine.beginHandshake();
 
@@ -227,6 +229,10 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
         @Override
         protected void connectionFailed(SocketChannel channel, Throwable ex, Object attachment)
         {
+            Timeout.Task connectTimeout = _connectingChannels.remove(channel);
+            if (connectTimeout != null)
+                connectTimeout.cancel();
+            
             if (attachment instanceof HttpDestination)
                 ((HttpDestination)attachment).onConnectionFailed(ex);
             else
@@ -250,7 +256,7 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
         {
             if (channel.isConnectionPending())
             {
-                Log.debug("Channel {} timed out while connecting, closing it", channel);
+                LOG.debug("Channel {} timed out while connecting, closing it", channel);
                 try
                 {
                     // This will unregister the channel from the selector
@@ -258,7 +264,7 @@ class SelectConnector extends AbstractLifeCycle implements HttpClient.Connector,
                 }
                 catch (IOException x)
                 {
-                    Log.ignore(x);
+                    LOG.ignore(x);
                 }
                 destination.onConnectionFailed(new SocketTimeoutException());
             }

@@ -39,53 +39,58 @@ import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.Connection;
 import org.eclipse.jetty.io.EndPoint;
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 
 /**
  * @version $Revision: 879 $ $Date: 2009-09-11 16:13:28 +0200 (Fri, 11 Sep 2009) $
  */
-public class HttpDestination
+public class HttpDestination implements Dumpable
 {
-    static class ExchangeQueue
-    {
-        private final Queue<HttpExchange> _queue = new ConcurrentLinkedQueue<HttpExchange>();
-        private AtomicInteger _approximateSize = new AtomicInteger();
+    private static final Logger LOG = Log.getLogger(HttpDestination.class);
 
-        public HttpExchange poll()
-        {
-            HttpExchange e = _queue.poll();
-            if (e != null)
-                _approximateSize.decrementAndGet();
-            return e;
-        }
+     static class ExchangeQueue
+     {
+         private final Queue<HttpExchange> _queue = new ConcurrentLinkedQueue<HttpExchange>();
+         private AtomicInteger _approximateSize = new AtomicInteger();
+ 
+         public HttpExchange poll()
+         {
+             HttpExchange e = _queue.poll();
+             if (e != null)
+                 _approximateSize.decrementAndGet();
+             return e;
+         }
+ 
+         public boolean isEmpty()
+         {
+             return _queue.isEmpty();
+         }
+ 
+         public void add(HttpExchange exchange)
+         {
+             _queue.add(exchange);
+             _approximateSize.incrementAndGet();
+         }
+ 
+         public int approximateSize()
+         {
+             return _approximateSize.get();
+         }
+ 
+         public void remove(HttpExchange exchange)
+         {
+             if (_queue.remove(exchange))
+                 _approximateSize.decrementAndGet();
+         }
+ 
+     }
 
-        public boolean isEmpty()
-        {
-            return _queue.isEmpty();
-        }
-
-        public void add(HttpExchange exchange)
-        {
-            _queue.add(exchange);
-            _approximateSize.incrementAndGet();
-        }
-
-        public int approximateSize()
-        {
-            return _approximateSize.get();
-        }
-
-        public void remove(HttpExchange exchange)
-        {
-            if (_queue.remove(exchange))
-                _approximateSize.decrementAndGet();
-        }
-
-    }
-
-    private final ExchangeQueue _queue = new ExchangeQueue();
+     private final ExchangeQueue _queue = new ExchangeQueue();
     private final List<HttpConnection> _connections = new LinkedList<HttpConnection>();
-    private final BlockingQueue<Object> _newQueue = new ArrayBlockingQueue<Object>(10,true);
+    private final BlockingQueue<Object> _newQueue = new ArrayBlockingQueue<Object>(10, true);
     private final Queue<HttpConnection> _idle = new ConcurrentLinkedQueue<HttpConnection>();
     private final HttpClient _client;
     private final Address _address;
@@ -100,22 +105,8 @@ public class HttpDestination
     private PathMap _authorizations;
     private List<HttpCookie> _cookies;
 
-    public void dump() throws IOException
-    {
-        synchronized (this)
-        {
-            Log.info(this.toString());
-            Log.info("connections=" + _connections.size());
-            Log.info("idle=" + _idle.size());
-            Log.info("pending=" + _pendingConnections);
-            for (HttpConnection c : _connections)
-            {
-                if (!c.isIdle())
-                    c.dump();
-            }
-        }
-    }
 
+    
     HttpDestination(HttpClient client, Address address, boolean ssl)
     {
         _client = client;
@@ -253,7 +244,7 @@ public class HttpDestination
                 }
                 catch (InterruptedException e)
                 {
-                    Log.ignore(e);
+                    LOG.ignore(e);
                 }
             }
             else
@@ -266,7 +257,7 @@ public class HttpDestination
                 }
                 catch (InterruptedException e)
                 {
-                    Log.ignore(e);
+                    LOG.ignore(e);
                 }
             }
         }
@@ -318,7 +309,7 @@ public class HttpDestination
         }
         catch (Exception e)
         {
-            Log.debug(e);
+            LOG.debug(e);
             onConnectionFailed(e);
         }
     }
@@ -365,7 +356,7 @@ public class HttpDestination
             }
             catch (InterruptedException e)
             {
-                Log.ignore(e);
+                LOG.ignore(e);
             }
         }
     }
@@ -436,7 +427,7 @@ public class HttpDestination
             }
             catch (InterruptedException e)
             {
-                Log.ignore(e);
+                LOG.ignore(e);
             }
         }
     }
@@ -454,7 +445,7 @@ public class HttpDestination
             }
             catch (IOException e)
             {
-                Log.ignore(e);
+                LOG.ignore(e);
             }
         }
 
@@ -498,7 +489,7 @@ public class HttpDestination
         }
         catch (IOException e)
         {
-            Log.ignore(e);
+            LOG.ignore(e);
         }
 
         boolean startConnection = false;
@@ -613,27 +604,31 @@ public class HttpDestination
     {
         // The exchange may expire while waiting in the
         // destination queue, make sure it is removed
-        _queue.remove(exchange);
+        synchronized (this)
+        {
+            _queue.remove(exchange);
+        }
     }
 
     protected void send(HttpConnection connection, HttpExchange exchange) throws IOException
     {
-        // If server closes the connection, put the exchange back
-        // to the exchange queue and recycle the connection
-        if (!connection.send(exchange))
+        synchronized (this)
         {
-            if (exchange.getStatus() <= HttpExchange.STATUS_WAITING_FOR_CONNECTION)
-                // enqueued at the end
-                _queue.add(exchange);
-            returnIdleConnection(connection);
+            // If server closes the connection, put the exchange back
+            // to the exchange queue and recycle the connection
+            if (!connection.send(exchange))
+            {
+                if (exchange.getStatus() <= HttpExchange.STATUS_WAITING_FOR_CONNECTION)
+                    _queue.add(exchange);
+                returnIdleConnection(connection);
+            }
         }
     }
 
     @Override
     public synchronized String toString()
     {
-        return "HttpDestination@" + hashCode() + "//" + _address.getHost() + ":" + _address.getPort() + "(" + _connections.size() + "," + _idle.size() + ","
-                + _queue.approximateSize() + ")";
+        return String.format("HttpDestination@%x//%s:%d(%d/%d,%d,%d/%d)%n",hashCode(),_address.getHost(),_address.getPort(),_connections.size(),_maxConnections,_idle.size(),_queue.approximateSize(),_maxQueueSize);
     }
 
     public synchronized String toDetailString()
@@ -690,6 +685,28 @@ public class HttpDestination
         }
     }
 
+    /* ------------------------------------------------------------ */
+    /**
+     * @see org.eclipse.jetty.util.component.Dumpable#dump()
+     */
+    public String dump()
+    {
+        return AggregateLifeCycle.dump(this);
+    }
+
+    /* ------------------------------------------------------------ */
+    /**
+     * @see org.eclipse.jetty.util.component.Dumpable#dump(java.lang.Appendable, java.lang.String)
+     */
+    public void dump(Appendable out, String indent) throws IOException
+    {
+        synchronized (this)
+        {
+            out.append(String.valueOf(this)+"idle="+_idle.size()+" pending="+_pendingConnections).append("\n");
+            AggregateLifeCycle.dump(out,indent,_connections);
+        }
+    }
+    
     private class ConnectExchange extends ContentExchange
     {
         private final SelectConnector.ProxySelectChannelEndPoint proxyEndPoint;
@@ -700,11 +717,12 @@ public class HttpDestination
             this.proxyEndPoint = proxyEndPoint;
             this.exchange = exchange;
             setMethod(HttpMethods.CONNECT);
+            setVersion(exchange.getVersion());
             String serverHostAndPort = serverAddress.toString();
             setURI(serverHostAndPort);
-            addRequestHeader(HttpHeaders.HOST,serverHostAndPort);
-            addRequestHeader(HttpHeaders.PROXY_CONNECTION,"keep-alive");
-            addRequestHeader(HttpHeaders.USER_AGENT,"Jetty-Client");
+            addRequestHeader(HttpHeaders.HOST, serverHostAndPort);
+            addRequestHeader(HttpHeaders.PROXY_CONNECTION, "keep-alive");
+            addRequestHeader(HttpHeaders.USER_AGENT, "Jetty-Client");
         }
 
         @Override

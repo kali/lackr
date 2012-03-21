@@ -18,10 +18,10 @@ import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
 import javax.net.ssl.SSLContext;
 
 import org.eclipse.jetty.client.security.Authentication;
@@ -33,8 +33,9 @@ import org.eclipse.jetty.http.ssl.SslContextFactory;
 import org.eclipse.jetty.io.Buffers.Type;
 import org.eclipse.jetty.util.Attributes;
 import org.eclipse.jetty.util.AttributesMap;
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.component.LifeCycle;
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.util.thread.ThreadPool;
 import org.eclipse.jetty.util.thread.Timeout;
@@ -64,7 +65,7 @@ import org.eclipse.jetty.util.thread.Timeout;
  * @see HttpExchange
  * @see HttpDestination
  */
-public class HttpClient extends HttpBuffers implements Attributes
+public class HttpClient extends HttpBuffers implements Attributes, Dumpable
 {
     public static final int CONNECTOR_SOCKET = 0;
     public static final int CONNECTOR_SELECT_CHANNEL = 2;
@@ -147,21 +148,23 @@ public class HttpClient extends HttpBuffers implements Attributes
         _connectBlocking = connectBlocking;
     }
 
-    /* ------------------------------------------------------------------------------- */
-    public void dump()
+    /* ------------------------------------------------------------ */
+    /**
+     * @see org.eclipse.jetty.util.component.Dumpable#dump()
+     */
+    public String dump()
     {
-        try
-        {
-            for (Map.Entry<Address, HttpDestination> entry : _destinations.entrySet())
-            {
-                Log.info("\n" + entry.getKey() + ":");
-                entry.getValue().dump();
-            }
-        }
-        catch(Exception e)
-        {
-            Log.warn(e);
-        }
+        return AggregateLifeCycle.dump(this);
+    }
+
+    /* ------------------------------------------------------------ */
+    /**
+     * @see org.eclipse.jetty.util.component.Dumpable#dump(java.lang.Appendable, java.lang.String)
+     */
+    public void dump(Appendable out, String indent) throws IOException
+    {
+        out.append(String.valueOf(this)).append("\n");
+        AggregateLifeCycle.dump(out,indent,_destinations.values());
     }
 
     /* ------------------------------------------------------------------------------- */
@@ -175,10 +178,19 @@ public class HttpClient extends HttpBuffers implements Attributes
 
     /* ------------------------------------------------------------ */
     /**
-     * @return the threadPool
+     * @return the threadpool
      */
     public ThreadPool getThreadPool()
     {
+        if (_threadPool==null)
+        {
+            QueuedThreadPool pool = new QueuedThreadPool();
+            pool.setMaxThreads(16);
+            pool.setDaemon(true);
+            pool.setName("HttpClient");
+            _threadPool = pool;
+        }
+            
         return _threadPool;
     }
 
@@ -417,13 +429,7 @@ public class HttpClient extends HttpBuffers implements Attributes
         _idleTimeoutQ.setNow();
 
         if (_threadPool == null)
-        {
-            QueuedThreadPool pool = new QueuedThreadPool();
-            pool.setMaxThreads(16);
-            pool.setDaemon(true);
-            pool.setName("HttpClient");
-            _threadPool = pool;
-        }
+            getThreadPool();
 
         if (_threadPool instanceof LifeCycle)
         {
@@ -692,14 +698,14 @@ public class HttpClient extends HttpBuffers implements Attributes
     @Deprecated
     public String getKeyStoreLocation()
     {
-        return _sslContextFactory.getKeyStore();
+        return _sslContextFactory.getKeyStorePath();
     }
 
     /* ------------------------------------------------------------ */
     @Deprecated
     public void setKeyStoreLocation(String keyStoreLocation)
     {
-        _sslContextFactory.setKeyStore(keyStoreLocation);
+        _sslContextFactory.setKeyStorePath(keyStoreLocation);
     }
 
     @Deprecated
