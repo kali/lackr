@@ -10,22 +10,24 @@
 	</properties>
 	<build>
 		<plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals><goal>add-source</goal></goals>
-                        <configuration>
-                            <sources>
-                                <source>commons/src/main/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>commons/src/main/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -62,12 +64,20 @@
 	</build>
 	<repositories>
 		<repository>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2/</url>
+		</repository>
+		<repository>
 			<id>asf</id>
 			<url>http://repository.apache.org/snapshots/</url>
 		</repository>
 		<repository>
-			<id>central</id>
-			<url>http://repo1.maven.org/maven2/</url>
+			<id>scalatools</id>
+			<url>http://scala-tools.org/repo-releases/</url>
+		</repository>
+		<repository>
+			<id>scalatools snaps</id>
+			<url>http://scala-tools.org/repo-snapshots/</url>
 		</repository>
 		<repository>
 			<id>com.springsource.repository.bundles.release</id>
@@ -82,19 +92,24 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.context</artifactId>
-			<version>3.0.5.RELEASE</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.5.11</version>
+			<version>1.6.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>org.springframework.context</artifactId>
+			<version>3.0.5.RELEASE</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -105,11 +120,6 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 			<version>7.5.4.v20111024</version>
-		</dependency>
-		<dependency>
-			<groupId>com.ning</groupId>
-			<artifactId>async-http-client</artifactId>
-			<version>1.6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>args4j</groupId>
@@ -146,5 +156,27 @@
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.8.0</version>
 		</dependency>
+		<!-- 
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>7.5.4.v20111024</version>
+		</dependency>
+		<dependency>
+			<groupId>net.databinder</groupId>
+			<artifactId>unfiltered-filter_2.9.1</artifactId>
+			<version>0.5.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mongodb.casbah</groupId>
+			<artifactId>casbah-query_2.9.1</artifactId>
+			<version>2.1.5-1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mongodb.casbah</groupId>
+			<artifactId>casbah-core_2.9.1</artifactId>
+			<version>2.1.5-1</version>
+		</dependency>
+		-->
 	</dependencies>
 </project>
