@@ -40,7 +40,7 @@
 		p:rapportr-ref="rapportr" lazy-init="true">
 		<property name="backends">
 			<array>
-				<ref bean="femtorBackend" />
+				<ref bean="femtorInProcessBackend" />
 				<ref bean="picorBackend" />
 			</array>
 		</property>
@@ -75,7 +75,7 @@
 		</property>
 	</bean>
 
-	<bean id="femtorBackend" class="com.fotonauts.lackr.client.JettyBackend"
+	<bean id="femtorHttpBackend" class="com.fotonauts.lackr.client.JettyBackend"
 		p:actualClient-ref="jettyHttpClient">
 		<property name="director">
 			<bean class="com.fotonauts.lackr.hashring.HashRing"
@@ -84,6 +84,10 @@
 
 		</property>
 	</bean>
+
+	<bean id="femtorInProcessBackend" class="com.fotonauts.lackr.femtor.InProcessFemtor"
+		p:femtorJar="/Users/kali/femtor-for-lackr-assembly-0.1.jar" p:femtorHandlerClass="com.fotopedia.femtor.App"/>
+
 
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
 		init-method="start" destroy-method="stop" p:connectTimeout="500"

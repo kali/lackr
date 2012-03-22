@@ -21,6 +21,7 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.junit.After;
 import org.junit.Ignore;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -37,6 +38,7 @@ public class BaseTestLackrFullStack {
 	protected Server femtorStub;
 	protected Server lackrServer;
 	protected HttpClient client;
+	protected ApplicationContext ctx;
 
 	protected AtomicReference<Handler> currentHandler;
 
@@ -79,11 +81,12 @@ public class BaseTestLackrFullStack {
 
 		System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
+		ctx = new ClassPathXmlApplicationContext("lackr.xml");
 //		Service service = (Service) ctx.getBean("proxyService");
-
+/*
 		JettyBackend femtorBackend = (JettyBackend) ctx.getBean("femtorBackend");
 		femtorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + femtorStub.getConnectors()[0].getLocalPort()));
+		*/
 		JettyBackend picorBackend = (JettyBackend) ctx.getBean("picorBackend");
 		picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
 		
@@ -129,5 +132,10 @@ public class BaseTestLackrFullStack {
 			assertTrue("unreachable", false);
 		}
 	}
-
+	
+	@After
+    public void tearDown() throws Exception {
+    	lackrServer.stop();
+    	backend.stop();
+    }
 }

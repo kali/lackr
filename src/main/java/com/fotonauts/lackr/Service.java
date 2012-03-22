@@ -134,4 +134,12 @@ public class Service extends AbstractHandler {
 	public void setBackends(Backend[] backends) {
 	    this.backends = backends;
     }
+	
+	@Override
+	public void doStop() throws Exception {
+	    for(Backend backend: backends) {
+	    	System.err.println("Stop lackr!");
+	    	backend.stop();
+	    }
+	}
 }

@@ -54,7 +54,7 @@ public abstract class LackrBackendExchange {
 		this.backendRequest = spec;
 	}
 
-	protected void start() throws IOException, NotAvailableException, NullPointerException {
+	public void start() throws IOException, NotAvailableException, NullPointerException {
 		addRequestHeader("X-NGINX-SSI", "yes");
 		addRequestHeader("X-SSI-ROOT", backendRequest.getFrontendRequest()
 				.getRequest().getRequestURI());

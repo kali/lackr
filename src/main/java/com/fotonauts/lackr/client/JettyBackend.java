@@ -29,6 +29,11 @@ public class JettyBackend implements Backend {
     }
 
 	@Override
+	public void stop() throws Exception {
+		actualClient.stop();
+	}
+	
+	@Override
     public void dumpStatus(PrintStream ps) {
 		ps.format("Jetty HTTP Client\n");
 		director.dumpStatus(ps);

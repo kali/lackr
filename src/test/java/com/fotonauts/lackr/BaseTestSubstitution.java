@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.junit.After;
 
 public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 
@@ -73,10 +72,5 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     	return new String(e.getResponseContentBytes());
     }
 
-	@After
-    public void tearDown() throws Exception {
-    	lackrServer.stop();
-    	backend.stop();
-    }
 
 }
