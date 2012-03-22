@@ -19,7 +19,7 @@ public class FemtorExchange extends LackrBackendExchange {
 
 	public FemtorExchange(InProcessFemtor inProcessFemtor, BackendRequest spec) {
 		super(spec);
-		this.request = new FemtorRequest(spec, inProcessFemtor.holder);
+		this.request = new FemtorRequest(spec.getFrontendRequest().getRequest(), spec);
 		this.response = new FemtorResponse(this);
 		this.inProcessFemtor = inProcessFemtor;
 	}
@@ -58,16 +58,18 @@ public class FemtorExchange extends LackrBackendExchange {
 	@Override
 	protected void doStart() throws IOException, NotAvailableException {
 		try {
-			inProcessFemtor.servletContextHandler.handle(getBackendRequest().getPath(), request, request, response);
+			inProcessFemtor.filter.doFilter(request, response, null);
 			rawResponseContent = response.getContentBytes();
-	        postProcess();
-        } catch (ServletException e) {
-        	getBackendRequest().getFrontendRequest().addBackendExceptions(new LackrPresentableError("error in femtor call: " + e.getMessage()));
-        }
+		} catch (Exception e) {
+			response.setStatus(500);
+			getBackendRequest().getFrontendRequest().addBackendExceptions(e);
+		} finally {
+			postProcess();
+		}
 	}
 
 	public FemtorResponse getResponse() {
 		return response;
 	}
-	
+
 }

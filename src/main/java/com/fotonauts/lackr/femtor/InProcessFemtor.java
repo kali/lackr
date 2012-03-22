@@ -4,13 +4,10 @@ import java.io.File;
 import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.EnumSet;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.Filter;
 
-import org.eclipse.jetty.server.DispatcherType;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.springframework.util.StringUtils;
 
 import com.fotonauts.lackr.Backend;
@@ -19,8 +16,7 @@ import com.fotonauts.lackr.LackrBackendExchange;
 
 public class InProcessFemtor implements Backend {
 
-	ServletContextHandler servletContextHandler;
-	ServletHolder holder;
+	Filter filter;
 	private String femtorHandlerClass;
 	private String femtorJar;
 	private URLClassLoader loader;
@@ -30,7 +26,6 @@ public class InProcessFemtor implements Backend {
 
 	@PostConstruct
 	public void init() throws Exception {
-		servletContextHandler = new ServletContextHandler();
 		Class c = null;
 		if(StringUtils.hasText(femtorJar)) {
 			loader = URLClassLoader.newInstance(new URL[] { new File(femtorJar).toURL() }, getClass().getClassLoader());
@@ -38,9 +33,7 @@ public class InProcessFemtor implements Backend {
 		} else {
 			c = ClassLoader.getSystemClassLoader().loadClass(getFemtorHandlerClass());
 		}
-		servletContextHandler.addFilter(c, "*", EnumSet.of(DispatcherType.REQUEST));
-		holder = servletContextHandler.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/*");
-		servletContextHandler.start();
+		filter = (Filter) c.getConstructor().newInstance();
 	}
 
 	public void setfemtorJar(String femtorJar) {
@@ -67,6 +60,5 @@ public class InProcessFemtor implements Backend {
 
 	@Override
 	public void stop() throws Exception {
-		servletContextHandler.stop();
 	}
 }
