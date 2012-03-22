@@ -93,8 +93,9 @@ public class BackendRequest {
 	public void postProcess() {
 		LackrBackendExchange exchange = getExchange();
 		try {
+			System.err.format("backend %d returned %d\n", triedBackend.get(), exchange.getResponseStatus());
 
-			if (exchange.getResponseStatus() == 404) {
+			if (exchange.getResponseStatus() == 501) {
 				if(triedBackend.incrementAndGet() < getFrontendRequest().getService().getBackends().length) {
 					tryNext();
 					return;

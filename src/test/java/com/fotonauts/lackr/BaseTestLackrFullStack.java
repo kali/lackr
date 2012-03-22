@@ -58,21 +58,6 @@ public class BaseTestLackrFullStack {
 		});
 		backend.start();
 
-		femtorStub = new Server();
-		femtorStub.addConnector(new SelectChannelConnector());
-		femtorStub.setHandler(new AbstractHandler() {
-
-			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-			        throws IOException, ServletException {
-				if(target.equals("/blah"))
-					writeResponse(response, "Femtor says hi!".getBytes("UTF-8"), "text/plain");
-				else {
-					response.setStatus(404);
-				}
-			}
-		});
-		femtorStub.start();
-
 		File propFile = File.createTempFile("lackr.test.", ".props");
 		propFile.deleteOnExit();
 
@@ -82,16 +67,9 @@ public class BaseTestLackrFullStack {
 		System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
 		ctx = new ClassPathXmlApplicationContext("lackr.xml");
-//		Service service = (Service) ctx.getBean("proxyService");
-/*
-		JettyBackend femtorBackend = (JettyBackend) ctx.getBean("femtorBackend");
-		femtorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + femtorStub.getConnectors()[0].getLocalPort()));
-		*/
 		JettyBackend picorBackend = (JettyBackend) ctx.getBean("picorBackend");
 		picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
 		
-//		service.setBackends(new Backend[] { picorBackend });
-
 		lackrServer = (Server) ctx.getBean("Server");
 		lackrServer.start();
 
@@ -136,6 +114,5 @@ public class BaseTestLackrFullStack {
 	@After
     public void tearDown() throws Exception {
     	lackrServer.stop();
-    	backend.stop();
     }
 }

@@ -1,0 +1,245 @@
+package com.fotonauts.lackr.femtor;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpStatus;
+
+import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+
+public class FemtorResponse implements HttpServletResponse {
+
+    public static final int
+    NONE=0,
+    STREAM=1,
+    WRITER=2;
+	
+	private int sc = 200;
+	private ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	private PrintWriter _writer = null;
+	private String _characterEncoding = "UTF-8";
+	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
+    private int _outputState;
+    private FemtorExchange exchange;
+
+	public FemtorResponse(FemtorExchange exchange) {
+		this.exchange = exchange;
+        _outputState=NONE;
+	}
+
+	@Override
+	public String getCharacterEncoding() {
+		return _characterEncoding;
+	}
+
+	@Override
+	public String getContentType() {
+		return getHeaders().containsKey(HttpHeaders.CONTENT_TYPE) ? getHeaders().get(HttpHeaders.CONTENT_TYPE).get(0) : null;
+	}
+	
+	@Override
+	public ServletOutputStream getOutputStream() throws IOException {
+		
+        if (_outputState!=NONE && _outputState!=STREAM)
+            throw new IllegalStateException("WRITER");
+
+        _outputState=STREAM;
+
+		return new ServletOutputStream() {
+			
+			@Override
+			public void write(int b) throws IOException {
+				baos.write(b);
+			}
+		};
+	}
+
+	@Override
+	public PrintWriter getWriter() throws IOException {
+        if (_outputState!=NONE && _outputState!=WRITER)
+            throw new IllegalStateException("STREAM");
+
+        /* if there is no writer yet */
+        if (_writer==null)
+        {
+            _writer = new PrintWriter(new OutputStreamWriter(baos, _characterEncoding));
+        }
+        _outputState=WRITER;
+        return _writer;
+	}
+
+	@Override
+	public void setCharacterEncoding(String charset) {
+		this._characterEncoding = charset;
+	}
+
+	@Override
+	public void setContentLength(int len) {
+
+	}
+
+	@SuppressWarnings("unchecked")
+    @Override
+	public void setContentType(String type) {
+		headers.put(HttpHeaders.CONTENT_TYPE, Arrays.asList(new String[] {type}));
+	}
+
+	@Override
+	public void setBufferSize(int size) {
+	}
+
+	@Override
+	public int getBufferSize() {
+		return 0;
+	}
+
+	@Override
+	public void flushBuffer() throws IOException {
+		if(_outputState == WRITER)
+			getWriter().flush();
+		if(_outputState == STREAM)
+			baos.flush();
+	}
+
+	@Override
+	public void resetBuffer() {
+		baos.reset();
+		_outputState = NONE;
+	}
+
+	@Override
+	public boolean isCommitted() {
+		return false;
+	}
+
+	@Override
+	public void reset() {
+		baos.reset();
+		_outputState = NONE;
+	}
+
+	@Override
+	public void setLocale(Locale loc) {
+	}
+
+	@Override
+	public Locale getLocale() {
+		return null;
+	}
+
+	@Override
+	public void addCookie(Cookie cookie) {
+
+	}
+
+	@Override
+	public boolean containsHeader(String name) {
+		return headers.containsKey(name);
+	}
+
+	@Override
+	public String encodeURL(String url) {
+		return url;
+	}
+
+	@Override
+	public String encodeRedirectURL(String url) {
+		return url;
+	}
+
+	@Override
+	public String encodeUrl(String url) {
+		return url;
+	}
+
+	@Override
+	public String encodeRedirectUrl(String url) {
+		return url;
+	}
+
+	@Override
+	public void sendError(int sc, String msg) throws IOException {
+		this.sc = sc;
+//		this.sm = msg;
+	}
+
+	@Override
+	public void sendError(int sc) throws IOException {
+		this.sc = sc;
+	}
+
+	@SuppressWarnings("unchecked")
+    @Override
+	public void sendRedirect(String location) throws IOException {
+		this.sc = HttpStatus.MOVED_TEMPORARILY_302;
+		setHeader(HttpHeaders.LOCATION, location);
+	}
+
+	@Override
+	public void setDateHeader(String name, long date) {
+	}
+
+	@Override
+	public void addDateHeader(String name, long date) {
+	}
+
+	@SuppressWarnings("unchecked")
+    @Override
+	public void setHeader(String name, String value) {
+		headers.put(name, Arrays.asList(new String[] {value}));
+	}
+
+	@Override
+	public void addHeader(String name, String value) {
+		if(headers.containsKey(name))
+			headers.get(name).add(value);
+		else
+			setHeader(name, value);
+	}
+
+	@Override
+	public void setIntHeader(String name, int value) {
+	}
+
+	@Override
+	public void addIntHeader(String name, int value) {
+	}
+
+	@Override
+	public void setStatus(int sc) {
+		this.sc = sc;
+	}
+
+	@Override
+	public void setStatus(int sc, String sm) {
+		this.sc = sc;
+	}
+
+	public Map<String, List<String>> getHeaders() {
+		return headers;
+    }
+	
+	protected byte[] getContentBytes() {
+		return baos.toByteArray();
+	}
+
+	public int getStatus() {
+		return sc;
+    }
+
+
+}

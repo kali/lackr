@@ -43,7 +43,7 @@ public abstract class LackrBackendExchange {
 
 	protected BasicDBObject logLine;
 	protected long startTimestamp;
-	private byte[] rawResponseContent;
+	protected byte[] rawResponseContent;
 	protected BackendRequest backendRequest;
 
 	public BackendRequest getBackendRequest() {

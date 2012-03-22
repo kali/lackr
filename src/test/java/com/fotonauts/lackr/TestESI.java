@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.json.JSONObject;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestESI extends BaseTestSubstitution {
@@ -84,11 +83,10 @@ public class TestESI extends BaseTestSubstitution {
         assertEquals("{ something_empty: \"" + ESI_TEXT.replace("\"", "\\\"").replace("/", "\\/").replace("\n", "\\n") + "\" }", result);
     }
 
-    @Ignore
     @Test
     public void testFemtorJSESI() throws Exception {
-        String result = expand("{ something: \"ssi:include:femtor:/blah\" }");
-        assertEquals("{ something: \"Femtor says hi!\" }", result);
+        String result = expand("{ something: \"ssi:include:femtor:/femtor\" }");
+        assertEquals("{ something: \"Hi from dummy femtor\\n\" }", result);
     }
 
     @Test

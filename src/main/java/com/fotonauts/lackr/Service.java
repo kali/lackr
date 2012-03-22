@@ -138,7 +138,6 @@ public class Service extends AbstractHandler {
 	@Override
 	public void doStop() throws Exception {
 	    for(Backend backend: backends) {
-	    	System.err.println("Stop lackr!");
 	    	backend.stop();
 	    }
 	}
