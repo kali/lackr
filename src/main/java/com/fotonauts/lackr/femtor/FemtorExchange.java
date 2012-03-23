@@ -4,11 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.ServletException;
-
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class FemtorExchange extends LackrBackendExchange {

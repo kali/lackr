@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,27 +17,21 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
-
 public class FemtorResponse implements HttpServletResponse {
 
-    public static final int
-    NONE=0,
-    STREAM=1,
-    WRITER=2;
-	
+	public static final int NONE = 0, STREAM = 1, WRITER = 2;
+
 	private int sc = 200;
 	private ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	private PrintWriter _writer = null;
 	private String _characterEncoding = "UTF-8";
 	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
-    private int _outputState;
-    private FemtorExchange exchange;
+	private int _outputState;
+	private FemtorExchange exchange;
 
 	public FemtorResponse(FemtorExchange exchange) {
 		this.exchange = exchange;
-        _outputState=NONE;
+		_outputState = NONE;
 	}
 
 	@Override
@@ -50,17 +43,17 @@ public class FemtorResponse implements HttpServletResponse {
 	public String getContentType() {
 		return getHeaders().containsKey(HttpHeaders.CONTENT_TYPE) ? getHeaders().get(HttpHeaders.CONTENT_TYPE).get(0) : null;
 	}
-	
+
 	@Override
 	public ServletOutputStream getOutputStream() throws IOException {
-		
-        if (_outputState!=NONE && _outputState!=STREAM)
-            throw new IllegalStateException("WRITER");
 
-        _outputState=STREAM;
+		if (_outputState != NONE && _outputState != STREAM)
+			throw new IllegalStateException("WRITER");
+
+		_outputState = STREAM;
 
 		return new ServletOutputStream() {
-			
+
 			@Override
 			public void write(int b) throws IOException {
 				baos.write(b);
@@ -70,16 +63,15 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public PrintWriter getWriter() throws IOException {
-        if (_outputState!=NONE && _outputState!=WRITER)
-            throw new IllegalStateException("STREAM");
+		if (_outputState != NONE && _outputState != WRITER)
+			throw new IllegalStateException("STREAM");
 
-        /* if there is no writer yet */
-        if (_writer==null)
-        {
-            _writer = new PrintWriter(new OutputStreamWriter(baos, _characterEncoding));
-        }
-        _outputState=WRITER;
-        return _writer;
+		/* if there is no writer yet */
+		if (_writer == null) {
+			_writer = new PrintWriter(new OutputStreamWriter(baos, _characterEncoding));
+		}
+		_outputState = WRITER;
+		return _writer;
 	}
 
 	@Override
@@ -89,29 +81,30 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public void setContentLength(int len) {
-
+		// noop, we are buffered anyway
 	}
 
 	@SuppressWarnings("unchecked")
-    @Override
+	@Override
 	public void setContentType(String type) {
-		headers.put(HttpHeaders.CONTENT_TYPE, Arrays.asList(new String[] {type}));
+		headers.put(HttpHeaders.CONTENT_TYPE, Arrays.asList(new String[] { type }));
 	}
 
 	@Override
 	public void setBufferSize(int size) {
+		// noop irrelevant
 	}
 
 	@Override
 	public int getBufferSize() {
-		return 0;
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
 	public void flushBuffer() throws IOException {
-		if(_outputState == WRITER)
+		if (_outputState == WRITER)
 			getWriter().flush();
-		if(_outputState == STREAM)
+		if (_outputState == STREAM)
 			baos.flush();
 	}
 
@@ -134,11 +127,12 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public void setLocale(Locale loc) {
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public Locale getLocale() {
-		return null;
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -174,7 +168,6 @@ public class FemtorResponse implements HttpServletResponse {
 	@Override
 	public void sendError(int sc, String msg) throws IOException {
 		this.sc = sc;
-//		this.sm = msg;
 	}
 
 	@Override
@@ -183,7 +176,7 @@ public class FemtorResponse implements HttpServletResponse {
 	}
 
 	@SuppressWarnings("unchecked")
-    @Override
+	@Override
 	public void sendRedirect(String location) throws IOException {
 		this.sc = HttpStatus.MOVED_TEMPORARILY_302;
 		setHeader(HttpHeaders.LOCATION, location);
@@ -191,21 +184,23 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public void setDateHeader(String name, long date) {
+		throw new NotImplementedException();
 	}
 
 	@Override
 	public void addDateHeader(String name, long date) {
+		throw new NotImplementedException();
 	}
 
 	@SuppressWarnings("unchecked")
-    @Override
+	@Override
 	public void setHeader(String name, String value) {
-		headers.put(name, Arrays.asList(new String[] {value}));
+		headers.put(name, Arrays.asList(new String[] { value }));
 	}
 
 	@Override
 	public void addHeader(String name, String value) {
-		if(headers.containsKey(name))
+		if (headers.containsKey(name))
 			headers.get(name).add(value);
 		else
 			setHeader(name, value);
@@ -213,10 +208,12 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public void setIntHeader(String name, int value) {
+		setHeader(name, Integer.toString(value));
 	}
 
 	@Override
 	public void addIntHeader(String name, int value) {
+		addHeader(name, Integer.toString(value));
 	}
 
 	@Override
@@ -231,15 +228,14 @@ public class FemtorResponse implements HttpServletResponse {
 
 	public Map<String, List<String>> getHeaders() {
 		return headers;
-    }
-	
+	}
+
 	protected byte[] getContentBytes() {
 		return baos.toByteArray();
 	}
 
 	public int getStatus() {
 		return sc;
-    }
-
+	}
 
 }
