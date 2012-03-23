@@ -5,12 +5,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jetty.http.HttpHeaders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 
 public class BackendRequest {
+
+	static Logger log = LoggerFactory.getLogger(Service.class);
 
 	private final byte[] body;
 	private Document parsedDocument;
@@ -93,10 +97,11 @@ public class BackendRequest {
 	public void postProcess() {
 		LackrBackendExchange exchange = getExchange();
 		try {
-			System.err.format("backend %d returned %d\n", triedBackend.get(), exchange.getResponseStatus());
+			log.debug(String.format("%s %s backend %s returned %d (?)", getMethod(), getQuery(), getFrontendRequest().getService()
+			        .getBackends()[triedBackend.get()].getClass().getName(), exchange.getResponseStatus()));
 
 			if (exchange.getResponseStatus() == 501) {
-				if(triedBackend.incrementAndGet() < getFrontendRequest().getService().getBackends().length) {
+				if (triedBackend.incrementAndGet() < getFrontendRequest().getService().getBackends().length) {
 					tryNext();
 					return;
 				}
@@ -126,6 +131,6 @@ public class BackendRequest {
 
 	public Document getParsedDocument() {
 		return parsedDocument;
-    }
+	}
 
 }

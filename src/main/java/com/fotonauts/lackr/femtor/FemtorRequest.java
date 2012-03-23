@@ -34,7 +34,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public String getQueryString() {
-		return request.getQuery();
+		return request.getParams() == null ? null : ("?" + request.getParams());
 	}
 
 	public void addHeader(String name, String value) {
