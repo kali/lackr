@@ -56,12 +56,11 @@ public class FemtorExchange extends LackrBackendExchange {
 	protected void doStart() throws IOException, NotAvailableException {
 		try {
 			inProcessFemtor.filter.doFilter(request, response, null);
-			rawResponseContent = response.getContentBytes();
 		} catch (Exception e) {
 			response.setStatus(500);
 			getBackendRequest().getFrontendRequest().addBackendExceptions(e);
 		} finally {
-			postProcess();
+            onResponseComplete();
 		}
 	}
 
