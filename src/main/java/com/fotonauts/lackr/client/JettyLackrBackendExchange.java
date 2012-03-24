@@ -36,7 +36,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 		@Override
 		protected void onResponseComplete() throws IOException {
 			super.onResponseComplete();
-			exchange.onResponseComplete();
+			exchange.onResponseComplete(false);
 		}
 
 		@Override
