@@ -81,10 +81,12 @@
 			<id>asf</id>
 			<url>http://repository.apache.org/snapshots/</url>
 		</repository>
+		<!-- 
 		<repository>
 			<id>scalatools</id>
 			<url>http://scala-tools.org/repo-releases/</url>
 		</repository>
+		 -->
 		<repository>
 			<id>scalatools snaps</id>
 			<url>http://scala-tools.org/repo-snapshots/</url>

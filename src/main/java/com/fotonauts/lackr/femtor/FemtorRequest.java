@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.femtor;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.eclipse.jetty.http.HttpURI;
+import org.eclipse.jetty.util.MultiMap;
+import org.eclipse.jetty.util.UrlEncoded;
 
 import com.fotonauts.lackr.BackendRequest;
 
@@ -19,6 +22,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	BackendRequest request;
 	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
 	private HttpURI jettyHttpURI;
+    private MultiMap<String> params;
 
 	public FemtorRequest(HttpServletRequest httpServletRequest, BackendRequest request) {
 		super(httpServletRequest);
@@ -45,12 +49,6 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 		return request.getPath();
 	}
 
-	protected HttpURI getJettyHttpURI() {
-		if(jettyHttpURI == null)
-			jettyHttpURI = new HttpURI(getScheme() + getH);
-		return jettyHttpURI;
-	}
-
 	public void addHeader(String name, String value) {
 		if (headers.containsKey(name))
 			headers.get(name).add(value);
@@ -58,9 +56,50 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 			headers.put(name, Arrays.asList(value));
 	}
 
+	protected MultiMap<String> getParams() {
+	    if(params == null) {
+	        params = new MultiMap<String>();
+	        UrlEncoded.decodeTo(getQueryString(), params, "UTF-8");
+	    }
+	    return params;
+	}
+	
+	@Override
+	public Enumeration getParameterNames() {
+        if(request.getFrontendRequest().getRootRequest() == request)
+            return super.getParameterNames();
+        else
+            return Collections.enumeration(getParams().keySet());
+	}
+	
+	@Override
+	public String getParameter(String name) {
+	    if(request.getFrontendRequest().getRootRequest() == request)
+	        return super.getParameter(name);
+	    else
+	        return getParams().getString(name);
+	}
+	
+	@Override
+	public String[] getParameterValues(String name) {
+        if(request.getFrontendRequest().getRootRequest() == request)
+            return super.getParameterValues(name);
+        else
+	    return getParams().getValues(name).toArray(new String[0]);
+	}
+	
+	@Override
+	public Map getParameterMap() {
+        if(request.getFrontendRequest().getRootRequest() == request)
+            return super.getParameterMap();
+        else
+        return getParams().toStringArrayMap();
+	    
+	}
+	
 	@Override
 	public Enumeration getHeaderNames() {
-		return Collections.enumeration(headers.keySet());
+	    return Collections.enumeration(headers.keySet());
 	}
 
 	@Override
