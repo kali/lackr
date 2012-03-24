@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.util.MultiMap;
 import org.eclipse.jetty.util.UrlEncoded;
@@ -20,7 +21,7 @@ import com.fotonauts.lackr.BackendRequest;
 public class FemtorRequest extends HttpServletRequestWrapper {
 
 	BackendRequest request;
-	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
+	private HttpFields headers = new HttpFields();
 	private HttpURI jettyHttpURI;
     private MultiMap<String> params;
 
@@ -50,10 +51,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	}
 
 	public void addHeader(String name, String value) {
-		if (headers.containsKey(name))
-			headers.get(name).add(value);
-		else
-			headers.put(name, Arrays.asList(value));
+	    headers.add(name, value);
 	}
 
 	protected MultiMap<String> getParams() {
@@ -99,19 +97,16 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	
 	@Override
 	public Enumeration getHeaderNames() {
-	    return Collections.enumeration(headers.keySet());
+	    return headers.getFieldNames();
 	}
 
 	@Override
 	public String getHeader(String name) {
-		if (headers.containsKey(name))
-			return headers.get(name).get(0);
-		else
-			return null;
+	    return headers.getStringField(name);
 	}
 
 	@Override
 	public Enumeration getHeaders(String name) {
-		return Collections.enumeration(headers.containsKey(name) ? headers.get(name) : Collections.EMPTY_LIST);
+	    return headers.getValues(name);
 	}
 }

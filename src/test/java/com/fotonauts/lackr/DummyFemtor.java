@@ -34,6 +34,8 @@ public class DummyFemtor implements Filter {
 			response.getWriter().println("pathInfo: " + hr.getPathInfo());
 			response.getWriter().println("getQueryString: " + hr.getQueryString());
 			response.getWriter().println("getRequestURI: " + hr.getRequestURI());
+            response.getWriter().println("X-Ftn-OperationId: " + hr.getHeader("X-Ftn-OperationId"));
+            response.getWriter().println("x-ftn-operationid: " + hr.getHeader("x-ftn-operationid"));
 			String parameters[] = (String[]) Collections.list(hr.getParameterNames()).toArray(new String[] {});
 			Arrays.sort(parameters);
 			response.getWriter().println("parameterNames: " + Arrays.toString(parameters));

@@ -35,9 +35,10 @@ public class TestFemtor extends BaseTestLackrFullStack {
     	assertTrue(e.getResponseContent().contains("catch me or you're dead.\n"));
 	}
 	
-	@Test(timeout = 100)
+	@Test
 	public void testFemtorQuery() throws Exception {
 		ContentExchange e = new ContentExchange(true);
+		e.addRequestHeader("X-Ftn-OperationId", "someid");
 		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/dump?blah=12&blih=42");
 		client.send(e);
     	while (!e.isDone())
@@ -50,12 +51,15 @@ public class TestFemtor extends BaseTestLackrFullStack {
     	assertEquals("pathInfo: /femtor/dump", tokenizer.nextToken());
     	assertEquals("getQueryString: blah=12&blih=42", tokenizer.nextToken());
     	assertEquals("getRequestURI: /femtor/dump", tokenizer.nextToken());
+        assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
+        assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
     	assertEquals("parameterNames: [blah, blih]", tokenizer.nextToken());
 	}
 
-	@Test(timeout = 100)
+	@Test
 	public void testFemtorESIQuery() throws Exception {
 		ContentExchange e = new ContentExchange(true);
+        e.addRequestHeader("X-Ftn-OperationId", "someid");
 		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/dumpwrapper");
 		client.send(e);
     	while (!e.isDone())
@@ -68,6 +72,8 @@ public class TestFemtor extends BaseTestLackrFullStack {
     	assertEquals("pathInfo: /femtor/dump", tokenizer.nextToken());
     	assertEquals("getQueryString: tut=pouet", tokenizer.nextToken());
     	assertEquals("getRequestURI: /femtor/dump", tokenizer.nextToken());
+        assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
+        assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
     	assertEquals("parameterNames: [tut]", tokenizer.nextToken());
 	}
 	
