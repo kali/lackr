@@ -14,7 +14,7 @@ import com.fotonauts.lackr.interpolr.Document;
 
 public class BackendRequest {
 
-	static Logger log = LoggerFactory.getLogger(Service.class);
+	static Logger log = LoggerFactory.getLogger(BackendRequest.class);
 
 	private final byte[] body;
 	private Document parsedDocument;

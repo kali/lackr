@@ -10,12 +10,15 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
+import org.eclipse.jetty.http.HttpURI;
+
 import com.fotonauts.lackr.BackendRequest;
 
 public class FemtorRequest extends HttpServletRequestWrapper {
 
 	BackendRequest request;
 	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
+	private HttpURI jettyHttpURI;
 
 	public FemtorRequest(HttpServletRequest httpServletRequest, BackendRequest request) {
 		super(httpServletRequest);
@@ -34,7 +37,18 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public String getQueryString() {
-		return request.getParams() == null ? null : ("?" + request.getParams());
+		return request.getParams();
+	}
+
+	@Override
+	public String getRequestURI() {
+		return request.getPath();
+	}
+
+	protected HttpURI getJettyHttpURI() {
+		if(jettyHttpURI == null)
+			jettyHttpURI = new HttpURI(getScheme() + getH);
+		return jettyHttpURI;
 	}
 
 	public void addHeader(String name, String value) {
@@ -56,7 +70,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 		else
 			return null;
 	}
-	
+
 	@Override
 	public Enumeration getHeaders(String name) {
 		return Collections.enumeration(headers.containsKey(name) ? headers.get(name) : Collections.EMPTY_LIST);
