@@ -26,7 +26,7 @@ public class Lackr {
 	public static void main(String[] args) throws Exception {
 		new Lackr().doMain(args);
 	}
-
+	
 	public void doMain(String[] args) throws Exception {
 		CmdLineParser parser = new CmdLineParser(this);
 
@@ -60,6 +60,7 @@ public class Lackr {
 
 		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
 		Server server = (Server) ctx.getBean("Server");
+				
 		server.start();
 		server.join();
 	}

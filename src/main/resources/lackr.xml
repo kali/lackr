@@ -18,7 +18,9 @@
 
 	<context:annotation-config />
 
-	<bean id="Server" class="org.eclipse.jetty.server.Server"
+	<bean id="server-factory" class="com.fotonauts.lackr.JMXAwareServerFactory"/>
+
+	<bean id="Server" class="org.eclipse.jetty.server.Server" factory-bean="server-factory" factory-method="getObject"
 		init-method="start" destroy-method="stop" p:handler-ref="proxyService">
 
 		<property name="connectors">
