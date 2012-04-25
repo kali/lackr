@@ -1,18 +1,13 @@
 package com.fotonauts.lackr.femtor;
 
-import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.eclipse.jetty.http.HttpFields;
-import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.util.MultiMap;
 import org.eclipse.jetty.util.UrlEncoded;
 
@@ -22,7 +17,6 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 
 	BackendRequest request;
 	private HttpFields headers = new HttpFields();
-	private HttpURI jettyHttpURI;
     private MultiMap<String> params;
 
 	public FemtorRequest(HttpServletRequest httpServletRequest, BackendRequest request) {
@@ -62,7 +56,8 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	    return params;
 	}
 	
-	@Override
+	@SuppressWarnings("rawtypes")
+    @Override
 	public Enumeration getParameterNames() {
         if(request.getFrontendRequest().getRootRequest() == request)
             return super.getParameterNames();
@@ -86,6 +81,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	    return getParams().getValues(name).toArray(new String[0]);
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Map getParameterMap() {
         if(request.getFrontendRequest().getRootRequest() == request)
@@ -95,6 +91,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	    
 	}
 	
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Enumeration getHeaderNames() {
 	    return headers.getFieldNames();
@@ -105,6 +102,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 	    return headers.getStringField(name);
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Enumeration getHeaders(String name) {
 	    return headers.getValues(name);

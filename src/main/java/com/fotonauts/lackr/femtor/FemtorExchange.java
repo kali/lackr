@@ -26,10 +26,9 @@ public class FemtorExchange extends LackrBackendExchange {
 		return response.getHeaders().get(name);
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	protected List<String> getResponseHeaderNames() {
-		return new ArrayList(response.getHeaders().keySet());
+		return new ArrayList<String>(response.getHeaders().keySet());
 	}
 
 	@Override

@@ -24,9 +24,10 @@ public class InProcessFemtor implements Backend {
 	public InProcessFemtor() throws Exception {
 	}
 
-	@PostConstruct
+	@SuppressWarnings("deprecation")
+    @PostConstruct
 	public void init() throws Exception {
-		Class c = null;
+		Class<?> c = null;
 		if(StringUtils.hasText(femtorJar)) {
 			loader = URLClassLoader.newInstance(new URL[] { new File(femtorJar).toURL() }, getClass().getClassLoader());
 			c = loader.loadClass(getFemtorHandlerClass());

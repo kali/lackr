@@ -27,10 +27,8 @@ public class FemtorResponse implements HttpServletResponse {
 	private String _characterEncoding = "UTF-8";
 	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
 	private int _outputState;
-	private FemtorExchange exchange;
 
 	public FemtorResponse(FemtorExchange exchange) {
-		this.exchange = exchange;
 		_outputState = NONE;
 	}
 
@@ -84,7 +82,6 @@ public class FemtorResponse implements HttpServletResponse {
 		// noop, we are buffered anyway
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setContentType(String type) {
 		headers.put(HttpHeaders.CONTENT_TYPE, Arrays.asList(new String[] { type }));
@@ -175,7 +172,6 @@ public class FemtorResponse implements HttpServletResponse {
 		this.sc = sc;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void sendRedirect(String location) throws IOException {
 		this.sc = HttpStatus.MOVED_TEMPORARILY_302;
@@ -192,7 +188,6 @@ public class FemtorResponse implements HttpServletResponse {
 		throw new NotImplementedException();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void setHeader(String name, String value) {
 		headers.put(name, Arrays.asList(new String[] { value }));
