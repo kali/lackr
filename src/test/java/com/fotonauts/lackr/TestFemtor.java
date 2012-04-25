@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.StringTokenizer;
 
 import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.junit.Test;
 
 public class TestFemtor extends BaseTestLackrFullStack {
@@ -54,6 +56,20 @@ public class TestFemtor extends BaseTestLackrFullStack {
         assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
         assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
     	assertEquals("parameterNames: [blah, blih]", tokenizer.nextToken());
+	}
+
+	@Test
+	public void testFemtorBodyQuery() throws Exception {
+		ContentExchange e = new ContentExchange(true);
+		e.addRequestHeader("X-Ftn-OperationId", "someid");
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/echobody");
+		e.setRequestContent(new ByteArrayBuffer("yop yop yop".getBytes()));
+		client.send(e);
+    	while (!e.isDone())
+    		Thread.sleep(10);
+    	System.err.println(e.getResponseContent());
+    	assertEquals(200, e.getResponseStatus());
+    	assertEquals("yop yop yop", e.getResponseContent());
 	}
 
 	@Test
