@@ -41,7 +41,9 @@ public class DummyFemtor implements Filter {
 			response.getWriter().println("parameterNames: " + Arrays.toString(parameters));
 			response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/echobody")) {
-			response.getWriter().println(request.getReader().read());
+			char[] buffer = new char[4096];
+			int len = request.getReader().read(buffer);
+			response.getWriter().write(buffer, 0, len);
 			response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/femtor")) {
 			response.getWriter().println("Hi from dummy femtor");
