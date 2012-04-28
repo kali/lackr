@@ -55,6 +55,7 @@ public class Service extends AbstractHandler {
     private String femtorBackend;
     private ObjectMapper objectMapper = new ObjectMapper();
     private AtomicLong runningFrontendRequest = new AtomicLong();
+    private AtomicLong elapsedMillis = new AtomicLong();
 
     @Override
     protected void doStart() throws Exception {
@@ -159,7 +160,16 @@ public class Service extends AbstractHandler {
         return runningFrontendRequest.get();
     }
 
+    @ManagedAttribute
+    public long getElapsedMillis() {
+        return elapsedMillis.get();
+    }
+
     public AtomicLong getRunningFrontendRequestsHolder() {
         return runningFrontendRequest;
+    }
+
+    public AtomicLong getElapsedMillisHolder() {
+        return elapsedMillis;
     }
 }

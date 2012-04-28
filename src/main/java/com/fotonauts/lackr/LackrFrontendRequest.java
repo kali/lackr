@@ -177,6 +177,7 @@ public class LackrFrontendRequest {
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
             service.getRunningFrontendRequestsHolder().decrementAndGet();
+            service.getElapsedMillisHolder().addAndGet(endTimestamp-startTimestamp);
         }
     }
 
