@@ -64,6 +64,8 @@ public class LackrFrontendRequest {
 
     private String rootUrl;
 
+    private String opid;
+    
     protected BackendRequest rootRequest;
 
     private Continuation continuation;
@@ -83,7 +85,7 @@ public class LackrFrontendRequest {
     LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
         this.service = service;
         long id = service.getRunningFrontendRequestsHolder().incrementAndGet();
-        String opid = request.getHeader("X-Ftn-OperationId");
+        opid = request.getHeader("X-Ftn-OperationId");
         if(opid == null)
             opid = "<noopid:" + id  + ">";
         service.getDebugRunningOpId().put(opid, new Date());
@@ -181,6 +183,7 @@ public class LackrFrontendRequest {
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
             service.getRunningFrontendRequestsHolder().decrementAndGet();
+            service.getDebugRunningOpId().remove(opid);
             service.getElapsedMillisHolder().addAndGet(endTimestamp-startTimestamp);
         }
     }
