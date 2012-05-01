@@ -82,7 +82,11 @@ public class LackrFrontendRequest {
 
     LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
         this.service = service;
-        service.getRunningFrontendRequestsHolder().incrementAndGet();
+        long id = service.getRunningFrontendRequestsHolder().incrementAndGet();
+        String opid = request.getHeader("X-Ftn-OperationId");
+        if(opid == null)
+            opid = "<noopid:" + id  + ">";
+        service.getDebugRunningOpId().put(opid, new Date());
         this.request = request;
         this.mustacheContext = new MustacheContext();
         this.continuation = ContinuationSupport.getContinuation(request);

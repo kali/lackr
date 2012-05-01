@@ -3,6 +3,10 @@ package com.fotonauts.lackr;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,6 +34,8 @@ public class Service extends AbstractHandler {
     static Logger log = LoggerFactory.getLogger(Service.class);
     
     private AtomicLong requestCount = new AtomicLong();
+
+    private Map<String, Date> debugRunningOpId = new ConcurrentHashMap<String, Date>();
     
     private int timeout;
 
@@ -171,5 +177,21 @@ public class Service extends AbstractHandler {
 
     public AtomicLong getElapsedMillisHolder() {
         return elapsedMillis;
+    }
+    
+    public Map<String, Date> getDebugRunningOpId() {
+        return debugRunningOpId;
+    }
+    
+    @ManagedAttribute
+    public String getRunningOpIds() {
+        StringBuilder builder = new StringBuilder();
+        for(Entry<String, Date> e: debugRunningOpId.entrySet()) {
+            builder.append(e.getKey());
+            builder.append(':');
+            builder.append(e.getValue().toGMTString());
+            builder.append('\n');
+        }
+        return builder.toString();
     }
 }
