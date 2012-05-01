@@ -116,7 +116,6 @@ public class BaseTestLackrFullStack {
     @After
     public void tearDown() throws Exception {
         assertEquals(0, lackrService.getRunningFrontendRequests());
-        System.err.println("XXXXXXXXXXXXX " + lackrService.getRunningFrontendRequests());
         lackrServer.stop();
         ctx.close();
     }

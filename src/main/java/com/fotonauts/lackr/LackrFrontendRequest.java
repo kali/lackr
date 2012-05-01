@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.continuation.Continuation;
+import org.eclipse.jetty.continuation.ContinuationListener;
 import org.eclipse.jetty.continuation.ContinuationSupport;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
@@ -82,7 +83,7 @@ public class LackrFrontendRequest {
 
     private ConcurrentHashMap<String, BackendRequest> backendRequestCache = new ConcurrentHashMap<String, BackendRequest>();
 
-    LackrFrontendRequest(Service service, HttpServletRequest request) throws IOException {
+    LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
         long id = service.getRunningFrontendRequestsHolder().incrementAndGet();
         opid = request.getHeader("X-Ftn-OperationId");
@@ -93,6 +94,19 @@ public class LackrFrontendRequest {
         this.mustacheContext = new MustacheContext();
         this.continuation = ContinuationSupport.getContinuation(request);
         this.continuation.setTimeout(getService().getTimeout() * 1000);
+        this.continuation.addContinuationListener(new ContinuationListener() {
+            
+            @Override
+            public void onTimeout(Continuation continuation) {
+                /* onComplete will also be called after a timeout */
+            }
+            
+            @Override
+            public void onComplete(Continuation continuation) {
+                service.getRunningFrontendRequestsHolder().decrementAndGet();
+                service.getDebugRunningOpId().remove(opid);
+            }
+        });
         this.pendingCount = new AtomicInteger(0);
         URI uri = null;
         try {
@@ -182,8 +196,6 @@ public class LackrFrontendRequest {
             logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
-            service.getRunningFrontendRequestsHolder().decrementAndGet();
-            service.getDebugRunningOpId().remove(opid);
             service.getElapsedMillisHolder().addAndGet(endTimestamp-startTimestamp);
         }
     }
