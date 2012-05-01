@@ -23,7 +23,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.junit.After;
 import org.junit.Ignore;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -34,85 +33,91 @@ import com.fotonauts.lackr.client.JettyBackend;
 @Ignore
 public class BaseTestLackrFullStack {
 
-	protected Server backend;
-	protected Server femtorStub;
-	protected Server lackrServer;
-	protected HttpClient client;
-	protected ApplicationContext ctx;
+    protected Server backend;
+    protected Server femtorStub;
+    protected Server lackrServer;
+    protected Service lackrService;
+    protected HttpClient client;
+    protected ClassPathXmlApplicationContext ctx;
 
-	protected AtomicReference<Handler> currentHandler;
+    protected AtomicReference<Handler> currentHandler;
 
-	public BaseTestLackrFullStack() throws Exception {
-		Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
+    public BaseTestLackrFullStack() throws Exception {
+        Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
 
-		currentHandler = new AtomicReference<Handler>();
+        currentHandler = new AtomicReference<Handler>();
 
-		backend = new Server();
-		backend.addConnector(new SelectChannelConnector());
-		backend.setHandler(new AbstractHandler() {
+        backend = new Server();
+        backend.addConnector(new SelectChannelConnector());
+        backend.setHandler(new AbstractHandler() {
 
-			public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-			        throws IOException, ServletException {
-				currentHandler.get().handle(target, baseRequest, request, response);
-			}
-		});
-		backend.start();
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+                    throws IOException, ServletException {
+                currentHandler.get().handle(target, baseRequest, request, response);
+            }
+        });
+        backend.start();
 
-		File propFile = File.createTempFile("lackr.test.", ".props");
-		propFile.deleteOnExit();
+        File propFile = File.createTempFile("lackr.test.", ".props");
+        propFile.deleteOnExit();
 
-		Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
-		props.store(new FileOutputStream(propFile), "properties for lackr test run");
+        Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
+        props.store(new FileOutputStream(propFile), "properties for lackr test run");
 
-		System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
+        System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
-		ctx = new ClassPathXmlApplicationContext("lackr.xml");
-		JettyBackend picorBackend = (JettyBackend) ctx.getBean("picorBackend");
-		picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
-		
-		lackrServer = (Server) ctx.getBean("Server");
-		lackrServer.start();
+        ctx = new ClassPathXmlApplicationContext("lackr.xml");
+        JettyBackend picorBackend = (JettyBackend) ctx.getBean("picorBackend");
+        picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
 
-		client = new HttpClient();
-		client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
-		client.setConnectTimeout(5);
-		client.start();
-	}
+        lackrServer = (Server) ctx.getBean("Server");
+        lackrServer.start();
 
-	public static void writeResponse(HttpServletResponse response, byte[] data, String type) throws IOException {
-		response.setContentType(type);
-		response.setCharacterEncoding("UTF-8");
-		response.getOutputStream().write(data);
-		response.flushBuffer();
-	}
+        lackrService = (Service) ctx.getBean("proxyService");
 
-	protected ContentExchange createExchange(String url) {
-		ContentExchange e = new ContentExchange(true);
-		e.setURL(url);
-		return e;
-	}
+        client = new HttpClient();
+        client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
+        client.setConnectTimeout(5);
+        client.start();
+    }
 
-	protected void runRequest(ContentExchange e, String expect) {
-		try {
-			client.send(e);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			assertTrue("unreachable", false);
-		}
-		while (!e.isDone())
-			Thread.yield();
+    public static void writeResponse(HttpServletResponse response, byte[] data, String type) throws IOException {
+        response.setContentType(type);
+        response.setCharacterEncoding("UTF-8");
+        response.getOutputStream().write(data);
+        response.flushBuffer();
+    }
 
-		assertEquals(200, e.getResponseStatus());
-		try {
-			assertEquals(expect, e.getResponseContent());
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-			assertTrue("unreachable", false);
-		}
-	}
-	
-	@After
+    protected ContentExchange createExchange(String url) {
+        ContentExchange e = new ContentExchange(true);
+        e.setURL(url);
+        return e;
+    }
+
+    protected void runRequest(ContentExchange e, String expect) {
+        try {
+            client.send(e);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            assertTrue("unreachable", false);
+        }
+        while (!e.isDone())
+            Thread.yield();
+
+        assertEquals(200, e.getResponseStatus());
+        try {
+            assertEquals(expect, e.getResponseContent());
+        } catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+            assertTrue("unreachable", false);
+        }
+    }
+
+    @After
     public void tearDown() throws Exception {
-    	lackrServer.stop();
+        assertEquals(0, lackrService.getRunningFrontendRequests());
+        System.err.println("XXXXXXXXXXXXX " + lackrService.getRunningFrontendRequests());
+        lackrServer.stop();
+        ctx.close();
     }
 }
