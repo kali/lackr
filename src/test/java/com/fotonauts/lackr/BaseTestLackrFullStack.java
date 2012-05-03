@@ -119,7 +119,7 @@ public class BaseTestLackrFullStack {
     @After
     public void tearDown() throws Exception {
         try {
-            assertEquals(0, lackrService.getRunningRequests());
+            assertEquals(0, lackrService.getGateway().getRunningRequests());
             if(picorBackend.getGateways()[0].getRunningRequests() != 0) {
                 Thread.sleep(10*1000);
                 assertEquals(0, picorBackend.getGateways()[0].getRunningRequests());
