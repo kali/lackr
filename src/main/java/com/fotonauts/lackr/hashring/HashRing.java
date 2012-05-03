@@ -161,7 +161,7 @@ public class HashRing implements HttpDirectorInterface {
 
 	}
 
-	public Gateway[] getUpstreamServices() {
+	public Gateway[] getGateways() {
 		return hosts;
 	}
 

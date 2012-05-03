@@ -10,5 +10,5 @@ public interface Backend {
 	
 	public void stop() throws Exception;
 	
-	public Gateway[] getUpstreamServices();
+	public Gateway[] getGateways();
 }

@@ -64,7 +64,7 @@ public class Service extends AbstractHandler {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
-            for(Gateway us: b.getUpstreamServices()) {
+            for(Gateway us: b.getGateways()) {
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.registerMBean(us, name); 
             }
@@ -158,7 +158,7 @@ public class Service extends AbstractHandler {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
-            for(Gateway us: backend.getUpstreamServices()) {
+            for(Gateway us: backend.getGateways()) {
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.unregisterMBean(name); 
             }
@@ -166,19 +166,7 @@ public class Service extends AbstractHandler {
         }
     }
 
-    public long getRequestCount() {
-        return upstreamService.getRequestCount();
-    }
-
-    public long getRunningRequests() {
-        return upstreamService.getRunningRequests();
-    }
-
-    public long getElapsedMillis() {
-        return upstreamService.getRunningRequests();
-    }
-
-    public Gateway getUpstreamService() {
+    public Gateway getGateway() {
         return upstreamService;
     }
 

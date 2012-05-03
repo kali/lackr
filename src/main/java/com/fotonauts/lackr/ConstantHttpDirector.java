@@ -7,7 +7,7 @@ import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 public class ConstantHttpDirector implements HttpDirectorInterface {
 
 	final private String direction;
-	private Gateway[] dummyUpstreamService;
+	private Gateway[] gateways;
 	private HttpHost host;
 	
 	public ConstantHttpDirector(final String direction) {
@@ -24,7 +24,7 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
             }
         };
         
-		this.dummyUpstreamService = new Gateway[] { host };
+		this.gateways = new Gateway[] { host };
     }
 	
 	@Override
@@ -38,8 +38,8 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
     }
 
     @Override
-    public Gateway[] getUpstreamServices() {
-        return dummyUpstreamService;
+    public Gateway[] getGateways() {
+        return gateways;
     }
 	
 

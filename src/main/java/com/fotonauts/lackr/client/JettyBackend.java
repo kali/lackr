@@ -41,8 +41,8 @@ public class JettyBackend implements Backend {
     }
 
     @Override
-    public Gateway[] getUpstreamServices() {
-        return director.getUpstreamServices();
+    public Gateway[] getGateways() {
+        return director.getGateways();
     }
 
 }

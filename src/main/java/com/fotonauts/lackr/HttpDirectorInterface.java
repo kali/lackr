@@ -10,6 +10,6 @@ public interface HttpDirectorInterface {
 
 	void dumpStatus(PrintStream ps);
 
-    Gateway[] getUpstreamServices();
+    Gateway[] getGateways();
 	
 }

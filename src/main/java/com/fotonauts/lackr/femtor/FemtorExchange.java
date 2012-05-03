@@ -70,7 +70,7 @@ public class FemtorExchange extends LackrBackendExchange {
 
     @Override
     public Gateway getUpstream() throws NotAvailableException {
-        return inProcessFemtor.getUpstreamServices()[0];
+        return inProcessFemtor.getGateways()[0];
     }
 
 }
