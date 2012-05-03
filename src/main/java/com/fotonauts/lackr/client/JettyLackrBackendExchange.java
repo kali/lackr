@@ -10,7 +10,9 @@ import org.eclipse.jetty.io.ByteArrayBuffer;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
+import com.fotonauts.lackr.HttpHost;
 import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.Gateway;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class JettyLackrBackendExchange extends LackrBackendExchange {
@@ -56,7 +58,15 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 	ContentExchange jettyContentExchange;
 	private HttpClient jettyClient;
 	private HttpDirectorInterface director;
+	private HttpHost upstream;
 
+	@Override
+	public Gateway getUpstream() throws NotAvailableException {
+	    if(upstream == null)
+	        upstream = director.getHostFor(getBackendRequest());
+	    return upstream;
+	}
+	
 	public JettyLackrBackendExchange(HttpClient jettyClient, HttpDirectorInterface director, BackendRequest spec) {
 		super(spec);
 		this.director = director;
@@ -96,8 +106,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 
 	@Override
 	protected void doStart() throws IOException, NotAvailableException {
-	    
-		jettyContentExchange.setURL(director.getHostnameFor(getBackendRequest()) + getBackendRequest().getQuery());
+		jettyContentExchange.setURL(upstream.getHostname() + getBackendRequest().getQuery());
 		jettyClient.send(jettyContentExchange);
 	}
 

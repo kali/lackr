@@ -17,14 +17,14 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.springframework.util.Log4jConfigurer;
 
 import com.fotonauts.lackr.hashring.HashRing;
-import com.fotonauts.lackr.hashring.Host;
+import com.fotonauts.lackr.hashring.RingHost;
 
 public class TestRingHA extends TestCase {
 
 	class StubServer extends Server {
 		public AtomicInteger requestCount = new AtomicInteger(0);
 		public AtomicBoolean up = new AtomicBoolean(true);
-		public Host host;
+		public RingHost host;
 
 		@Override
 		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
@@ -42,7 +42,7 @@ public class TestRingHA extends TestCase {
 		public StubServer() throws Exception {
 			addConnector(new SelectChannelConnector());
 			start();
-			host = new Host("localhost:" + getConnectors()[0].getLocalPort());
+			host = new RingHost("localhost:" + getConnectors()[0].getLocalPort());
 			host.setProbe("/");
 		}
 	}
@@ -54,14 +54,14 @@ public class TestRingHA extends TestCase {
 	}
 
 	public void testHostProbeNoConnection() throws MalformedURLException {
-		Host h = new Host("localhost:29843");
+		RingHost h = new RingHost("localhost:29843");
 		h.setProbe("/");
 		h.probe();
 		assertFalse("h is down", h.isUp());
 	}
 
 	public void testHostProbeWrongHostname() throws Exception {
-		Host h = new Host("something.that.does.not.exists");
+		RingHost h = new RingHost("something.that.does.not.exists");
 		h.setProbe("/");
 		h.probe();
 		assertFalse("h is down", h.isUp());
@@ -70,7 +70,7 @@ public class TestRingHA extends TestCase {
 	public void testHostProbe500() throws Exception {
 		StubServer backend = new StubServer();
 		backend.up.set(false);
-		Host h = backend.host;
+		RingHost h = backend.host;
 		h.probe();
 		assertEquals("server has been probed", 1, backend.requestCount.get());
 		assertFalse("h is down", h.isUp());
@@ -78,7 +78,7 @@ public class TestRingHA extends TestCase {
 	
 	public void testHostProbe200() throws Exception {
 		StubServer backend = new StubServer();
-		Host h = backend.host;
+		RingHost h = backend.host;
 		h.probe();
 		assertEquals("server has been probed", 1, backend.requestCount.get());
 		assertTrue("h is up", h.isUp());

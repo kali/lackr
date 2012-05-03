@@ -15,11 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrInterface;
-import com.fotonauts.lackr.UpstreamService;
+import com.fotonauts.lackr.HttpHost;
 
-public class Host extends UpstreamService {
+public class RingHost extends HttpHost {
 
-	static Logger log = LoggerFactory.getLogger(Host.class);
+	static Logger log = LoggerFactory.getLogger(RingHost.class);
 
 	protected String hostname;
 	private HashRing ring;
@@ -28,14 +28,14 @@ public class Host extends UpstreamService {
 	private String probeString;
 	private AtomicReference<URL> probeURL = new AtomicReference<URL>();
 
-	public Host() {
+	public RingHost() {
 	}
 
-	public Host(String backend) {
+	public RingHost(String backend) {
 		this.hostname = backend;
 	}
 
-	public Host(RapportrInterface rapportr, String hostname, String probeUrl) {
+	public RingHost(RapportrInterface rapportr, String hostname, String probeUrl) {
 		this.rapportr = rapportr;
 		this.hostname = hostname;
 		this.probeString = probeUrl;

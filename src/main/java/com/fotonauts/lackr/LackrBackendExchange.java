@@ -53,6 +53,8 @@ public abstract class LackrBackendExchange {
         this.backendRequest = spec;
     }
 
+    public abstract Gateway getUpstream() throws NotAvailableException;
+    
     public void start() throws IOException, NotAvailableException, NullPointerException {
         addRequestHeader("X-NGINX-SSI", "yes");
         addRequestHeader("X-SSI-ROOT", backendRequest.getFrontendRequest().getRequest().getRequestURI());
@@ -85,12 +87,23 @@ public abstract class LackrBackendExchange {
             logLine.put(PARENT.getPrettyName(), backendRequest.getParent());
         }
 
+        getUpstream().getRequestCountHolder().incrementAndGet();
+        getUpstream().getRunningRequestsHolder().incrementAndGet();
+
         doStart();
     }
 
     public void onResponseComplete(boolean sync) {
         rawResponseContent = getResponseContentBytes();
         long endTimestamp = System.currentTimeMillis();
+        
+        try {
+            getUpstream().getRunningRequestsHolder().decrementAndGet();
+            getUpstream().getElapsedMillisHolder().addAndGet(endTimestamp - startTimestamp);
+        } catch (NotAvailableException e) {
+            // At this stage, this is highly unlikely as it has been picked at start time
+        }
+
         logLine.put(STATUS.getPrettyName(), getResponseStatus());
         final LackrBackendExchange exchange = this;
         if (rawResponseContent != null)

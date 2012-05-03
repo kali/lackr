@@ -54,7 +54,7 @@ public class Service extends AbstractHandler {
     private String femtorBackend;
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private UpstreamService upstreamService = new UpstreamService() {
+    private Gateway upstreamService = new Gateway() {
         @Override
         public String getMBeanName() {
             return "front";
@@ -66,7 +66,7 @@ public class Service extends AbstractHandler {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
-            for(UpstreamService us: b.getUpstreamServices()) {
+            for(Gateway us: b.getUpstreamServices()) {
                 System.err.println("REGISTER: " + us.getMBeanName());
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.registerMBean(us, name); 
@@ -161,7 +161,7 @@ public class Service extends AbstractHandler {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
-            for(UpstreamService us: backend.getUpstreamServices()) {
+            for(Gateway us: backend.getUpstreamServices()) {
                 System.err.println("UNREGISTER: " + us.getMBeanName());
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.unregisterMBean(name); 
@@ -182,7 +182,7 @@ public class Service extends AbstractHandler {
         return upstreamService.getRunningRequests();
     }
 
-    public UpstreamService getUpstreamService() {
+    public Gateway getUpstreamService() {
         return upstreamService;
     }
 

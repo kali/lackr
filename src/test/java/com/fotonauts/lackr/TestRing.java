@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 import junit.framework.TestCase;
 
 import com.fotonauts.lackr.hashring.HashRing;
-import com.fotonauts.lackr.hashring.Host;
+import com.fotonauts.lackr.hashring.RingHost;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class TestRing extends TestCase {
@@ -52,17 +52,17 @@ public class TestRing extends TestCase {
 	public void testSpread() throws Exception {
 		HashRing ring = new HashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
 		ring.init();
-		HashMap<Host, Integer> result = new HashMap<Host, Integer>();
+		HashMap<RingHost, Integer> result = new HashMap<RingHost, Integer>();
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			Host h = ring.getHostFor(url);
+			RingHost h = ring.getHostFor(url);
 			if(!result.containsKey(h))
 				result.put(h, 1);
 			else
 				result.put(h, result.get(h) + 1);
 		}
 		assertEquals("queried backends", 8, result.size());
-		for(Entry<Host, Integer> entry : result.entrySet()) {
+		for(Entry<RingHost, Integer> entry : result.entrySet()) {
 			assertTrue(entry.getKey().getHostname() + " got its share", entry.getValue() > 500);
 		}
 	}
@@ -70,18 +70,18 @@ public class TestRing extends TestCase {
 	public void testAvoidDead() throws Exception {
 		HashRing ring = new HashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
 		ring.init();
-		Host[] result1 = new Host[10000];
+		RingHost[] result1 = new RingHost[10000];
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			Host h = ring.getHostFor(url);
+			RingHost h = ring.getHostFor(url);
 			result1[i] = h;
 		}
-		Host dead = ring.getHostFor("dead");
+		RingHost dead = ring.getHostFor("dead");
 		dead.setDown();
-		Host[] result2 = new Host[10000];
+		RingHost[] result2 = new RingHost[10000];
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			Host h = ring.getHostFor(url);
+			RingHost h = ring.getHostFor(url);
 			result2[i] = h;
 		}
 		for(int i = 0; i < 10000; i++) {

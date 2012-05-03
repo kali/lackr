@@ -6,10 +6,10 @@ import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public interface HttpDirectorInterface {
 	
-	String getHostnameFor(BackendRequest request) throws NotAvailableException;
+	HttpHost getHostFor(BackendRequest request) throws NotAvailableException;
 
 	void dumpStatus(PrintStream ps);
 
-    UpstreamService[] getUpstreamServices();
+    Gateway[] getUpstreamServices();
 	
 }

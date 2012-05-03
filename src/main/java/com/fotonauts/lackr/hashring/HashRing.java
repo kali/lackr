@@ -21,11 +21,12 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
-import com.fotonauts.lackr.UpstreamService;
+import com.fotonauts.lackr.HttpHost;
+import com.fotonauts.lackr.Gateway;
 
 public class HashRing implements HttpDirectorInterface {
 
-	static Logger log = LoggerFactory.getLogger(Host.class);
+	static Logger log = LoggerFactory.getLogger(RingHost.class);
 
 	@SuppressWarnings("serial")
 	public static class NotAvailableException extends Exception {
@@ -33,9 +34,9 @@ public class HashRing implements HttpDirectorInterface {
 
 	int bucketPerHost = 128;
 	AtomicInteger up = new AtomicInteger(0);
-	Host[] hosts;
+	RingHost[] hosts;
 
-	private NavigableMap<Integer, Host> ring;
+	private NavigableMap<Integer, RingHost> ring;
 
 	private RapportrInterface rapportrInterface;
 	private String[] hostnames;
@@ -67,7 +68,7 @@ public class HashRing implements HttpDirectorInterface {
 		this.hostnames = hostnames.split(",");
 	}
 
-	public void setHosts(Host[] hosts) {
+	public void setHosts(RingHost[] hosts) {
 		this.hosts = hosts;
 	}
 
@@ -76,7 +77,7 @@ public class HashRing implements HttpDirectorInterface {
 		init();
 	}
 
-	public HashRing(Host... backends) {
+	public HashRing(RingHost... backends) {
 		hosts = backends;
 		init();
 	}
@@ -84,12 +85,12 @@ public class HashRing implements HttpDirectorInterface {
 	@PostConstruct
 	public void init() {
 		if (hosts == null && hostnames != null) {
-			hosts = new Host[hostnames.length];
+			hosts = new RingHost[hostnames.length];
 			for (int i = 0; i < hostnames.length; i++)
-				hosts[i] = new Host(rapportrInterface, hostnames[i], probeUrl);
+				hosts[i] = new RingHost(rapportrInterface, hostnames[i], probeUrl);
 		}
-		ring = new TreeMap<Integer, Host>();
-		for (Host h : hosts) {
+		ring = new TreeMap<Integer, RingHost>();
+		for (RingHost h : hosts) {
 			h.setRing(this);
 			Random random = new Random(h.getHostname().hashCode());
 			for (int i = 0; i < bucketPerHost; i++) {
@@ -101,7 +102,7 @@ public class HashRing implements HttpDirectorInterface {
 			public void run() {
 				boolean running = true;
 				while (running) {
-					for (Host h : hosts) {
+					for (RingHost h : hosts) {
 						h.probe();
 					}
 					try {
@@ -119,7 +120,7 @@ public class HashRing implements HttpDirectorInterface {
 		return up.intValue() > 0;
 	}
 
-	public Host getHostFor(String value) throws NotAvailableException {
+	public RingHost getHostFor(String value) throws NotAvailableException {
 		if (!up())
 			throw new NotAvailableException();
 		MessageDigest m = null;
@@ -130,12 +131,12 @@ public class HashRing implements HttpDirectorInterface {
 		}
 		m.update(value.getBytes());
 		ByteBuffer bb = ByteBuffer.wrap(m.digest());
-		SortedMap<Integer, Host> tail = ring.tailMap(bb.getInt());
-		for (Entry<Integer, Host> entry : tail.entrySet()) {
+		SortedMap<Integer, RingHost> tail = ring.tailMap(bb.getInt());
+		for (Entry<Integer, RingHost> entry : tail.entrySet()) {
 			if (entry.getValue().isUp())
 				return entry.getValue();
 		}
-		for (Entry<Integer, Host> entry : ring.entrySet()) {
+		for (Entry<Integer, RingHost> entry : ring.entrySet()) {
 			if (entry.getValue().isUp())
 				return entry.getValue();
 		}
@@ -144,7 +145,7 @@ public class HashRing implements HttpDirectorInterface {
 
 	public void refreshStatus() {
 		int ups = 0;
-		for (Host host : hosts) {
+		for (RingHost host : hosts) {
 			if (host.isUp())
 				ups++;
 		}
@@ -155,22 +156,22 @@ public class HashRing implements HttpDirectorInterface {
 			rapportrInterface.warnMessage(message, null);
 	}
 
-	public NavigableMap<Integer, Host> getRing() {
+	public NavigableMap<Integer, RingHost> getRing() {
 		return ring;
 
 	}
 
-	public UpstreamService[] getUpstreamServices() {
+	public Gateway[] getUpstreamServices() {
 		return hosts;
 	}
 
-	public Host[] getHosts() {
+	public RingHost[] getHosts() {
         return hosts;
     }
 
 	@Override
-	public String getHostnameFor(BackendRequest request) throws NotAvailableException {
-		return getHostFor(request.getQuery()).getHostname();
+	public HttpHost getHostFor(BackendRequest request) throws NotAvailableException {
+		return getHostFor(request.getQuery());
 	}
 
 	public RapportrInterface getRapportrInterface() {
@@ -183,11 +184,11 @@ public class HashRing implements HttpDirectorInterface {
 
 	@Override
 	public void dumpStatus(PrintStream ps) {
-		Map<Host, Long> weights = new HashMap<Host, Long>();
-		for (Host h : getHosts())
+		Map<RingHost, Long> weights = new HashMap<RingHost, Long>();
+		for (RingHost h : getHosts())
 			weights.put(h, 0L);
-		Entry<Integer, Host> previous = null;
-		for (Entry<Integer, Host> e : getRing().entrySet()) {
+		Entry<Integer, RingHost> previous = null;
+		for (Entry<Integer, RingHost> e : getRing().entrySet()) {
 			if (previous != null)
 				weights.put(previous.getValue(), weights.get(previous.getValue()) + e.getKey() - previous.getKey());
 			ps.format("ring-boundary\t%08x\t\n", e.getKey(), e.getValue().getHostname());
@@ -195,7 +196,7 @@ public class HashRing implements HttpDirectorInterface {
 		}
 		weights.put(previous.getValue(), weights.get(previous.getValue()) + (getRing().firstKey() - Integer.MIN_VALUE));
 		weights.put(previous.getValue(), weights.get(previous.getValue()) + (Integer.MAX_VALUE - getRing().lastKey()));
-		for (Host h : getHosts()) {
+		for (RingHost h : getHosts()) {
 			ps.format("picor-ring-weight\t%s\t%s\t%d\n", h.getHostname(), h.isUp() ? "UP" : "DOWN", weights.get(h));
 		}
 	}

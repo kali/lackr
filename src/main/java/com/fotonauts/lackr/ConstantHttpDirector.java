@@ -6,25 +6,30 @@ import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class ConstantHttpDirector implements HttpDirectorInterface {
 
-	private String direction;
+	final private String direction;
+	private Gateway[] dummyUpstreamService;
+	private HttpHost host;
 	
-	private UpstreamService[] dummyUpstreamService;
-	
-	public ConstantHttpDirector(String direction) {
+	public ConstantHttpDirector(final String direction) {
 		this.direction = direction;
-		this.dummyUpstreamService = new UpstreamService[] { new UpstreamService() {
+		host = new HttpHost() {
 
             @Override
             public String getMBeanName() {
-                return "constantHttpDirector";
+                return "constantDirector";
             }
-		    
-		} };
+            @Override
+            public String getHostname() {
+                return direction;
+            }
+        };
+        
+		this.dummyUpstreamService = new Gateway[] { host };
     }
 	
 	@Override
-    public String getHostnameFor(BackendRequest request) throws NotAvailableException {
-	    return direction;
+    public HttpHost getHostFor(BackendRequest request) throws NotAvailableException {
+	    return host;
     }
 
 	@Override
@@ -33,7 +38,7 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
     }
 
     @Override
-    public UpstreamService[] getUpstreamServices() {
+    public Gateway[] getUpstreamServices() {
         return dummyUpstreamService;
     }
 	

@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.UpstreamService;
+import com.fotonauts.lackr.Gateway;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class FemtorExchange extends LackrBackendExchange {
@@ -67,5 +67,10 @@ public class FemtorExchange extends LackrBackendExchange {
 	public FemtorResponse getResponse() {
 		return response;
 	}
+
+    @Override
+    public Gateway getUpstream() throws NotAvailableException {
+        return inProcessFemtor.getUpstreamServices()[0];
+    }
 
 }

@@ -13,7 +13,7 @@ import org.springframework.util.StringUtils;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.UpstreamService;
+import com.fotonauts.lackr.Gateway;
 
 public class InProcessFemtor implements Backend {
 
@@ -21,11 +21,11 @@ public class InProcessFemtor implements Backend {
 	private String femtorHandlerClass;
 	private String femtorJar;
 	private URLClassLoader loader;
-    private UpstreamService[] upstreamServices;
+    private Gateway[] upstreamServices;
 	
 
 	public InProcessFemtor() throws Exception {
-	    this.upstreamServices = new UpstreamService[] { new UpstreamService() {
+	    this.upstreamServices = new Gateway[] { new Gateway() {
 
             @Override
             public String getMBeanName() {
@@ -75,7 +75,7 @@ public class InProcessFemtor implements Backend {
 	}
 
     @Override
-    public UpstreamService[] getUpstreamServices() {
+    public Gateway[] getUpstreamServices() {
         return upstreamServices;
     }
 }
