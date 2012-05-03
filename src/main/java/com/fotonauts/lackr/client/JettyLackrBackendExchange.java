@@ -52,7 +52,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 			super.onException(x);
 			exchange.getBackendRequest().getFrontendRequest().addBackendExceptions(x);
 		}
-		
+
 	}
 
 	ContentExchange jettyContentExchange;

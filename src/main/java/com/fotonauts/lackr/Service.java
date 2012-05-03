@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -20,7 +19,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.interpolr.Interpolr;
@@ -67,7 +65,6 @@ public class Service extends AbstractHandler {
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
             for(Gateway us: b.getUpstreamServices()) {
-                System.err.println("REGISTER: " + us.getMBeanName());
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.registerMBean(us, name); 
             }
@@ -162,7 +159,6 @@ public class Service extends AbstractHandler {
         mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
             for(Gateway us: backend.getUpstreamServices()) {
-                System.err.println("UNREGISTER: " + us.getMBeanName());
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.unregisterMBean(name); 
             }

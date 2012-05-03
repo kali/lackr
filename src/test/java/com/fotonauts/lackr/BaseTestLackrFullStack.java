@@ -41,6 +41,7 @@ public class BaseTestLackrFullStack {
     protected ClassPathXmlApplicationContext ctx;
 
     protected AtomicReference<Handler> currentHandler;
+    private JettyBackend picorBackend;
 
     public BaseTestLackrFullStack() throws Exception {
         Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
@@ -68,7 +69,7 @@ public class BaseTestLackrFullStack {
 
         ctx = new ClassPathXmlApplicationContext("lackr.xml");
         System.err.println("GET BEAN(picorBackend)");
-        JettyBackend picorBackend = (JettyBackend) ctx.getBean("picorBackend");
+        picorBackend = (JettyBackend) ctx.getBean("picorBackend");
         System.err.println("GET BEAN(picorBackend) DONE");
         picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
 
@@ -117,8 +118,15 @@ public class BaseTestLackrFullStack {
 
     @After
     public void tearDown() throws Exception {
-        assertEquals(0, lackrService.getRunningRequests());
-        lackrServer.stop();
-        ctx.close();
+        try {
+            assertEquals(0, lackrService.getRunningRequests());
+            if(picorBackend.getUpstreamServices()[0].getRunningRequests() != 0) {
+                Thread.sleep(10*1000);
+                assertEquals(0, picorBackend.getUpstreamServices()[0].getRunningRequests());
+            }
+        } finally {
+            lackrServer.stop();
+            ctx.close();
+        }
     }
 }

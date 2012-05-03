@@ -144,7 +144,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 try {
-                    Thread.sleep(1000*30);
+                    Thread.sleep(1000*6);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
