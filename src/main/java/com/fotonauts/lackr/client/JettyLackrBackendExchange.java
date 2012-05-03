@@ -96,6 +96,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 
 	@Override
 	protected void doStart() throws IOException, NotAvailableException {
+	    
 		jettyContentExchange.setURL(director.getHostnameFor(getBackendRequest()) + getBackendRequest().getQuery());
 		jettyClient.send(jettyContentExchange);
 	}

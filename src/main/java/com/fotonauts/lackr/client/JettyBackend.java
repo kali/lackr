@@ -8,6 +8,7 @@ import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.UpstreamService;
 
 public class JettyBackend implements Backend {
 
@@ -37,6 +38,11 @@ public class JettyBackend implements Backend {
     public void dumpStatus(PrintStream ps) {
 		ps.format("Jetty HTTP Client\n");
 		director.dumpStatus(ps);
+    }
+
+    @Override
+    public UpstreamService[] getUpstreamServices() {
+        return director.getUpstreamServices();
     }
 
 }

@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.UpstreamService;
 
 public class InProcessFemtor implements Backend {
 
@@ -20,8 +21,18 @@ public class InProcessFemtor implements Backend {
 	private String femtorHandlerClass;
 	private String femtorJar;
 	private URLClassLoader loader;
+    private UpstreamService[] upstreamServices;
+	
 
 	public InProcessFemtor() throws Exception {
+	    this.upstreamServices = new UpstreamService[] { new UpstreamService() {
+
+            @Override
+            public String getMBeanName() {
+                return "InProcessFemtor";
+            }
+	        
+	    } };
 	}
 
 	@SuppressWarnings("deprecation")
@@ -62,4 +73,9 @@ public class InProcessFemtor implements Backend {
 	@Override
 	public void stop() throws Exception {
 	}
+
+    @Override
+    public UpstreamService[] getUpstreamServices() {
+        return upstreamServices;
+    }
 }

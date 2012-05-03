@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.UpstreamService;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class FemtorExchange extends LackrBackendExchange {

@@ -9,5 +9,7 @@ public interface HttpDirectorInterface {
 	String getHostnameFor(BackendRequest request) throws NotAvailableException;
 
 	void dumpStatus(PrintStream ps);
+
+    UpstreamService[] getUpstreamServices();
 	
 }

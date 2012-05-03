@@ -15,8 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrInterface;
+import com.fotonauts.lackr.UpstreamService;
 
-public class Host {
+public class Host extends UpstreamService {
 
 	static Logger log = LoggerFactory.getLogger(Host.class);
 
@@ -114,6 +115,11 @@ public class Host {
 
 	private void buildURL() throws MalformedURLException {
 		probeURL.set(new URL((hostname.startsWith("http://") ? hostname : ("http://" + hostname)) + probeString));
+    }
+
+    @Override
+    public String getMBeanName() {
+        return hostname.replaceAll("^(?:http://)?(.*?)\\..*?(?::(.*))?$", "$1-$2");
     }
 
 }

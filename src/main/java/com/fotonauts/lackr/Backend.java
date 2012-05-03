@@ -9,4 +9,6 @@ public interface Backend {
 	public void dumpStatus(PrintStream ps);
 	
 	public void stop() throws Exception;
+	
+	public UpstreamService[] getUpstreamServices();
 }

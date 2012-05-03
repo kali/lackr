@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
+import com.fotonauts.lackr.UpstreamService;
 
 public class HashRing implements HttpDirectorInterface {
 
@@ -159,9 +160,13 @@ public class HashRing implements HttpDirectorInterface {
 
 	}
 
-	public Host[] getHosts() {
+	public UpstreamService[] getUpstreamServices() {
 		return hosts;
 	}
+
+	public Host[] getHosts() {
+        return hosts;
+    }
 
 	@Override
 	public String getHostnameFor(BackendRequest request) throws NotAvailableException {

@@ -8,8 +8,18 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
 
 	private String direction;
 	
+	private UpstreamService[] dummyUpstreamService;
+	
 	public ConstantHttpDirector(String direction) {
 		this.direction = direction;
+		this.dummyUpstreamService = new UpstreamService[] { new UpstreamService() {
+
+            @Override
+            public String getMBeanName() {
+                return "constantHttpDirector";
+            }
+		    
+		} };
     }
 	
 	@Override
@@ -21,5 +31,11 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
     public void dumpStatus(PrintStream ps) {
 		ps.format("ConstantHttpDirector %s\n", direction);
     }
+
+    @Override
+    public UpstreamService[] getUpstreamServices() {
+        return dummyUpstreamService;
+    }
+	
 
 }
