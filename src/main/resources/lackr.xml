@@ -7,22 +7,6 @@
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd 
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 	">
-	<bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
-		lazy-init="false">
-		<property name="autodetect" value="true"></property>
-		<property name="namingStrategy" ref="namingStrategy"></property>
-		<property name="assembler" ref="assembler"></property>
-	</bean>
-	<bean id="attributeSource"
-		class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource" />
-	<bean id="assembler"
-		class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler">
-		<property name="attributeSource" ref="attributeSource" />
-	</bean>
-	<bean id="namingStrategy"
-		class="org.springframework.jmx.export.naming.MetadataNamingStrategy">
-		<property name="attributeSource" ref="attributeSource" />
-	</bean>
 	
 	<context:property-placeholder order="10"
 		location="${lackr.properties}" ignore-resource-not-found="true"
@@ -36,7 +20,7 @@
 
 	<bean id="server-factory" class="com.fotonauts.lackr.JMXAwareServerFactory" />
 
-	<bean id="Server" class="org.eclipse.jetty.server.Server"
+	<bean id="Server" class="org.eclipse.jetty.server.Server" lazy-init="true"
 		factory-bean="server-factory" factory-method="getObject" init-method="start"
 		destroy-method="stop" p:handler-ref="proxyService">
 

@@ -85,7 +85,7 @@ public class LackrFrontendRequest {
 
     LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
-        long id = service.getRunningFrontendRequestsHolder().incrementAndGet();
+        long id = service.getUpstreamService().getRunningRequestsHolder().incrementAndGet();
         opid = request.getHeader("X-Ftn-OperationId");
         if(opid == null)
             opid = "<noopid:" + id  + ">";
@@ -102,7 +102,7 @@ public class LackrFrontendRequest {
             
             @Override
             public void onComplete(Continuation continuation) {
-                service.getRunningFrontendRequestsHolder().decrementAndGet();
+                service.getUpstreamService().getRunningRequestsHolder().decrementAndGet();
             }
         });
         this.pendingCount = new AtomicInteger(0);
@@ -194,7 +194,7 @@ public class LackrFrontendRequest {
             logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
-            service.getElapsedMillisHolder().addAndGet(endTimestamp-startTimestamp);
+            service.getUpstreamService().getElapsedMillisHolder().addAndGet(endTimestamp-startTimestamp);
         }
     }
 

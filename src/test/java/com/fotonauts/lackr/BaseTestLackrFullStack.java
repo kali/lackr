@@ -67,7 +67,9 @@ public class BaseTestLackrFullStack {
         System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
         ctx = new ClassPathXmlApplicationContext("lackr.xml");
+        System.err.println("GET BEAN(picorBackend)");
         JettyBackend picorBackend = (JettyBackend) ctx.getBean("picorBackend");
+        System.err.println("GET BEAN(picorBackend) DONE");
         picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
 
         lackrServer = (Server) ctx.getBean("Server");

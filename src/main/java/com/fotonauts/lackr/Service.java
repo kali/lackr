@@ -21,18 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
-import org.springframework.jmx.export.annotation.ManagedResource;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.interpolr.Interpolr;
 
-@ManagedResource(objectName = "bean:name=LackrMainService", description = "Lackr frontend")
 public class Service extends AbstractHandler {
 
     private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
     static Logger log = LoggerFactory.getLogger(Service.class);
-    
-    private AtomicLong requestCount = new AtomicLong();
     
     private int timeout;
 
@@ -57,15 +53,22 @@ public class Service extends AbstractHandler {
     private Executor executor;
     private String femtorBackend;
     private ObjectMapper objectMapper = new ObjectMapper();
-    private AtomicLong runningFrontendRequest = new AtomicLong();
-    private AtomicLong elapsedMillis = new AtomicLong();
 
+    private UpstreamService upstreamService = new UpstreamService() {
+        @Override
+        public String getMBeanName() {
+            return "front";
+        }
+    };
+    
     @Override
     protected void doStart() throws Exception {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
             for(UpstreamService us: b.getUpstreamServices()) {
-                ObjectName name = new ObjectName("com.fotonauts.lackr.upstream:name=" + us.getMBeanName());                 
+                System.err.println("REGISTER: " + us.getMBeanName());
+                ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
                 mbs.registerMBean(us, name); 
             }
         }
@@ -84,7 +87,7 @@ public class Service extends AbstractHandler {
         if (state == null) {
             log.debug("starting processing for: " + request.getRequestURL());
             state = new LackrFrontendRequest(this, request);
-            requestCount.incrementAndGet();
+            upstreamService.getRequestCountHolder().incrementAndGet();
             request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
             state.kick();
         } else {
@@ -155,31 +158,32 @@ public class Service extends AbstractHandler {
 
     @Override
     public void doStop() throws Exception {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
+            for(UpstreamService us: backend.getUpstreamServices()) {
+                System.err.println("UNREGISTER: " + us.getMBeanName());
+                ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
+                mbs.unregisterMBean(name); 
+            }
             backend.stop();
         }
     }
 
-    @ManagedAttribute
     public long getRequestCount() {
-        return requestCount.get();
+        return upstreamService.getRequestCount();
     }
 
-    @ManagedAttribute
     public long getRunningRequests() {
-        return runningFrontendRequest.get();
+        return upstreamService.getRunningRequests();
     }
 
-    @ManagedAttribute
     public long getElapsedMillis() {
-        return elapsedMillis.get();
+        return upstreamService.getRunningRequests();
     }
 
-    public AtomicLong getRunningFrontendRequestsHolder() {
-        return runningFrontendRequest;
+    public UpstreamService getUpstreamService() {
+        return upstreamService;
     }
 
-    public AtomicLong getElapsedMillisHolder() {
-        return elapsedMillis;
-    }
 }
