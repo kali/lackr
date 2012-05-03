@@ -89,7 +89,6 @@ public class LackrFrontendRequest {
         opid = request.getHeader("X-Ftn-OperationId");
         if(opid == null)
             opid = "<noopid:" + id  + ">";
-        service.getDebugRunningOpId().put(opid, new Date());
         this.request = request;
         this.mustacheContext = new MustacheContext();
         this.continuation = ContinuationSupport.getContinuation(request);
@@ -104,7 +103,6 @@ public class LackrFrontendRequest {
             @Override
             public void onComplete(Continuation continuation) {
                 service.getRunningFrontendRequestsHolder().decrementAndGet();
-                service.getDebugRunningOpId().remove(opid);
             }
         });
         this.pendingCount = new AtomicInteger(0);

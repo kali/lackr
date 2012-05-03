@@ -178,20 +178,4 @@ public class Service extends AbstractHandler {
     public AtomicLong getElapsedMillisHolder() {
         return elapsedMillis;
     }
-    
-    public Map<String, Date> getDebugRunningOpId() {
-        return debugRunningOpId;
-    }
-    
-    @ManagedAttribute
-    public String getRunningOpIds() {
-        StringBuilder builder = new StringBuilder();
-        for(Entry<String, Date> e: debugRunningOpId.entrySet()) {
-            builder.append(e.getKey());
-            builder.append(':');
-            builder.append(e.getValue().toGMTString());
-            builder.append('\n');
-        }
-        return builder.toString();
-    }
 }
