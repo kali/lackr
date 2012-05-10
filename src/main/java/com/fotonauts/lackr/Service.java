@@ -8,6 +8,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +28,7 @@ public class Service extends AbstractHandler {
 
     private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
     static Logger log = LoggerFactory.getLogger(Service.class);
-    
+
     private int timeout;
 
     protected RapportrService rapportr;
@@ -58,15 +59,21 @@ public class Service extends AbstractHandler {
             return "front";
         }
     };
-    
+
     @Override
     protected void doStart() throws Exception {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
             for(Gateway us: b.getGateways()) {
-                ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
-                mbs.registerMBean(us, name); 
+                String beanName = us.getMBeanName();
+                try {
+                    ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
+                    mbs.registerMBean(us, name);
+                } catch (MalformedObjectNameException e) {
+                    log.error("Bean name exception: " + us.getMBeanName());
+                    throw e;
+                }
             }
         }
         setExecutor(Executors.newFixedThreadPool(16));
@@ -159,8 +166,8 @@ public class Service extends AbstractHandler {
         mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
             for(Gateway us: backend.getGateways()) {
-                ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());                 
-                mbs.unregisterMBean(name); 
+                ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
+                mbs.unregisterMBean(name);
             }
             backend.stop();
         }

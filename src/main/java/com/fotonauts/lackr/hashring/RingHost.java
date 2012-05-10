@@ -6,6 +6,7 @@ package com.fotonauts.lackr.hashring;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,107 +20,112 @@ import com.fotonauts.lackr.HttpHost;
 
 public class RingHost extends HttpHost {
 
-	static Logger log = LoggerFactory.getLogger(RingHost.class);
+    static Logger log = LoggerFactory.getLogger(RingHost.class);
 
-	protected String hostname;
-	private HashRing ring;
-	protected RapportrInterface rapportr;
+    protected String hostname;
+    private HashRing ring;
+    protected RapportrInterface rapportr;
 
-	private String probeString;
-	private AtomicReference<URL> probeURL = new AtomicReference<URL>();
+    private String probeString;
+    private AtomicReference<URL> probeURL = new AtomicReference<URL>();
 
-	public RingHost() {
-	}
-
-	public RingHost(String backend) {
-		this.hostname = backend;
-	}
-
-	public RingHost(RapportrInterface rapportr, String hostname, String probeUrl) {
-		this.rapportr = rapportr;
-		this.hostname = hostname;
-		this.probeString = probeUrl;
+    public static String getMBeanNameFromUrlPrefix(String prefix) {
+        URI uri = URI.create(prefix);
+        return uri.getHost().split("\\.")[0] + "-" + uri.getPort();
     }
 
-	public String getHostname() {
-		return hostname;
-	}
+    public RingHost() {
+    }
 
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
-	}
+    public RingHost(String backend) {
+        this.hostname = backend;
+    }
 
-	public boolean isUp() {
-		return up.get();
-	}
+    public RingHost(RapportrInterface rapportr, String hostname, String probeUrl) {
+        this.rapportr = rapportr;
+        this.hostname = hostname;
+        this.probeString = probeUrl;
+    }
 
-	private AtomicBoolean up = new AtomicBoolean(true);
+    public String getHostname() {
+        return hostname;
+    }
 
-	@Override
-	public String toString() {
-		return getHostname() + ' ' + (isUp() ? "UP" : "DOWN");
-	}
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
 
-	public void setDown() {
-		up.set(false);
-		if(ring != null)
-			ring.refreshStatus();
-	}
+    public boolean isUp() {
+        return up.get();
+    }
 
-	public void setUp() {
-		up.set(true);
-		if(ring != null)
-			ring.refreshStatus();
-	}
+    private AtomicBoolean up = new AtomicBoolean(true);
 
-	public void setRing(HashRing ring) {
-		this.ring = ring;
-	}
+    @Override
+    public String toString() {
+        return getHostname() + ' ' + (isUp() ? "UP" : "DOWN");
+    }
 
-	public HashRing getRing() {
-		return ring;
-	}
+    public void setDown() {
+        up.set(false);
+        if (ring != null)
+            ring.refreshStatus();
+    }
 
-	public void setProbe(String probe) {
-		this.probeString = probe;
-	}
+    public void setUp() {
+        up.set(true);
+        if (ring != null)
+            ring.refreshStatus();
+    }
 
-	public String getProbe() {
-		return probeString;
-	}
-	
-	public void probe() {
-		if(!StringUtils.hasText(probeString))
-			return;
-		boolean after = false;
+    public void setRing(HashRing ring) {
+        this.ring = ring;
+    }
+
+    public HashRing getRing() {
+        return ring;
+    }
+
+    public void setProbe(String probe) {
+        this.probeString = probe;
+    }
+
+    public String getProbe() {
+        return probeString;
+    }
+
+    public void probe() {
+        if (!StringUtils.hasText(probeString))
+            return;
+        boolean after = false;
         try {
-    		if(probeURL.get() == null)
-    			buildURL();
-			HttpURLConnection connection = (HttpURLConnection) probeURL.get().openConnection();
-			connection.setConnectTimeout(100*1000);
-			after = connection.getResponseCode() == 200;
+            if (probeURL.get() == null)
+                buildURL();
+            HttpURLConnection connection = (HttpURLConnection) probeURL.get().openConnection();
+            connection.setConnectTimeout(100 * 1000);
+            after = connection.getResponseCode() == 200;
         } catch (IOException e) {
-        	String message = "Can not probe " + probeURL.toString() + "(" + e.toString() + ")";
-        	log.warn(message);
-        	probeURL.set(null);
+            String message = "Can not probe " + probeURL.toString() + "(" + e.toString() + ")";
+            log.warn(message);
+            probeURL.set(null);
         }
         boolean before = up.getAndSet(after);
-        if(before != after) {
-        	log.warn("Status change: " + toString());
-        	if(rapportr != null)
-        		rapportr.warnMessage("Backend status change: " + toString(), null);
-        	if(ring != null)
-        		ring.refreshStatus();
+        if (before != after) {
+            log.warn("Status change: " + toString());
+            if (rapportr != null)
+                rapportr.warnMessage("Backend status change: " + toString(), null);
+            if (ring != null)
+                ring.refreshStatus();
         }
     }
 
-	private void buildURL() throws MalformedURLException {
-		probeURL.set(new URL((hostname.startsWith("http://") ? hostname : ("http://" + hostname)) + probeString));
+    private void buildURL() throws MalformedURLException {
+        probeURL.set(new URL((hostname.startsWith("http://") ? hostname : ("http://" + hostname)) + probeString));
     }
 
     @Override
     public String getMBeanName() {
-        return hostname.replaceAll("^(?:http://)?(.*?)\\..*?(?::(.*))?$", "$1-$2");
+        return getMBeanNameFromUrlPrefix(hostname);
     }
 
 }
