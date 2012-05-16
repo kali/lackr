@@ -22,7 +22,8 @@ public class BackendRequest {
 	private final String method;
 	private final String parent;
 	private final int parentId;
-	private final String query;
+    private final String originalQuery;
+	private String query;
 	private final LackrFrontendRequest frontendRequest;
 
 	private AtomicReference<LackrBackendExchange> lastExchange = new AtomicReference<LackrBackendExchange>();
@@ -36,7 +37,7 @@ public class BackendRequest {
 		super();
 		this.frontendRequest = frontendRequest;
 		this.method = method;
-		this.query = query;
+		this.query = this.originalQuery = query;
 		this.parent = parent;
 		this.parentId = parentId;
 		this.syntax = syntax;
@@ -106,6 +107,13 @@ public class BackendRequest {
 					return;
 				}
 			}
+
+			if (exchange.getResponseStatus() == 399) {
+			    this.query = exchange.getResponseHeader(HttpHeaders.LOCATION);
+			    triedBackend.set(0);
+			    tryNext();
+			    return;
+            }
 
 			if (this != getFrontendRequest().getRootRequest()
 			        && (exchange.getResponseStatus() / 100 == 4 || exchange.getResponseStatus() / 100 == 5)

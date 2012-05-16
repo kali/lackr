@@ -40,6 +40,10 @@ public class DummyFemtor implements Filter {
 			Arrays.sort(parameters);
 			response.getWriter().println("parameterNames: " + Arrays.toString(parameters));
 			response.flushBuffer();
+        } else if(hr.getPathInfo().startsWith("/rewrite")) {
+            ((HttpServletResponse) response).setStatus(399);
+            ((HttpServletResponse) response).setHeader("Location", "/femtor");
+            response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/echobody")) {
 			char[] buffer = new char[4096];
 			int len = request.getReader().read(buffer);

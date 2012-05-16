@@ -92,5 +92,15 @@ public class TestFemtor extends BaseTestLackrFullStack {
         assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
     	assertEquals("parameterNames: [tut]", tokenizer.nextToken());
 	}
-	
+
+    @Test(timeout = 100)
+    public void testFemtorRewrite() throws Exception {
+        ContentExchange e = new ContentExchange(true);
+        e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/rewrite");
+        client.send(e);
+        while (!e.isDone())
+            Thread.sleep(10);
+        assertEquals("Hi from dummy femtor\n", e.getResponseContent());
+    }
+
 }
