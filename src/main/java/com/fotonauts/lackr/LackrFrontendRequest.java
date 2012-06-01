@@ -226,20 +226,17 @@ public class LackrFrontendRequest {
         getService().getRapportr().rapportrException(request, message, new String(baos.toByteArray(), "UTF-8"));
     }
 
-    @SuppressWarnings("deprecation")
-    private static Date MAX_COOKIE_AGE = new Date(2037, 12, 31);
-
     public void writeSuccessResponse(HttpServletResponse response) throws IOException {
         LackrBackendExchange rootExchange = rootRequest.getExchange();
         response.setStatus(rootExchange.getResponseStatus());
         copyResponseHeaders(response);
         if(request.getCookies() != null) {
             for(Cookie c: request.getCookies())
-                if(c.getName() == "uid") {
+                if("uid".equals(c.getName())) {
                     Cookie longLasting = new Cookie("uid", c.getValue());
                     String domain = request.getHeader("Host") != null ? request.getHeader("Host").replaceFirst(".*\\.", "") : "fotopedia.com";
                     longLasting.setDomain(domain);
-                    longLasting.setMaxAge((int)((MAX_COOKIE_AGE.getTime() - System.currentTimeMillis()) / 1000));
+                    longLasting.setMaxAge((int)(2145852000 - System.currentTimeMillis()/1000)); // 2037-12-31
                     response.addCookie(longLasting);
                 }
         }
