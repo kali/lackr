@@ -234,7 +234,7 @@ public class LackrFrontendRequest {
             for(Cookie c: request.getCookies())
                 if("uid".equals(c.getName())) {
                     Cookie longLasting = new Cookie("uid", c.getValue());
-                    String domain = request.getHeader("Host") != null ? request.getHeader("Host").replaceFirst(".*\\.", "") : "fotopedia.com";
+                    String domain = "." + (request.getHeader("Host") != null ? request.getHeader("Host").replaceFirst(".*\\.", "") : "fotopedia.com");
                     longLasting.setDomain(domain);
                     longLasting.setMaxAge((int)(2145852000 - System.currentTimeMillis()/1000)); // 2037-12-31
                     response.addCookie(longLasting);
