@@ -67,7 +67,7 @@ public class LackrFrontendRequest {
     private String rootUrl;
 
     private String opid;
-    
+
     protected BackendRequest rootRequest;
 
     private Continuation continuation;
@@ -88,19 +88,19 @@ public class LackrFrontendRequest {
         this.service = service;
         long id = service.getGateway().getRunningRequestsHolder().incrementAndGet();
         opid = request.getHeader("X-Ftn-OperationId");
-        if(opid == null)
-            opid = "<noopid:" + id  + ">";
+        if (opid == null)
+            opid = "<noopid:" + id + ">";
         this.request = request;
         this.mustacheContext = new MustacheContext();
         this.continuation = ContinuationSupport.getContinuation(request);
         this.continuation.setTimeout(getService().getTimeout() * 1000);
         this.continuation.addContinuationListener(new ContinuationListener() {
-            
+
             @Override
             public void onTimeout(Continuation continuation) {
                 /* onComplete will also be called after a timeout */
             }
-            
+
             @Override
             public void onComplete(Continuation continuation) {
                 service.getGateway().getRunningRequestsHolder().decrementAndGet();
@@ -196,7 +196,7 @@ public class LackrFrontendRequest {
             logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
-            service.getGateway().getElapsedMillisHolder().addAndGet(endTimestamp-startTimestamp);
+            service.getGateway().getElapsedMillisHolder().addAndGet(endTimestamp - startTimestamp);
         }
     }
 
@@ -230,15 +230,15 @@ public class LackrFrontendRequest {
         LackrBackendExchange rootExchange = rootRequest.getExchange();
         response.setStatus(rootExchange.getResponseStatus());
         copyResponseHeaders(response);
-        if(request.getCookies() != null) {
-            for(Cookie c: request.getCookies())
-                if("uid".equals(c.getName())) {
-                    Cookie longLasting = new Cookie("uid", c.getValue());
-                    String domain = request.getHeader("Host") != null ? request.getHeader("Host").replaceFirst("^[^\\.]*\\.", ".") : ".fotopedia.com";
-                    longLasting.setDomain(domain);
-                    longLasting.setPath("/");
-                    longLasting.setMaxAge((int)(2145852000 - System.currentTimeMillis()/1000)); // 2037-12-31
-                    response.addCookie(longLasting);
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies())
+                if ("uid".equals(c.getName())) {
+                    String domain = request.getHeader("Host") != null ? request.getHeader("Host").replaceFirst("^[^\\.]*\\.", ".")
+                            : ".fotopedia.com";
+                    response.addHeader(
+                            "Set-Cookie",
+                            String.format("uid=%s;Version=1;Path=/;Domain=%s;Expires=Thu, 31-Dec-2037 06:00:00 GMT;Max-Age=%d",
+                                    c.getValue(), domain, 2145852000 - System.currentTimeMillis() / 1000));
                 }
         }
         log.debug("writing success response for " + rootRequest.getQuery());

@@ -15,7 +15,7 @@ public class TestProlongUidCookieLife extends BaseTestLackrFullStack {
 
 
     @Test()
-    public void testFemtor() throws Exception {
+    public void testProlong() throws Exception {
         ContentExchange e = new ContentExchange(true);
         e.setRequestHeader(HttpHeaders.COOKIE, "uid=zob");
         e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/hi");
