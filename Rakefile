@@ -11,6 +11,7 @@ require 'rexml/document'
 BUCKET="fotonauts.infra"
 PATH="lackr/"
 
+
 version = nil
 pom = REXML::Document.new(File.new("pom.xml"))
 pom.elements.each('project/version') do |v| version = v.text end
