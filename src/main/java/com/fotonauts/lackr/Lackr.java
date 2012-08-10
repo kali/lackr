@@ -12,6 +12,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Log4jConfigurer;
 
+
 public class Lackr {
 
 	@Option(name = "--log4j", usage = "overrides -d")
