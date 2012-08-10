@@ -16,7 +16,7 @@ public class TestFemtor extends BaseTestLackrFullStack {
 		super();
 	}
 
-	@Test(timeout = 100)
+	@Test(timeout = 500)
 	public void testFemtor() throws Exception {
 		ContentExchange e = new ContentExchange(true);
 		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/hi");
@@ -26,7 +26,7 @@ public class TestFemtor extends BaseTestLackrFullStack {
     	assertEquals("Hi from dummy femtor\n", e.getResponseContent());
 	}
 
-	@Test(timeout = 100)
+	@Test(timeout = 500)
 	public void testFemtorCrash() throws Exception {
 		ContentExchange e = new ContentExchange(true);
 		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash");
@@ -93,7 +93,7 @@ public class TestFemtor extends BaseTestLackrFullStack {
     	assertEquals("parameterNames: [tut]", tokenizer.nextToken());
 	}
 
-    @Test(timeout = 100)
+    @Test(timeout = 500)
     public void testFemtorRewrite() throws Exception {
         ContentExchange e = new ContentExchange(true);
         e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/rewrite");
