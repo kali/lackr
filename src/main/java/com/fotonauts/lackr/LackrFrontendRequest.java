@@ -46,7 +46,7 @@ import com.mongodb.BasicDBObject;
 
 public class LackrFrontendRequest {
     static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
-            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since", "if-none-match" };
+            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "if-modified-since", "if-none-match" };
 
     static boolean skipHeader(String header) {
         for (String skip : headersToSkip) {
