@@ -22,7 +22,6 @@ public class BackendRequest {
 	private final String method;
 	private final String parent;
 	private final int parentId;
-    private final String originalQuery;
 	private String query;
 	private final LackrFrontendRequest frontendRequest;
 
@@ -37,7 +36,7 @@ public class BackendRequest {
 		super();
 		this.frontendRequest = frontendRequest;
 		this.method = method;
-		this.query = this.originalQuery = query;
+		this.query = query;
 		this.parent = parent;
 		this.parentId = parentId;
 		this.syntax = syntax;
