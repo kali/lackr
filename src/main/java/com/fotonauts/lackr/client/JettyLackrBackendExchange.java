@@ -31,8 +31,6 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 						.getBody()));
 				setRequestHeader("Content-Length",
 						Integer.toString(exchange.getBackendRequest().getBody().length));
-                setRequestHeader("Content-Type",
-                        exchange.getBackendRequest().getFrontendRequest().getRequest().getHeader("Content-Type"));
 			}
 
 		}

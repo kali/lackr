@@ -40,8 +40,6 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     				writeResponse(response, "<!-- ignore me -->".getBytes(), MimeType.TEXT_HTML);
     			} else if (request.getPathInfo().endsWith("must")) {
     				writeResponse(response, ESI_MUST.getBytes(), MimeType.TEXT_PLAIN);
-                } else if (request.getPathInfo().endsWith("method")) {
-                    writeResponse(response, request.getMethod().getBytes(), MimeType.TEXT_PLAIN);
     			} else if (request.getPathInfo().endsWith("url")) {
     				writeResponse(response, ESI_URL.getBytes(), MimeType.TEXT_PLAIN);
                 } else if (request.getPathInfo().endsWith("text")) {
