@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
-	<version>0.5.26</version>
+	<version>99.99.99</version>
 	<name>Lackr</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -81,12 +81,6 @@
 			<id>asf</id>
 			<url>http://repository.apache.org/snapshots/</url>
 		</repository>
-		<!-- 
-		<repository>
-			<id>scalatools</id>
-			<url>http://scala-tools.org/repo-releases/</url>
-		</repository>
-		 -->
 		<repository>
 			<id>scalatools snaps</id>
 			<url>http://scala-tools.org/repo-snapshots/</url>
