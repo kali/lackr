@@ -168,6 +168,8 @@ public class LackrFrontendRequest {
                     response.addHeader(name, value);
             }
         }
+        if(rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE) != null)
+            response.addHeader(HttpHeaders.CONTENT_TYPE, rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE));
     }
 
     private void preflightCheck() {

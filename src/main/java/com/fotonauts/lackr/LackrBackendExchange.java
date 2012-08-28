@@ -71,6 +71,10 @@ public abstract class LackrBackendExchange {
             if (!LackrFrontendRequest.skipHeader(header)) {
                 addRequestHeader(header, backendRequest.getFrontendRequest().getRequest().getHeader(header));
             }
+            // content type is skipped, but we MUST copy it for the root request, or else...
+            if("Content-Type".equalsIgnoreCase(header) && backendRequest.getParent() == null) {
+                addRequestHeader(header, backendRequest.getFrontendRequest().getRequest().getHeader(header));                
+            }
         }
         startTimestamp = System.currentTimeMillis();
         logLine = RapportrService.accessLogLineTemplate(backendRequest.getFrontendRequest().getRequest(), "lackr-back");
