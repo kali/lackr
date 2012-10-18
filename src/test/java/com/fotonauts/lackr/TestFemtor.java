@@ -1,8 +1,10 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.StringTokenizer;
@@ -67,6 +69,8 @@ public class TestFemtor extends BaseTestLackrFullStack {
         assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
         assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
     	assertEquals("parameterNames: [blah, blih]", tokenizer.nextToken());
+        assertEquals("X-Ftn-IID: null", tokenizer.nextToken());
+        assertFalse(tokenizer.hasMoreElements());
 	}
 
 	@Test
@@ -102,6 +106,8 @@ public class TestFemtor extends BaseTestLackrFullStack {
         assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
         assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
     	assertEquals("parameterNames: [tut]", tokenizer.nextToken());
+        assertEquals("X-Ftn-IID: TheIIDValue", tokenizer.nextToken());
+        assertFalse(tokenizer.hasMoreElements());
 	}
 
     @Test(timeout = 500)
@@ -113,5 +119,5 @@ public class TestFemtor extends BaseTestLackrFullStack {
             Thread.sleep(10);
         assertEquals("Hi from dummy femtor\n", e.getResponseContent());
     }
-
+    
 }

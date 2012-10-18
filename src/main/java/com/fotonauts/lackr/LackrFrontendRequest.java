@@ -19,7 +19,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,6 +63,8 @@ public class LackrFrontendRequest {
     static Logger log = LoggerFactory.getLogger(LackrFrontendRequest.class);
 
     protected HttpServletRequest request;
+    
+    protected Map<String, String> ancillialiaryHeaders = Collections.synchronizedMap(new HashMap<String, String>(5));
 
     protected Service service;
 
@@ -340,5 +344,13 @@ public class LackrFrontendRequest {
 
     public BackendRequest getRootRequest() {
         return rootRequest;
+    }
+
+    public void addAncilliaryHeader(String k, String v) {
+        ancillialiaryHeaders.put(k, v);
+    }
+
+    public Map<String, String> getAncilliaryHeaders() {
+        return ancillialiaryHeaders;
     }
 }

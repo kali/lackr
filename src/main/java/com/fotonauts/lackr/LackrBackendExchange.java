@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,9 @@ public abstract class LackrBackendExchange {
         addRequestHeader("X-FTN-NORM-USER-AGENT", backendRequest.getFrontendRequest().getUserAgent().toString());
         addRequestHeader("X-FTN-INLINE-IMAGES", backendRequest.getFrontendRequest().getUserAgent()
                 .supportsInlineImages() ? "yes" : "no");
+        for(Entry<String, String> h : backendRequest.getFrontendRequest().getAncilliaryHeaders().entrySet()) {
+            addRequestHeader(h.getKey(), h.getValue());
+        }
         if (backendRequest.getParent() != null)
             addRequestHeader("X-SSI-PARENT", backendRequest.getParent());
         if (backendRequest.getSyntax() != null)
