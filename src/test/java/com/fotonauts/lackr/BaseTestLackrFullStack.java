@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.EnumSet;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -16,11 +17,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.server.DispatcherType;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.servlet.NoJspServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.After;
 import org.junit.Ignore;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -34,7 +39,7 @@ import com.fotonauts.lackr.client.JettyBackend;
 public class BaseTestLackrFullStack {
 
     protected Server backend;
-    protected Server femtorStub;
+    private Server femtorStub;
     protected Server lackrServer;
     protected Service lackrService;
     protected HttpClient client;
@@ -44,8 +49,12 @@ public class BaseTestLackrFullStack {
     private JettyBackend picorBackend;
 
     public BaseTestLackrFullStack() throws Exception {
+        this(true);
+    }
+    
+    @SuppressWarnings("deprecation")
+    public BaseTestLackrFullStack(boolean femtorInProcess) throws Exception {
         Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
-
         currentHandler = new AtomicReference<Handler>();
 
         backend = new Server();
@@ -63,7 +72,23 @@ public class BaseTestLackrFullStack {
         propFile.deleteOnExit();
 
         Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
+        if(!femtorInProcess) {
+            femtorStub = new Server();
+            femtorStub.addConnector(new SelectChannelConnector());
+            ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+            context.setContextPath("/");
+            femtorStub.setHandler(context);
+
+            context.addFilter("com.fotonauts.lackr.DummyFemtor","/*", EnumSet.of(DispatcherType.REQUEST));
+            context.addServlet(new ServletHolder(new NoJspServlet()),"/*");
+            
+            femtorStub.start();
+            props.setProperty("lackr.femtorImpl", "Http");
+            props.setProperty("lackr.femtorBackend", "http://localhost:" + femtorStub.getConnectors()[0].getLocalPort());
+         } 
+
         props.store(new FileOutputStream(propFile), "properties for lackr test run");
+
 
         System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 

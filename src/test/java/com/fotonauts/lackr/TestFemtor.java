@@ -3,17 +3,28 @@ package com.fotonauts.lackr;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.StringTokenizer;
 
 import org.eclipse.jetty.client.ContentExchange;
-import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
+@RunWith(value = Parameterized.class)
 public class TestFemtor extends BaseTestLackrFullStack {
 
-	public TestFemtor() throws Exception {
-		super();
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] { { false }, { true } });
+    }
+   
+    
+	public TestFemtor(boolean inProcess) throws Exception {
+		super(inProcess);
 	}
 
 	@Test(timeout = 500)
@@ -33,8 +44,8 @@ public class TestFemtor extends BaseTestLackrFullStack {
 		client.send(e);
     	while (!e.isDone())
     		Thread.sleep(10);
-    	assertEquals(502, e.getResponseStatus());
-    	assertTrue(e.getResponseContent().contains("catch me or you're dead.\n"));
+    	assertEquals(50, e.getResponseStatus() / 10); // expect 50x
+    	assertTrue(e.getResponseContent().contains("catch me or you're dead."));
 	}
 	
 	@Test
