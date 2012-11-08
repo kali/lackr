@@ -11,5 +11,7 @@ public interface HttpDirectorInterface {
 	void dumpStatus(PrintStream ps);
 
     Gateway[] getGateways();
+
+    String getName();
 	
 }

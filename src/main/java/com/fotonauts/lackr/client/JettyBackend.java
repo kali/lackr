@@ -45,4 +45,9 @@ public class JettyBackend implements Backend {
         return director.getGateways();
     }
 
+    @Override
+    public String getName() {
+        return director.getName();
+    }
+
 }

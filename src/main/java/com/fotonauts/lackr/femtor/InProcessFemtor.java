@@ -78,4 +78,9 @@ public class InProcessFemtor implements Backend {
     public Gateway[] getGateways() {
         return upstreamServices;
     }
+
+    @Override
+    public String getName() {
+        return "in-process-femtor";
+    }
 }

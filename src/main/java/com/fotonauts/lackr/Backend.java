@@ -11,4 +11,6 @@ public interface Backend {
 	public void stop() throws Exception;
 	
 	public Gateway[] getGateways();
+	
+	public String getName();
 }

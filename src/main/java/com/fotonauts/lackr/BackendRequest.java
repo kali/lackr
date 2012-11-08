@@ -118,6 +118,8 @@ public class BackendRequest {
                 }
             }
 
+            getFrontendRequest().getBackendRequestCounts()[triedBackend.get()].incrementAndGet();
+            
             if (exchange.getResponseStatus() == 399) {
                 this.query = exchange.getResponseHeader(HttpHeaders.LOCATION);
                 triedBackend.set(0);

@@ -17,6 +17,7 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.BackendRequest;
@@ -200,5 +201,11 @@ public class HashRing implements HttpDirectorInterface {
 			ps.format("picor-ring-weight\t%s\t%s\t%d\n", h.getHostname(), h.isUp() ? "UP" : "DOWN", weights.get(h));
 		}
 	}
+	
+    @Override
+    public String getName() {
+        return StringUtils.arrayToDelimitedString(hostnames, "_").replaceAll("[.:]","_");
+    }
+
 
 }

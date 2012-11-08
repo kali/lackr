@@ -88,6 +88,8 @@ public class LackrFrontendRequest {
 
     private ConcurrentHashMap<String, BackendRequest> backendRequestCache = new ConcurrentHashMap<String, BackendRequest>();
 
+    private AtomicInteger backendRequestCounts[];
+    
     LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
         long id = service.getGateway().getRunningRequestsHolder().incrementAndGet();
@@ -96,6 +98,9 @@ public class LackrFrontendRequest {
             opid = "<noopid:" + id + ">";
         this.request = request;
         this.mustacheContext = new MustacheContext();
+        this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
+        for(int i = 0; i<service.getBackends().length ; i++)
+            this.backendRequestCounts[i] = new AtomicInteger();
         this.continuation = ContinuationSupport.getContinuation(request);
         this.continuation.setTimeout(getService().getTimeout() * 1000);
         this.continuation.addContinuationListener(new ContinuationListener() {
@@ -187,6 +192,14 @@ public class LackrFrontendRequest {
         if (request.getHeader("X-Ftn-OperationId") != null)
             response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
         preflightCheck();
+        BasicDBObject backendRequestCounters = new BasicDBObject();
+        for(int i = 0; i<service.getBackends().length ; i++) {
+            int value = this.backendRequestCounts[i].get();
+            if(value > 0)
+                  backendRequestCounters.put(service.getBackends()[i].getName(), value);
+        }
+        logLine.put("counters", backendRequestCounters);
+        
         try {
             if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
                 writeErrorResponse(response);
@@ -247,6 +260,7 @@ public class LackrFrontendRequest {
                                     c.getValue(), domain, 2145852000 - System.currentTimeMillis() / 1000));
                 }
         }
+        
         log.debug("writing success response for " + rootRequest.getQuery());
         if (rootRequest.getParsedDocument().length() > 0) {
             String etag = generateEtag(rootRequest.getParsedDocument());
@@ -352,5 +366,9 @@ public class LackrFrontendRequest {
 
     public Map<String, String> getAncilliaryHeaders() {
         return ancillialiaryHeaders;
+    }
+
+    public AtomicInteger[] getBackendRequestCounts() {
+        return backendRequestCounts;
     }
 }

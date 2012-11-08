@@ -41,6 +41,11 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
     public Gateway[] getGateways() {
         return gateways;
     }
+
+    @Override
+    public String getName() {
+        return direction.replaceAll("[.:]","_");
+    }
 	
 
 }
