@@ -196,10 +196,10 @@ public class LackrFrontendRequest {
         for(int i = 0; i<service.getBackends().length ; i++) {
             int value = this.backendRequestCounts[i].get();
             if(value > 0)
-                  backendRequestCounters.put(service.getBackends()[i].getName(), value);
+                  backendRequestCounters.put(service.getBackends()[i].getClass().getSimpleName() + "-" + i, value);
         }
         logLine.put("counters", backendRequestCounters);
-        
+
         try {
             if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
                 writeErrorResponse(response);
