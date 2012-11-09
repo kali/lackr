@@ -60,7 +60,7 @@ public class FemtorExchange extends LackrBackendExchange {
 			response.setStatus(500);
 			getBackendRequest().getFrontendRequest().addBackendExceptions(e);
 		} finally {
-            onResponseComplete(true);
+            onResponseComplete(false);
 		}
 	}
 
