@@ -76,7 +76,7 @@ public class Service extends AbstractHandler {
                 }
             }
         }
-        setExecutor(Executors.newFixedThreadPool(16));
+        setExecutor(Executors.newFixedThreadPool(128));
         super.doStart();
     }
 
