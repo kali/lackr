@@ -119,9 +119,9 @@ public class BackendRequest {
             }
 
             getFrontendRequest().getBackendRequestCounts()[triedBackend.get()].incrementAndGet();
-            if(exchange.getResponseHeader("picorEP") != null) {
-                getFrontendRequest().getBackendRequestEndpointsCounters().putIfAbsent(exchange.getResponseHeader("picorEP"), new AtomicInteger(0));
-                getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("picorEP")).incrementAndGet();
+            if(exchange.getResponseHeader("X-Ftn-Picor-Endpoint") != null) {
+                getFrontendRequest().getBackendRequestEndpointsCounters().putIfAbsent(exchange.getResponseHeader("X-Ftn-Picor-Endpoint"), new AtomicInteger(0));
+                getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("X-Ftn-Picor-Endpoint")).incrementAndGet();
             }
             
             if (exchange.getResponseStatus() == 399) {
