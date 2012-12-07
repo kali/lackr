@@ -44,6 +44,7 @@ import com.fotonauts.commons.UserAgent;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.MustacheContext;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 
 public class LackrFrontendRequest {
@@ -90,6 +91,8 @@ public class LackrFrontendRequest {
     private ConcurrentHashMap<String, BackendRequest> backendRequestCache = new ConcurrentHashMap<String, BackendRequest>();
 
     private AtomicInteger backendRequestCounts[];
+
+    private ConcurrentHashMap<String, AtomicInteger> backendRequestEndpointsCounters = new ConcurrentHashMap<String, AtomicInteger>();
     
     LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
@@ -201,6 +204,16 @@ public class LackrFrontendRequest {
         }
         logLine.put("counters", backendRequestCounters);
 
+        BasicDBList backendEndpointCounters = new BasicDBList();
+        for(Map.Entry<String, AtomicInteger> endpoint : backendRequestEndpointsCounters.entrySet()) {
+            BasicDBObject obj = new BasicDBObject();
+            obj.append("ep", endpoint.getKey());
+            obj.append("c", endpoint.getValue());
+            backendEndpointCounters.add(obj);
+        }
+        if(backendEndpointCounters.size() > 0)
+            logLine.put("peps", backendEndpointCounters);
+        
         try {
             if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
                 writeErrorResponse(response);
@@ -371,5 +384,9 @@ public class LackrFrontendRequest {
 
     public AtomicInteger[] getBackendRequestCounts() {
         return backendRequestCounts;
+    }
+    
+    public ConcurrentHashMap<String, AtomicInteger> getBackendRequestEndpointsCounters() {
+        return backendRequestEndpointsCounters;
     }
 }
