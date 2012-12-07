@@ -118,6 +118,9 @@ public abstract class LackrBackendExchange {
             logLine.put(SIZE.getPrettyName(), rawResponseContent.length);
         logLine.put(DATE.getPrettyName(), new Date().getTime());
         logLine.put(ELAPSED.getPrettyName(), 0.001 * (endTimestamp - startTimestamp));
+        if(getResponseHeader("X-Ftn-Picor-Endpoint") != null) {
+            logLine.put("picorEP", getResponseHeader("X-Ftn-Picor-Endpoint"));
+        }
         backendRequest.getFrontendRequest().getService().getRapportr().log(logLine);
         if (sync)
             exchange.postProcess();
