@@ -80,11 +80,23 @@ public class Service extends AbstractHandler {
         super.doStart();
     }
 
+    private void dumpSelector() {
+        System.err.println("gna gna gna");
+        backends[0].dumpStatus(System.err);
+    }
+    
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
+        
         if (request.getRequestURI().equals("/_lackr_status")) {
             handleStatusQuery(target, baseRequest, request, response);
+            return;
+        }
+        if (request.getRequestURI().equals("/_dump_selector")) {
+            dumpSelector();
+            response.setStatus(200);
+            response.flushBuffer();
             return;
         }
         LackrFrontendRequest state = (LackrFrontendRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);

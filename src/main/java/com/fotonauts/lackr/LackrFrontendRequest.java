@@ -157,10 +157,13 @@ public class LackrFrontendRequest {
                 try {
                     request.start();
                 } catch (IOException e) {
+                    pendingCount.decrementAndGet();
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 } catch (NotAvailableException e) {
+                    pendingCount.decrementAndGet();
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 } catch (NullPointerException e) {
+                    pendingCount.decrementAndGet();
                     System.out.println("The exchange " + request.getQuery() + " has thrown a NullPointerException.");
                     e.printStackTrace(System.err);
                     // This occurs sometimes in X-SSI-ROOT inject in the backend
@@ -236,14 +239,15 @@ public class LackrFrontendRequest {
     public void writeErrorResponse(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
         response.setContentType("text/plain");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
+        StringBuilder sb = new StringBuilder();// new PrintStream(baos);
         for (LackrPresentableError t : backendExceptions) {
-            ps.println(t.getMessage());
+            sb.append(t.getMessage());
+            sb.append('\n');
         }
-        ps.flush();
-        response.setContentLength(baos.size());
-        response.getOutputStream().write(baos.toByteArray());
+        String s = sb.toString();
+        byte[] ba = s.getBytes("UTF-8");
+        response.setContentLength(ba.length);
+        response.getOutputStream().write(ba);
 
         String message;
         try {
@@ -255,8 +259,8 @@ public class LackrFrontendRequest {
         }
 
         logLine.put(STATUS.getPrettyName(), Integer.toString(HttpServletResponse.SC_BAD_GATEWAY));
-        logLine.put(DATA.getPrettyName(), baos.toByteArray());
-        getService().getRapportr().rapportrException(request, message, new String(baos.toByteArray(), "UTF-8"));
+        logLine.put(DATA.getPrettyName(), s);
+        getService().getRapportr().rapportrException(request, message, s);
     }
 
     public void writeSuccessResponse(HttpServletResponse response) throws IOException {
@@ -359,9 +363,19 @@ public class LackrFrontendRequest {
     }
 
     public void notifySubRequestDone() {
+        log.debug("notifySubRequestDone pending: " + pendingCount.get());
         if (pendingCount.decrementAndGet() <= 0) {
             if (log.isDebugEnabled())
                 log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size() + " exceptions.");
+            while(continuation.isInitial()) {
+//                System.err.println("finished early");
+                // rare race condition where we get there (processing all done) before the initial incoming query handling has been done
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    // I don't care
+                }
+            }
             continuation.resume();
         }
     }

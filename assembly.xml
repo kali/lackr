@@ -17,10 +17,17 @@
 					<exclude>**/spring.schemas</exclude>
 					<exclude>com/ning/http/client/providers/netty/NettyAsyncHttpProvider.class</exclude>
 					<exclude>com/ning/http/client/providers/netty/NettyAsyncHttpProvider$*.class</exclude>
+
+<!--
 					<exclude>org/eclipse/jetty/client/HttpClient.class</exclude>
 					<exclude>org/eclipse/jetty/client/HttpClient$*.class</exclude>
 					<exclude>org/eclipse/jetty/client/HttpDestination.class</exclude>
 					<exclude>org/eclipse/jetty/client/HttpDestination$*.class</exclude>
+                    <exclude>org/eclipse/jetty/io/nio/SelectorManager.class</exclude>
+                    <exclude>org/eclipse/jetty/io/nio/SelectorManager$*.class</exclude>
+                    <exclude>org/eclipse/jetty/io/nio/SelectChannelEndPoint.class</exclude>
+                    <exclude>org/eclipse/jetty/io/nio/SelectChannelEndPoint.class$*.class</exclude>
+-->
 				</excludes>
 			</unpackOptions>
 			<scope>runtime</scope>
@@ -41,10 +48,16 @@
 			<includes>
 				<include>com/ning/http/client/providers/netty/NettyAsyncHttpProvider*</include>
 				<include>com/ning/http/client/providers/netty/NettyAsyncHttpProvider$*.class</include>
+<!--
 				<include>org/eclipse/jetty/client/HttpClient.class</include>
 				<include>org/eclipse/jetty/client/HttpClient$*.class</include>
 				<include>org/eclipse/jetty/client/HttpDestination.class</include>
 				<include>org/eclipse/jetty/client/HttpDestination$*.class</include>
+                <include>org/eclipse/jetty/io/nio/SelectorManager.class</include>
+                <include>org/eclipse/jetty/io/nio/SelectorManager$*.class</include>
+                <include>org/eclipse/jetty/io/nio/SelectChannelEndPoint.class</include>
+                <include>org/eclipse/jetty/io/nio/SelectChannelEndPoint.class$*.class</include>
+-->
 			</includes>
 		</fileSet>
 	</fileSets>

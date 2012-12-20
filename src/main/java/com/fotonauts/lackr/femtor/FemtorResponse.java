@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -232,5 +233,20 @@ public class FemtorResponse implements HttpServletResponse {
 	public int getStatus() {
 		return sc;
 	}
+
+    @Override
+    public String getHeader(String arg0) {
+        return headers.get(arg0) != null && headers.get(arg0).size() > 0 ? headers.get(arg0).get(0) : null;
+    }
+
+    @Override
+    public Collection<String> getHeaderNames() {
+        return headers.keySet();
+    }
+
+    @Override
+    public Collection<String> getHeaders(String arg0) {
+        return headers.get(arg0) != null && headers.get(arg0).size() > 0 ? headers.get(arg0) : null;
+    }
 
 }

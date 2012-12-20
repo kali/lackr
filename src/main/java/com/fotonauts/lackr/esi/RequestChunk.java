@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 
 public class RequestChunk implements Chunk {
@@ -38,8 +39,12 @@ public class RequestChunk implements Chunk {
 	public void check() {
 		if(isChecked)
 			return;
-		sub.getParsedDocument().check();
-		rule.check(sub);
+		if(sub.getParsedDocument() == null)
+		    sub.getFrontendRequest().addBackendExceptions(new LackrPresentableError("expected a parsed document here, found nothing", sub.getExchange()));
+		else {
+		    sub.getParsedDocument().check();
+		    rule.check(sub);
+		}
 		isChecked = true;
 	}
 

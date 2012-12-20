@@ -7,22 +7,29 @@ import java.util.List;
 import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.Gateway;
+import com.fotonauts.lackr.Service;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class JettyLackrBackendExchange extends LackrBackendExchange {
 
+    static Logger log = LoggerFactory.getLogger(JettyLackrBackendExchange.class);
+
 	static class JettyContentExchange extends ContentExchange {
 		
 		JettyLackrBackendExchange exchange;
+		long started;
 
 		public JettyContentExchange(JettyLackrBackendExchange exchange) {
 			super(true);
+			started = System.currentTimeMillis();
 			setMethod(exchange.getBackendRequest().getMethod());
 			this.exchange = exchange;
 
@@ -39,6 +46,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 
 		@Override
 		protected void onResponseComplete() throws IOException {
+		    log.debug("LACKR-COMPLETE: " + this + " " + (System.currentTimeMillis() - started));
 			super.onResponseComplete();
 			exchange.onResponseComplete(false);
 		}

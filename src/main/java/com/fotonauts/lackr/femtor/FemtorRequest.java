@@ -111,7 +111,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
         if (request.getFrontendRequest().getRootRequest() == request)
             return super.getParameterValues(name);
         else if (getParams() != null && getParams().getValues(name) != null)
-            return getParams().getValues(name).toArray(new String[0]);
+            return (String[]) getParams().getValues(name).toArray(new String[0]);
         else
             return null;
     }

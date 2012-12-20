@@ -37,6 +37,7 @@ public class JettyBackend implements Backend {
 	@Override
     public void dumpStatus(PrintStream ps) {
 		ps.format("Jetty HTTP Client\n");
+		actualClient.dumpStdErr();
 		director.dumpStatus(ps);
     }
 
