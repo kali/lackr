@@ -42,6 +42,7 @@ public class TestMustache extends BaseTestSubstitution {
 	}
 
 	@Test
+	@Ignore
 	public void testMustacheLenientParsing() throws Exception {
 		String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n"
 		        + "some text from the template name:{{name} value:{{value}}\n"
