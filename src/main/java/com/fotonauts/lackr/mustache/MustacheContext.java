@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.mustache.helpers.ReverseEachHelper;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Template;
@@ -39,6 +40,7 @@ public class MustacheContext {
             }
         };
         handlebars = new Handlebars(loader);
+        handlebars.registerHelper(ReverseEachHelper.NAME, ReverseEachHelper.INSTANCE);
     }
 
     public void checkAndCompileAll(List<LackrPresentableError> backendExceptions) {

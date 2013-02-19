@@ -127,4 +127,32 @@ public class TestMustache extends BaseTestSubstitution {
 		assertEquals("\n\nmain opens \nsome text from the template name:the name value:the value\n and closes\n", result);
 	}
 
+    @Test
+    public void testEach() throws Exception {
+        String result = expand("<!-- lackr:mustache:template name=\"t\" -->\n"
+                + "{{#each ints}}{{a}}{{/each}}" 
+                + "<!-- /lackr:mustache:template -->\n"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n"
+                + "{ \"ints\": [ { \"a\": 1}, { \"a\": 2}, {\"a\": 3 } ] }\n" 
+                + "<!-- /lackr:mustache:eval -->\n");
+        assertEquals("\n\n123\n", result);
+    }
+
+    @Test
+    public void testReverseEach() throws Exception {
+        String result = expand("<!-- lackr:mustache:template name=\"t\" -->\n"
+                + "{{#reverse_each ints}}{{a}}{{/reverse_each}}" 
+                + "<!-- /lackr:mustache:template -->\n"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n"
+                + "{ \"ints\": [ ] }\n" 
+                + "<!-- /lackr:mustache:eval -->\n");
+        assertEquals("\n\n\n", result);
+        result = expand("<!-- lackr:mustache:template name=\"t\" -->\n"
+                + "{{#reverse_each ints}}{{a}}{{/reverse_each}}" 
+                + "<!-- /lackr:mustache:template -->\n"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n"
+                + "{ \"ints\": [ { \"a\": 1}, { \"a\": 2}, {\"a\": 3 } ] }\n" 
+                + "<!-- /lackr:mustache:eval -->\n");
+        assertEquals("\n\n321\n", result);
+    }
 }
