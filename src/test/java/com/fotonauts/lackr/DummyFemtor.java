@@ -22,8 +22,12 @@ public class DummyFemtor implements Filter {
 	@Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest hr = (HttpServletRequest) request;
-		if(hr.getPathInfo().startsWith("/femtor/crash")) {
+		if(hr.getPathInfo().startsWith("/femtor/crash/servlet")) {
 			throw new ServletException("catch me or you're dead.");
+		} else if(hr.getPathInfo().startsWith("/femtor/crash/re")) {
+            throw new RuntimeException("catch me or you're dead.");
+        } else if(hr.getPathInfo().startsWith("/femtor/crash/error")) {
+            throw new Error("catch me or you're dead.");
 		} else if(hr.getPathInfo().startsWith("/femtor/dumpwrapper")) {
 			response.setContentType("text/html");
             ((HttpServletResponse) response).setHeader("X-Ftn-Set-Request-Header", "X-Ftn-IID: TheIIDValue");

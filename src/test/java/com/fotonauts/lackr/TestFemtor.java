@@ -40,9 +40,9 @@ public class TestFemtor extends BaseTestLackrFullStack {
 	}
 
 	@Test(timeout = 500)
-	public void testFemtorCrash() throws Exception {
+	public void testFemtorCrashServlet() throws Exception {
 		ContentExchange e = new ContentExchange(true);
-		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash");
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash/servlet");
 		client.send(e);
     	while (!e.isDone())
     		Thread.sleep(10);
@@ -50,7 +50,29 @@ public class TestFemtor extends BaseTestLackrFullStack {
     	assertTrue(e.getResponseContent().contains("catch me or you're dead."));
 	}
 	
-	@Test
+    @Test(timeout = 500)
+    public void testFemtorCrashRE() throws Exception {
+        ContentExchange e = new ContentExchange(true);
+        e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash/re");
+        client.send(e);
+        while (!e.isDone())
+            Thread.sleep(10);
+        assertEquals(50, e.getResponseStatus() / 10); // expect 50x
+        assertTrue(e.getResponseContent().contains("catch me or you're dead."));
+    }
+
+    @Test(timeout = 500)
+    public void testFemtorCrashError() throws Exception {
+        ContentExchange e = new ContentExchange(true);
+        e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash/error");
+        client.send(e);
+        while (!e.isDone())
+            Thread.sleep(10);
+        assertEquals(50, e.getResponseStatus() / 10); // expect 50x
+        assertTrue(e.getResponseContent().contains("catch me or you're dead."));
+    }
+
+    @Test
 	public void testFemtorQuery() throws Exception {
 		ContentExchange e = new ContentExchange(true);
 		e.addRequestHeader("X-Ftn-OperationId", "someid");
