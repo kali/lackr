@@ -40,6 +40,7 @@
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
 		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
+		p:graphiteHostAndPort="${lackr.graphite}"
 		p:rapportr-ref="rapportr" lazy-init="true">
 		<property name="backends">
 			<array>

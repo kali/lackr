@@ -4,8 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -20,9 +22,11 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.interpolr.Interpolr;
+import com.yammer.metrics.reporting.GraphiteReporter;
 
 public class Service extends AbstractHandler {
 
@@ -52,6 +56,9 @@ public class Service extends AbstractHandler {
     private Executor executor;
     private String femtorBackend;
     private ObjectMapper objectMapper = new ObjectMapper();
+    
+    private String graphiteHost = null;
+    private int graphitePort = 0;
 
     private Gateway upstreamService = new Gateway() {
         @Override
@@ -77,6 +84,10 @@ public class Service extends AbstractHandler {
             }
         }
         setExecutor(Executors.newFixedThreadPool(64));
+        if(graphiteHost != null && graphitePort != 0) {
+            String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
+            GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname + ".");
+        }
         super.doStart();
     }
 
@@ -189,4 +200,12 @@ public class Service extends AbstractHandler {
         return upstreamService;
     }
 
+    public void setGraphiteHostAndPort(String graphiteHostAndPort) {
+        if(!StringUtils.hasText(graphiteHostAndPort))
+            return;
+        String[] tokens = graphiteHostAndPort.split(":");
+        graphiteHost = tokens[0];
+        graphitePort = Integer.parseInt(tokens[1]);
+    }
+    
 }
