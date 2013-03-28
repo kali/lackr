@@ -106,7 +106,7 @@ public class Service extends AbstractHandler {
         setExecutor(Executors.newFixedThreadPool(64));
         if(graphiteHost != null && graphitePort != 0) {
             String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
-            GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname + ".");
+            GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname);
         }
         
         if(new File("/usr/share/maxmind/GeoLiteCity.dat").exists())
@@ -161,15 +161,16 @@ public class Service extends AbstractHandler {
 
     public void countEndpointWithTimer(String endpoint, long d) {
         counter(endpointCounterTable, "EP", endpoint, "counter").inc();
-        counter(endpointCounterTable, "EP", endpoint, "ms").inc(d);
+        counter(endpointTimerTable, "EP", endpoint, "ms").inc(d);
     }
     
     private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
+        String fullKey = scope == null ? key : scope + key; 
         synchronized (table) {
-            Counter counter = table.get(key); 
+            Counter counter = table.get(fullKey); 
             if(counter == null) {
                 counter = Metrics.newCounter(new MetricName("lackr", type, key, scope));
-                table.put(key, counter);
+                table.put(fullKey, counter);
             }
             return counter;
         }
