@@ -88,6 +88,7 @@ public class TestRingHA extends TestCase {
 		StubServer backend1 = new StubServer();
 		StubServer backend2 = new StubServer();
 		HashRing ring = new HashRing(backend1.host, backend2.host);
+		ring.init();
 		Thread.sleep(100);
 		assertTrue("server has been probed", backend1.requestCount.get() > 0);
 		assertTrue("server has been probed", backend2.requestCount.get() > 0);

@@ -232,6 +232,8 @@ public class LackrFrontendRequest {
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
             service.getGateway().getElapsedMillisHolder().inc(endTimestamp - startTimestamp);
+            String status = (String) logLine.get(STATUS.getPrettyName());
+            service.countStatus(status);
         }
     }
 

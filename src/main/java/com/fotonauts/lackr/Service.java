@@ -55,6 +55,7 @@ public class Service extends AbstractHandler {
     protected LookupService lookupV6;
     
     public Map<String, Counter> countryTable = new HashMap<String, Counter>();
+    public Map<String, Counter> statusTable = new HashMap<String, Counter>();
     
     public Service() {
     }
@@ -141,21 +142,33 @@ public class Service extends AbstractHandler {
             request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
             state.kick();
             String countryCode = getCountry(request.getHeader("x-forwarded-for"));
-            Counter counter = null;
-            synchronized (this) {
-                counter = countryTable.get(countryCode); 
-                if(counter == null) {
-                    counter = Metrics.newCounter(new MetricName("lackr", "country", countryCode));
-                    countryTable.put(countryCode, counter);
-                }
-            }
-            counter.inc();
+            countCountry(countryCode);
         } else {
             log.debug("resuming processing for: " + request.getRequestURL());
             state.writeResponse(response);
         }
     }
 
+    public void countCountry(String countryCode) {
+        count(countryTable, "country", null, countryCode);
+    }
+    
+    public void countStatus(String statusCode) {
+        count(statusTable, "status", null, statusCode);
+    }
+
+    private static void count(Map<String, Counter> table, String type, String scope, String key) {
+        Counter counter = null;
+        synchronized (table) {
+            counter = table.get(key); 
+            if(counter == null) {
+                counter = Metrics.newCounter(new MetricName("lackr", type, key, scope));
+                table.put(key, counter);
+            }
+        }
+        counter.inc();
+    }
+    
     protected void handleStatusQuery(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
