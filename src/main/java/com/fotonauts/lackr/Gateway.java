@@ -2,6 +2,7 @@ package com.fotonauts.lackr;
 
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 
 public abstract class Gateway implements GatewayMBean {
 
@@ -12,9 +13,9 @@ public abstract class Gateway implements GatewayMBean {
     public abstract String getMBeanName();
     
     public void start() {
-        runningRequests = Metrics.newCounter(getClass(), "running-requests", getMBeanName());
-        requestCount = Metrics.newCounter(getClass(), "request-count", getMBeanName());
-        elapsedMillis = Metrics.newCounter(getClass(), "ellapsedMillis", getMBeanName());
+        runningRequests = Metrics.newCounter(new MetricName("lackr", "gw", getMBeanName(), "running-requests"));
+        requestCount = Metrics.newCounter(new MetricName("lackr", "gw", getMBeanName(), "request-count"));
+        elapsedMillis = Metrics.newCounter(new MetricName("lackr", "gw", getMBeanName(), "elapsedMillis"));
     }
     
     @Override
