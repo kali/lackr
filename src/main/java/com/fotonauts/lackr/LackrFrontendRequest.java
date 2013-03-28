@@ -6,10 +6,8 @@ import static com.fotonauts.commons.RapportrLoggingKeys.ELAPSED;
 import static com.fotonauts.commons.RapportrLoggingKeys.SIZE;
 import static com.fotonauts.commons.RapportrLoggingKeys.STATUS;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -94,7 +92,7 @@ public class LackrFrontendRequest {
     private AtomicInteger backendRequestCounts[];
 
     private ConcurrentHashMap<String, AtomicInteger> backendRequestEndpointsCounters = new ConcurrentHashMap<String, AtomicInteger>();
-    
+        
     LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
         service.getGateway().getRunningRequestsHolder().inc();

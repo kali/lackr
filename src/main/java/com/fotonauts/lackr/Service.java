@@ -1,13 +1,17 @@
 package com.fotonauts.lackr;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -26,6 +30,11 @@ import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.interpolr.Interpolr;
+import com.maxmind.geoip.Location;
+import com.maxmind.geoip.LookupService;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.MetricName;
 import com.yammer.metrics.reporting.GraphiteReporter;
 
 public class Service extends AbstractHandler {
@@ -39,6 +48,14 @@ public class Service extends AbstractHandler {
 
     protected Interpolr interpolr;
 
+    protected Pattern regexpV4 = Pattern.compile("([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
+    protected Pattern regexpV6 = Pattern.compile("([0-9a-f\\.:]+)");
+    
+    protected LookupService lookupV4;
+    protected LookupService lookupV6;
+    
+    public Map<String, Counter> countryTable = new HashMap<String, Counter>();
+    
     public Service() {
     }
 
@@ -74,7 +91,6 @@ public class Service extends AbstractHandler {
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
             for(Gateway us: b.getGateways()) {
-//                String beanName = us.getMBeanName();
                 try {
                     ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
                     mbs.registerMBean(us, name);
@@ -89,6 +105,12 @@ public class Service extends AbstractHandler {
             String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
             GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname + ".");
         }
+        
+        if(new File("/usr/share/maxmind/GeoLiteCity.dat").exists())
+            lookupV4 = new LookupService("/usr/share/maxmind/GeoLiteCity.dat", LookupService.GEOIP_MEMORY_CACHE);
+        if(new File("/usr/share/maxmind/GeoLiteCityv6.dat").exists())
+            lookupV6 = new LookupService("/usr/share/maxmind/GeoLiteCityv6.dat", LookupService.GEOIP_MEMORY_CACHE);
+
         super.doStart();
     }
 
@@ -118,6 +140,16 @@ public class Service extends AbstractHandler {
             upstreamService.getRequestCountHolder().inc();
             request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
             state.kick();
+            String countryCode = getCountry(request.getHeader("x-forwarded-for"));
+            Counter counter = null;
+            synchronized (this) {
+                counter = countryTable.get(countryCode); 
+                if(counter == null) {
+                    counter = Metrics.newCounter(new MetricName("lackr", "country", countryCode));
+                    countryTable.put(countryCode, counter);
+                }
+            }
+            counter.inc();
         } else {
             log.debug("resuming processing for: " + request.getRequestURL());
             state.writeResponse(response);
@@ -201,6 +233,19 @@ public class Service extends AbstractHandler {
         return upstreamService;
     }
 
+    public String getCountry(String ip) {
+        if(ip == null)
+            return "--";
+        Location location = null;
+        if(regexpV4.matcher(ip).matches())
+            location = lookupV4.getLocation(ip);
+        else if(regexpV6.matcher(ip).matches())
+            location = lookupV6.getLocation(ip);
+        if(location != null)
+            return location.countryCode;
+        return "--";
+    }
+    
     public void setGraphiteHostAndPort(String graphiteHostAndPort) {
         if(!StringUtils.hasText(graphiteHostAndPort))
             return;
