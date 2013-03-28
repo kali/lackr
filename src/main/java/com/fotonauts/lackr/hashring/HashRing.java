@@ -87,8 +87,9 @@ public class HashRing implements HttpDirectorInterface {
 	public void init() {
 		if (hosts == null && hostnames != null) {
 			hosts = new RingHost[hostnames.length];
-			for (int i = 0; i < hostnames.length; i++)
+			for (int i = 0; i < hostnames.length; i++) {
 				hosts[i] = new RingHost(rapportrInterface, hostnames[i], probeUrl);
+			}
 		}
 		ring = new TreeMap<Integer, RingHost>();
 		for (RingHost h : hosts) {
@@ -98,6 +99,8 @@ public class HashRing implements HttpDirectorInterface {
 				ring.put(random.nextInt(), h);
 			}
 		}
+        for (RingHost h : hosts)
+            h.start();
 		up.set(hosts.length);
 		Thread prober = new Thread() {
 			public void run() {

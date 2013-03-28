@@ -30,7 +30,15 @@ public class RingHost extends HttpHost {
     private AtomicReference<URL> probeURL = new AtomicReference<URL>();
 
     public static String getMBeanNameFromUrlPrefix(String prefix) {
-        URI uri = URI.create(prefix);
+        String baseName;
+        if(StringUtils.hasText(prefix))
+            if(prefix.startsWith("http://") || prefix.startsWith("https://"))
+                baseName = prefix;
+            else
+                baseName = "http://" + prefix;
+        else
+            baseName = "http://dummy.host.name:80/";
+        URI uri = URI.create(baseName);
         return uri.getHost().split("\\.")[0] + "-" + uri.getPort();
     }
 

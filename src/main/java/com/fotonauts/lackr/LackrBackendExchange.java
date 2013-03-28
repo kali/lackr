@@ -95,8 +95,8 @@ public abstract class LackrBackendExchange {
             logLine.put(PARENT.getPrettyName(), backendRequest.getParent());
         }
 
-        getUpstream().getRequestCountHolder().incrementAndGet();
-        getUpstream().getRunningRequestsHolder().incrementAndGet();
+        getUpstream().getRequestCountHolder().inc();
+        getUpstream().getRunningRequestsHolder().inc();
 
         doStart();
     }
@@ -106,8 +106,8 @@ public abstract class LackrBackendExchange {
         long endTimestamp = System.currentTimeMillis();
         
         try {
-            getUpstream().getRunningRequestsHolder().decrementAndGet();
-            getUpstream().getElapsedMillisHolder().addAndGet(endTimestamp - startTimestamp);
+            getUpstream().getRunningRequestsHolder().dec();
+            getUpstream().getElapsedMillisHolder().inc(endTimestamp - startTimestamp);
         } catch (NotAvailableException e) {
             // At this stage, this is highly unlikely as it has been picked at start time
         }

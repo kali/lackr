@@ -33,6 +33,7 @@ public class InProcessFemtor implements Backend {
             }
 	        
 	    } };
+	    this.upstreamServices[0].start();
 	}
 
 	@SuppressWarnings("deprecation")

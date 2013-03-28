@@ -1,39 +1,46 @@
 package com.fotonauts.lackr;
 
-import java.util.concurrent.atomic.AtomicLong;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
 
 public abstract class Gateway implements GatewayMBean {
 
-    private AtomicLong runningRequests = new AtomicLong();
-    private AtomicLong requestCount = new AtomicLong();
-    private AtomicLong elapsedMillis = new AtomicLong();
+    private Counter runningRequests;
+    private Counter requestCount;
+    private Counter elapsedMillis;
 
     public abstract String getMBeanName();
     
+    public void start() {
+        runningRequests = Metrics.newCounter(getClass(), "running-requests", getMBeanName());
+        requestCount = Metrics.newCounter(getClass(), "request-count", getMBeanName());
+        elapsedMillis = Metrics.newCounter(getClass(), "ellapsedMillis", getMBeanName());
+    }
+    
     @Override
     public long getRequestCount() {
-        return requestCount.get();
+        return requestCount.count();
     }
 
     @Override
     public long getRunningRequests() {
-        return runningRequests.get();
+        return runningRequests.count();
     }
 
     @Override
     public long getElapsedMillis() {
-        return elapsedMillis.get();
+        return elapsedMillis.count();
     }
 
-    public AtomicLong getRequestCountHolder() {
+    public Counter getRequestCountHolder() {
         return requestCount;
     }
 
-    public AtomicLong getElapsedMillisHolder() {
+    public Counter getElapsedMillisHolder() {
         return elapsedMillis;
     }
     
-    public AtomicLong getRunningRequestsHolder() {
+    public Counter getRunningRequestsHolder() {
         return runningRequests;
     }
    

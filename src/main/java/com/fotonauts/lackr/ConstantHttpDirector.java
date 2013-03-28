@@ -23,7 +23,7 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
                 return direction;
             }
         };
-        
+        host.start();
 		this.gateways = new Gateway[] { host };
     }
 	

@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -96,10 +97,10 @@ public class LackrFrontendRequest {
     
     LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
-        long id = service.getGateway().getRunningRequestsHolder().incrementAndGet();
+        service.getGateway().getRunningRequestsHolder().inc();
         opid = request.getHeader("X-Ftn-OperationId");
         if (opid == null)
-            opid = "<noopid:" + id + ">";
+            opid = "<noopid:" + UUID.randomUUID().toString() + ">";
         this.request = request;
         this.mustacheContext = new MustacheContext();
         this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
@@ -116,7 +117,7 @@ public class LackrFrontendRequest {
 
             @Override
             public void onComplete(Continuation continuation) {
-                service.getGateway().getRunningRequestsHolder().decrementAndGet();
+                service.getGateway().getRunningRequestsHolder().dec();
             }
         });
         this.pendingCount = new AtomicInteger(0);
@@ -232,7 +233,7 @@ public class LackrFrontendRequest {
             logLine.put(ELAPSED.getPrettyName(), 1.0 * (endTimestamp - startTimestamp) / 1000);
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
-            service.getGateway().getElapsedMillisHolder().addAndGet(endTimestamp - startTimestamp);
+            service.getGateway().getElapsedMillisHolder().inc(endTimestamp - startTimestamp);
         }
     }
 

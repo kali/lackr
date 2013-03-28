@@ -69,11 +69,12 @@ public class Service extends AbstractHandler {
 
     @Override
     protected void doStart() throws Exception {
+        upstreamService.start();
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for(Backend b: backends) {
             for(Gateway us: b.getGateways()) {
-                String beanName = us.getMBeanName();
+//                String beanName = us.getMBeanName();
                 try {
                     ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
                     mbs.registerMBean(us, name);
@@ -114,7 +115,7 @@ public class Service extends AbstractHandler {
         if (state == null) {
             log.debug("starting processing for: " + request.getRequestURL());
             state = new LackrFrontendRequest(this, request);
-            upstreamService.getRequestCountHolder().incrementAndGet();
+            upstreamService.getRequestCountHolder().inc();
             request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
             state.kick();
         } else {
