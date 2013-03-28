@@ -241,7 +241,7 @@ public class LackrFrontendRequest {
                 endpoint = endpoint.replace('/', '-').replace('.', '-').replaceAll("\\*\\*", "XXX").replace('*', 'X');
                 service.countEndpointWithTimer(endpoint, endTimestamp - startTimestamp);
                 for (Map.Entry<String, AtomicInteger> beEndpoint : backendRequestEndpointsCounters.entrySet()) {
-                    service.countPicorEpPerEP(endpoint, beEndpoint.getKey(), beEndpoint.getValue().intValue());
+                    service.countPicorEpPerEP(endpoint, beEndpoint.getKey().replace('/', '-').replace('.', '-'), beEndpoint.getValue().intValue());
                 }
                 for (int i = 0; i < service.getBackends().length; i++) {
                     int value = this.backendRequestCounts[i].get();
