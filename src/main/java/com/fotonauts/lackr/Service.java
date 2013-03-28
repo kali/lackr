@@ -240,6 +240,7 @@ public class Service extends AbstractHandler {
             }
             backend.stop();
         }
+        Metrics.shutdown();
     }
 
     public Gateway getGateway() {
