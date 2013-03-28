@@ -49,8 +49,8 @@ import com.mongodb.BasicDBObject;
 
 public class LackrFrontendRequest {
     static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
-            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since", "if-none-match", 
-            "range", "accept-ranges" };
+            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since",
+            "if-none-match", "range", "accept-ranges" };
 
     static boolean skipHeader(String header) {
         for (String skip : headersToSkip) {
@@ -65,7 +65,7 @@ public class LackrFrontendRequest {
     static Logger log = LoggerFactory.getLogger(LackrFrontendRequest.class);
 
     protected HttpServletRequest request;
-    
+
     protected Map<String, String> ancillialiaryHeaders = Collections.synchronizedMap(new HashMap<String, String>(5));
 
     protected Service service;
@@ -93,7 +93,7 @@ public class LackrFrontendRequest {
     private AtomicInteger backendRequestCounts[];
 
     private ConcurrentHashMap<String, AtomicInteger> backendRequestEndpointsCounters = new ConcurrentHashMap<String, AtomicInteger>();
-        
+
     LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
         this.service = service;
         service.getGateway().getRunningRequestsHolder().inc();
@@ -103,7 +103,7 @@ public class LackrFrontendRequest {
         this.request = request;
         this.mustacheContext = new MustacheContext();
         this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
-        for(int i = 0; i<service.getBackends().length ; i++)
+        for (int i = 0; i < service.getBackends().length; i++)
             this.backendRequestCounts[i] = new AtomicInteger();
         this.continuation = ContinuationSupport.getContinuation(request);
         this.continuation.setTimeout(getService().getTimeout() * 1000);
@@ -184,7 +184,7 @@ public class LackrFrontendRequest {
                     response.addHeader(name, value);
             }
         }
-        if(rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE) != null)
+        if (rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE) != null)
             response.addHeader(HttpHeaders.CONTENT_TYPE, rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE));
     }
 
@@ -200,23 +200,23 @@ public class LackrFrontendRequest {
             response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
         preflightCheck();
         BasicDBObject backendRequestCounters = new BasicDBObject();
-        for(int i = 0; i<service.getBackends().length ; i++) {
+        for (int i = 0; i < service.getBackends().length; i++) {
             int value = this.backendRequestCounts[i].get();
-            if(value > 0)
-                  backendRequestCounters.put(service.getBackends()[i].getClass().getSimpleName() + "-" + i, value);
+            if (value > 0)
+                backendRequestCounters.put(service.getBackends()[i].getClass().getSimpleName() + "-" + i, value);
         }
         logLine.put("counters", backendRequestCounters);
 
         BasicDBList backendEndpointCounters = new BasicDBList();
-        for(Map.Entry<String, AtomicInteger> endpoint : backendRequestEndpointsCounters.entrySet()) {
+        for (Map.Entry<String, AtomicInteger> endpoint : backendRequestEndpointsCounters.entrySet()) {
             BasicDBObject obj = new BasicDBObject();
             obj.append("ep", endpoint.getKey());
             obj.append("c", endpoint.getValue());
             backendEndpointCounters.add(obj);
         }
-        if(backendEndpointCounters.size() > 0)
+        if (backendEndpointCounters.size() > 0)
             logLine.put("peps", backendEndpointCounters);
-        
+
         try {
             if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
                 writeErrorResponse(response);
@@ -236,9 +236,12 @@ public class LackrFrontendRequest {
             String status = logLine.getString(STATUS.getPrettyName());
             service.countStatus(status);
             String endpoint = FrontendEndpointMatcher.matchUrl(logLine.getString("path"), request.getQueryString());
-            if(endpoint != null) {
+            if (endpoint != null) {
                 endpoint = endpoint.replace('/', '-').replace('.', '-').replaceAll("\\*\\*", "XXX").replace('*', 'X');
                 service.countEndpointWithTimer(endpoint, endTimestamp - startTimestamp);
+                for (Map.Entry<String, AtomicInteger> beEndpoint : backendRequestEndpointsCounters.entrySet()) {
+                    service.countBePerEP(endpoint, beEndpoint.getKey(), beEndpoint.getValue().intValue());
+                }
             }
         }
     }
@@ -285,7 +288,7 @@ public class LackrFrontendRequest {
                                     c.getValue(), domain, 2145852000 - System.currentTimeMillis() / 1000));
                 }
         }
-        
+
         log.debug("writing success response for " + rootRequest.getQuery());
         if (rootRequest.getParsedDocument().length() > 0) {
             String etag = generateEtag(rootRequest.getParsedDocument());
@@ -374,9 +377,10 @@ public class LackrFrontendRequest {
         if (pendingCount.decrementAndGet() <= 0) {
             if (log.isDebugEnabled())
                 log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size() + " exceptions.");
-            while(continuation.isInitial()) {
-//                System.err.println("finished early");
-                // rare race condition where we get there (processing all done) before the initial incoming query handling has been done
+            while (continuation.isInitial()) {
+                // System.err.println("finished early");
+                // rare race condition where we get there (processing all done)
+                // before the initial incoming query handling has been done
                 try {
                     Thread.sleep(10);
                 } catch (InterruptedException e) {
@@ -406,7 +410,7 @@ public class LackrFrontendRequest {
     public AtomicInteger[] getBackendRequestCounts() {
         return backendRequestCounts;
     }
-    
+
     public ConcurrentHashMap<String, AtomicInteger> getBackendRequestEndpointsCounters() {
         return backendRequestEndpointsCounters;
     }

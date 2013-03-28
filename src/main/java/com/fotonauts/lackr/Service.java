@@ -58,6 +58,7 @@ public class Service extends AbstractHandler {
     public Map<String, Counter> statusTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointCounterTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointTimerTable = new HashMap<String, Counter>();
+    public Map<String, Counter> bePerEPTable = new HashMap<String, Counter>();
     
     public Service() {
     }
@@ -164,6 +165,10 @@ public class Service extends AbstractHandler {
         counter(endpointTimerTable, "EP", endpoint, "ms").inc(d);
     }
     
+    public void countBePerEP(String endpoint, String be, int n) {
+        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "counter").inc(n);
+    }
+
     private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
         String fullKey = scope == null ? key : scope + key; 
         synchronized (table) {
