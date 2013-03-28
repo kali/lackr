@@ -237,7 +237,7 @@ public class LackrFrontendRequest {
             service.countStatus(status);
             String endpoint = FrontendEndpointMatcher.matchUrl(logLine.getString("path"), request.getQueryString());
             if(endpoint != null)
-                endpoint = endpoint.replace('/', '.').replaceAll("\\*\\*", "XXX").replaceAll("\\*", "X");
+                endpoint = endpoint.replace('/', '-').replace('.', '-').replaceAll("\\*\\*", "XXX").replace('*', 'X');
                 service.countEndpointWithTimer(endpoint, endTimestamp - startTimestamp);
         }
     }
