@@ -166,7 +166,8 @@ public class Service extends AbstractHandler {
     }
     
     public void countBePerEP(String endpoint, String be, int n) {
-        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "counter").inc(n);
+        String shortName = be.startsWith("InProcess") ? "femtor" : "varnish";
+        counter(bePerEPTable, "EP", endpoint + ".BE." + shortName, "counter").inc(n);
     }
 
     private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
