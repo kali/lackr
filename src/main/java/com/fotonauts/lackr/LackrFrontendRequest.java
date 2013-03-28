@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
 import com.fotonauts.commons.FrontendEndpointMatcher;
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.commons.UserAgent;
+import com.fotonauts.lackr.femtor.InProcessFemtor;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.MustacheContext;
@@ -240,8 +241,16 @@ public class LackrFrontendRequest {
                 endpoint = endpoint.replace('/', '-').replace('.', '-').replaceAll("\\*\\*", "XXX").replace('*', 'X');
                 service.countEndpointWithTimer(endpoint, endTimestamp - startTimestamp);
                 for (Map.Entry<String, AtomicInteger> beEndpoint : backendRequestEndpointsCounters.entrySet()) {
-                    service.countBePerEP(endpoint, beEndpoint.getKey(), beEndpoint.getValue().intValue());
+                    service.countPicorEpPerEP(endpoint, beEndpoint.getKey(), beEndpoint.getValue().intValue());
                 }
+                for (int i = 0; i < service.getBackends().length; i++) {
+                    int value = this.backendRequestCounts[i].get();
+                    if (value > 0) {
+                        String nicerName = service.getBackends()[i].getClass() == InProcessFemtor.class ? "femtor" : "http-" + i;
+                        service.countBePerEP(endpoint, nicerName, value);
+                    }
+                }
+
             }
         }
     }

@@ -50,16 +50,17 @@ public class Service extends AbstractHandler {
 
     protected Pattern regexpV4 = Pattern.compile("([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+)");
     protected Pattern regexpV6 = Pattern.compile("([0-9a-f\\.:]+)");
-    
+
     protected LookupService lookupV4;
     protected LookupService lookupV6;
-    
+
     public Map<String, Counter> countryTable = new HashMap<String, Counter>();
     public Map<String, Counter> statusTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointCounterTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointTimerTable = new HashMap<String, Counter>();
     public Map<String, Counter> bePerEPTable = new HashMap<String, Counter>();
-    
+    public Map<String, Counter> picorEpPerEPTable = new HashMap<String, Counter>();
+
     public Service() {
     }
 
@@ -77,7 +78,7 @@ public class Service extends AbstractHandler {
     private Executor executor;
     private String femtorBackend;
     private ObjectMapper objectMapper = new ObjectMapper();
-    
+
     private String graphiteHost = null;
     private int graphitePort = 0;
 
@@ -93,8 +94,8 @@ public class Service extends AbstractHandler {
         upstreamService.start();
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
-        for(Backend b: backends) {
-            for(Gateway us: b.getGateways()) {
+        for (Backend b : backends) {
+            for (Gateway us : b.getGateways()) {
                 try {
                     ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
                     mbs.registerMBean(us, name);
@@ -105,14 +106,14 @@ public class Service extends AbstractHandler {
             }
         }
         setExecutor(Executors.newFixedThreadPool(64));
-        if(graphiteHost != null && graphitePort != 0) {
+        if (graphiteHost != null && graphitePort != 0) {
             String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
             GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname);
         }
-        
-        if(new File("/usr/share/maxmind/GeoLiteCity.dat").exists())
+
+        if (new File("/usr/share/maxmind/GeoLiteCity.dat").exists())
             lookupV4 = new LookupService("/usr/share/maxmind/GeoLiteCity.dat", LookupService.GEOIP_MEMORY_CACHE);
-        if(new File("/usr/share/maxmind/GeoLiteCityv6.dat").exists())
+        if (new File("/usr/share/maxmind/GeoLiteCityv6.dat").exists())
             lookupV6 = new LookupService("/usr/share/maxmind/GeoLiteCityv6.dat", LookupService.GEOIP_MEMORY_CACHE);
 
         super.doStart();
@@ -122,11 +123,11 @@ public class Service extends AbstractHandler {
         System.err.println("gna gna gna");
         backends[0].dumpStatus(System.err);
     }
-    
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-        
+
         if (request.getRequestURI().equals("/_lackr_status")) {
             handleStatusQuery(target, baseRequest, request, response);
             return;
@@ -155,7 +156,7 @@ public class Service extends AbstractHandler {
     public void countCountry(String countryCode) {
         counter(countryTable, "country", null, countryCode).inc();
     }
-    
+
     public void countStatus(String statusCode) {
         counter(statusTable, "status", null, statusCode).inc();
     }
@@ -164,24 +165,27 @@ public class Service extends AbstractHandler {
         counter(endpointCounterTable, "EP", endpoint, "counter").inc();
         counter(endpointTimerTable, "EP", endpoint, "ms").inc(d);
     }
-    
+
     public void countBePerEP(String endpoint, String be, int n) {
-        String shortName = be.startsWith("InProcess") ? "femtor" : "varnish";
-        counter(bePerEPTable, "EP", endpoint + ".BE." + shortName, "counter").inc(n);
+        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "counter").inc(n);
+    }
+
+    public void countPicorEpPerEP(String endpoint, String be, int n) {
+        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "counter").inc(n);
     }
 
     private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
-        String fullKey = scope == null ? key : scope + key; 
+        String fullKey = scope == null ? key : scope + key;
         synchronized (table) {
-            Counter counter = table.get(fullKey); 
-            if(counter == null) {
+            Counter counter = table.get(fullKey);
+            if (counter == null) {
                 counter = Metrics.newCounter(new MetricName("lackr", type, key, scope));
                 table.put(fullKey, counter);
             }
             return counter;
         }
     }
-    
+
     protected void handleStatusQuery(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
@@ -247,7 +251,7 @@ public class Service extends AbstractHandler {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
-            for(Gateway us: backend.getGateways()) {
+            for (Gateway us : backend.getGateways()) {
                 ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
                 mbs.unregisterMBean(name);
             }
@@ -261,20 +265,20 @@ public class Service extends AbstractHandler {
     }
 
     public String getCountry(String ip) {
-        if(ip == null)
+        if (ip == null)
             return "--";
         Location location = null;
-        if(regexpV4.matcher(ip).matches())
+        if (regexpV4.matcher(ip).matches())
             location = lookupV4.getLocation(ip);
-        else if(regexpV6.matcher(ip).matches())
+        else if (regexpV6.matcher(ip).matches())
             location = lookupV6.getLocation(ip);
-        if(location != null)
+        if (location != null)
             return location.countryCode;
         return "--";
     }
-    
+
     public void setGraphiteHostAndPort(String graphiteHostAndPort) {
-        if(!StringUtils.hasText(graphiteHostAndPort))
+        if (!StringUtils.hasText(graphiteHostAndPort))
             return;
         String[] tokens = graphiteHostAndPort.split(":");
         graphiteHost = tokens[0];
