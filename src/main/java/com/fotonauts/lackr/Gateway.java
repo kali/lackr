@@ -13,9 +13,9 @@ public abstract class Gateway implements GatewayMBean {
     public abstract String getMBeanName();
     
     public void start() {
-        runningRequests = Metrics.newCounter(new MetricName("lackr", "gw", getMBeanName(), "running-requests"));
-        requestCount = Metrics.newCounter(new MetricName("lackr", "gw", getMBeanName(), "request-count"));
-        elapsedMillis = Metrics.newCounter(new MetricName("lackr", "gw", getMBeanName(), "elapsedMillis"));
+        runningRequests = Metrics.newCounter(new MetricName("lackr", "gw", "running-requests", getMBeanName()));
+        requestCount = Metrics.newCounter(new MetricName("lackr", "gw", "request-count", getMBeanName()));
+        elapsedMillis = Metrics.newCounter(new MetricName("lackr", "gw", "elapsedMillis", getMBeanName()));
     }
     
     @Override
