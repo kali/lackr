@@ -56,6 +56,8 @@ public class Service extends AbstractHandler {
     
     public Map<String, Counter> countryTable = new HashMap<String, Counter>();
     public Map<String, Counter> statusTable = new HashMap<String, Counter>();
+    public Map<String, Counter> endpointCounterTable = new HashMap<String, Counter>();
+    public Map<String, Counter> endpointTimerTable = new HashMap<String, Counter>();
     
     public Service() {
     }
@@ -150,23 +152,27 @@ public class Service extends AbstractHandler {
     }
 
     public void countCountry(String countryCode) {
-        count(countryTable, "country", null, countryCode);
+        counter(countryTable, "country", null, countryCode).inc();
     }
     
     public void countStatus(String statusCode) {
-        count(statusTable, "status", null, statusCode);
+        counter(statusTable, "status", null, statusCode).inc();
     }
 
-    private static void count(Map<String, Counter> table, String type, String scope, String key) {
-        Counter counter = null;
+    public void countEndpointWithTimer(String endpoint, long d) {
+        counter(endpointCounterTable, "EP", endpoint, "counter").inc();
+        counter(endpointCounterTable, "EP", endpoint, "ms").inc(d);
+    }
+    
+    private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
         synchronized (table) {
-            counter = table.get(key); 
+            Counter counter = table.get(key); 
             if(counter == null) {
                 counter = Metrics.newCounter(new MetricName("lackr", type, key, scope));
                 table.put(key, counter);
             }
+            return counter;
         }
-        counter.inc();
     }
     
     protected void handleStatusQuery(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
@@ -267,5 +273,5 @@ public class Service extends AbstractHandler {
         graphiteHost = tokens[0];
         graphitePort = Integer.parseInt(tokens[1]);
     }
-    
+
 }

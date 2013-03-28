@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
+import com.fotonauts.commons.FrontendEndpointMatcher;
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.commons.UserAgent;
 import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
@@ -232,8 +233,10 @@ public class LackrFrontendRequest {
             logLine.put(DATE.getPrettyName(), new Date().getTime());
             service.getRapportr().log(logLine);
             service.getGateway().getElapsedMillisHolder().inc(endTimestamp - startTimestamp);
-            String status = (String) logLine.get(STATUS.getPrettyName());
+            String status = logLine.getString(STATUS.getPrettyName());
             service.countStatus(status);
+            String endpoint = FrontendEndpointMatcher.matchUrl(logLine.getString("path"), request.getQueryString());
+            service.countEndpointWithTimer(endpoint, endTimestamp - startTimestamp);
         }
     }
 
