@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -422,5 +423,16 @@ public class LackrFrontendRequest {
 
     public ConcurrentHashMap<String, AtomicInteger> getBackendRequestEndpointsCounters() {
         return backendRequestEndpointsCounters;
+    }
+
+    public Locale getPreferredLocale() {
+        String hostname = request.getHeader("Host");
+        String langForHostname = hostname.split("[\\.:]")[0];
+        if(langForHostname.equals("www") || langForHostname.equals("localhost"))
+            langForHostname = "en";
+        if(request.getLocale().getLanguage() == langForHostname)
+            return request.getLocale();
+        else
+            return Locale.forLanguageTag(langForHostname);
     }
 }

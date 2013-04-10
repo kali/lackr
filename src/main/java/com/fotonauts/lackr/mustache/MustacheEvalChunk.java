@@ -43,6 +43,7 @@ public class MustacheEvalChunk implements Chunk {
             inner.writeTo(baos);
             data = mapper.readValue(baos.toByteArray(), Map.class);
             data.put("_ftn_inline_images", request.getFrontendRequest().getUserAgent().supportsInlineImages());
+            data.put("_ftn_locale", request.getFrontendRequest().getPreferredLocale());
             MustacheContext context = request.getFrontendRequest().getMustacheContext();
             Template template = context.get(name);
             if (template == null) {

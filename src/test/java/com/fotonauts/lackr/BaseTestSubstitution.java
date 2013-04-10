@@ -56,14 +56,20 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     }
 
 	public String expand(String testPage) throws IOException, InterruptedException {
-		return expand(testPage, false);
+		return expand(testPage, false, null);
 	}
 	
-	public String expand(String testPage, boolean expectNon200) throws IOException, InterruptedException {
+    public String expand(String testPage, boolean expectNon200) throws IOException, InterruptedException {
+        return expand(testPage, expectNon200, null);
+    }
+
+    public String expand(String testPage, boolean expectNon200, String hostname) throws IOException, InterruptedException {
     	ContentExchange e = new ContentExchange(true);
     	page.setLength(0);
     	page.append(testPage);
     	e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/page.html");
+    	if(hostname != null)
+    	    e.setRequestHeader("Host", hostname);
     	client.send(e);
     	while (!e.isDone())
     		Thread.sleep(10);

@@ -2,8 +2,7 @@ package com.fotonauts.lackr.mustache;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -12,11 +11,14 @@ import java.util.Map.Entry;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
 import com.fotonauts.lackr.mustache.helpers.ReverseEachHelper;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Template;
-import com.github.jknack.handlebars.TemplateLoader;
+import com.github.jknack.handlebars.io.StringTemplateSource;
+import com.github.jknack.handlebars.io.TemplateLoader;
+import com.github.jknack.handlebars.io.TemplateSource;
 
 public class MustacheContext {
 
@@ -29,18 +31,27 @@ public class MustacheContext {
         compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>());
         TemplateLoader loader = new TemplateLoader() {
 
-            @Override
-            public String resolve(String uri) {
-                return uri;
+            public TemplateSource sourceAt(final URI uri) throws IOException {
+                return new StringTemplateSource(uri.toString(), getExpandedTemplate(uri.toString()));
             }
-            
+
+            public String resolve(URI uri) {
+                return uri.toString();
+            }
+
             @Override
-            protected Reader read(String location) throws IOException {
-                return new StringReader(getExpandedTemplate(location));
+            public String getPrefix() {
+                return "";
+            }
+
+            @Override
+            public String getSuffix() {
+                return "";
             }
         };
         handlebars = new Handlebars(loader);
         handlebars.registerHelper(ReverseEachHelper.NAME, ReverseEachHelper.INSTANCE);
+        handlebars.registerHelpers(new DateTimeFormatterHelpers());
     }
 
     public void checkAndCompileAll(List<LackrPresentableError> backendExceptions) {
@@ -71,25 +82,9 @@ public class MustacheContext {
                 backendExceptions.add(new LackrPresentableError(builder.toString()));
             }
 
-            /*
-             * } catch (MustacheParseException e) { StringBuilder builder = new
-             * StringBuilder(); builder.append("MustacheParseException\n");
-             * builder.append(e.getMessage() + "\n");
-             * builder.append("template name: " + registered.getKey() + "\n");
-             * String lines[] = expanded.split("\n"); for (int i = 0; i <
-             * lines.length; i++) builder.append(String.format("% 3d %s\n", i +
-             * 1, lines[i])); builder.append("\n"); backendExceptions.add(new
-             * LackrPresentableError(builder.toString())); }
-             */
         }
     }
 
-    /*
-     * private TemplateLoader getLoader() { return new TemplateLoader() {
-     * 
-     * @Override public Reader getTemplate(String name) throws Exception {
-     * return new StringReader(getExpandedTemplate(name)); } }; }
-     */
     public void registerTemplate(String name, Document template) {
         registeredTemplatesDocument.put(name, template);
     }
