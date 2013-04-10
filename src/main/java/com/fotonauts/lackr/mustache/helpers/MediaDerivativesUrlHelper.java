@@ -16,11 +16,24 @@ public class MediaDerivativesUrlHelper implements Helper<Object> {
     }
 
     @Override
-    public CharSequence apply(Object itemAsObject, Options options) throws IOException {
+    public CharSequence apply(Object pictureAsObject, Options options) throws IOException {
         @SuppressWarnings("unchecked")
-        Map<String, Object> item = (Map<String, Object>) itemAsObject;
+        Map<String, Object> picture = (Map<String, Object>) pictureAsObject;
+        String kind = (String) options.hash("kind");
 
-        String grid = (String) item.get("upload_grid");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> derivatives = (Map<String, Object>) picture.get("img_derivatives");
+        if(derivatives != null) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> derivative = (Map<String, Object>) derivatives.get(kind);
+            if(derivative != null) {
+                String url = (String) derivative.get("url");
+                if(url != null)
+                    return url;
+            }
+        }
+        
+        String grid = (String) picture.get("upload_grid");
         if (grid == null)
             grid = service.getGrid();
         if (grid == null || grid.equals(""))
@@ -45,11 +58,11 @@ public class MediaDerivativesUrlHelper implements Helper<Object> {
             break;
         }
 
-        String mediaBaseId = (String) item.get("media_base_id");
+        String mediaBaseId = (String) picture.get("media_base_id");
         if (mediaBaseId == null)
-            mediaBaseId = (String) item.get("_id");
+            mediaBaseId = (String) picture.get("_id");
 
-        String format = (String) item.get("format");
+        String format = (String) picture.get("format");
         if (format == null)
             format = "JPEG";
         String ext;
@@ -67,8 +80,6 @@ public class MediaDerivativesUrlHelper implements Helper<Object> {
             ext = "jpg";
             break;
         }
-
-        String kind = (String) options.hash("kind");
 
         return String.format("http://%s/%s-%s.%s", cdnHostname, mediaBaseId, kind, ext);
     }

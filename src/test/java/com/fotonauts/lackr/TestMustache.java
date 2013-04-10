@@ -218,12 +218,15 @@ public class TestMustache extends BaseTestSubstitution {
                 + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\" } },\n"
                 + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"media_base_id\": \"kali-12\" } },\n"
                 + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"format\": \"PNG\" } },\n"
-                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"upload_grid\": \"testing\" } }\n"
+                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"upload_grid\": \"testing\" } },\n"
+                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", "
+                + "                 \"img_derivatives\" : { \"image\" : { \"url\" : \"http://picor_url/\" } } } }\n"
                 + "] }<!-- /lackr:mustache:eval -->\n";
         String result = expand(page).trim();
         assertEquals("http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.jpg\n"
                 + "http://images.cdn.fotopedia.com/kali-12-image.jpg\n"
                 + "http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.png\n"
-                + "http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg", result);
+                + "http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg\n"
+                + "http://picor_url/", result);
     }
 }
