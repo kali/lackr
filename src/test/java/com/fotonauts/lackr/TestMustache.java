@@ -1,17 +1,12 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
-
-import java.util.Date;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import com.ibm.icu.text.DurationFormat;
-import com.ibm.icu.util.ULocale;
 
 public class TestMustache extends BaseTestSubstitution {
 
@@ -124,8 +119,16 @@ public class TestMustache extends BaseTestSubstitution {
     public void testInlineLocaleSupport() throws Exception {
         String result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n" + " inline:{{_ftn_locale}}\n"
                 + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"template_name\" -->\n" + "{ }\n"
+                + "<!-- /lackr:mustache:eval -->\n", false, "es.localhost");
+        assertEquals("\n\n inline:es\n\n", result);
+        result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n" + " inline:{{_ftn_locale}}\n"
+                + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"template_name\" -->\n" + "{ }\n"
+                + "<!-- /lackr:mustache:eval -->\n", false, "fr.localhost");
+        assertEquals("\n\n inline:fr\n\n", result);
+        result = expand("<!-- lackr:mustache:template name=\"template_name\" -->\n" + " inline:{{_ftn_locale}}\n"
+                + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"template_name\" -->\n" + "{ }\n"
                 + "<!-- /lackr:mustache:eval -->\n");
-        assertEquals("\n\n inline:en\n\n", result);
+        assertTrue(result.indexOf("inline:en") >= 0);
     }
 
     @Test
