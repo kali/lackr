@@ -54,6 +54,8 @@ public class Service extends AbstractHandler {
     protected LookupService lookupV4;
     protected LookupService lookupV6;
 
+    private String grid = "prod";
+    
     public Map<String, Counter> countryTable = new HashMap<String, Counter>();
     public Map<String, Counter> statusTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointCounterTable = new HashMap<String, Counter>();
@@ -283,6 +285,14 @@ public class Service extends AbstractHandler {
         String[] tokens = graphiteHostAndPort.split(":");
         graphiteHost = tokens[0];
         graphitePort = Integer.parseInt(tokens[1]);
+    }
+
+    public String getGrid() {
+        return grid;
+    }
+
+    public void setGrid(String grid) {
+        this.grid = grid;
     }
 
 }

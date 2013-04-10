@@ -103,7 +103,7 @@ public class LackrFrontendRequest {
         if (opid == null)
             opid = "<noopid:" + UUID.randomUUID().toString() + ">";
         this.request = request;
-        this.mustacheContext = new MustacheContext();
+        this.mustacheContext = new MustacheContext(this);
         this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
         for (int i = 0; i < service.getBackends().length; i++)
             this.backendRequestCounts[i] = new AtomicInteger();

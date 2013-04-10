@@ -182,8 +182,8 @@ public class TestMustache extends BaseTestSubstitution {
         String en = expand(page, false, "localhost");
         String[] got = en.trim().split("\\n");
         String[] expected = new String[] { "7/20/69, 7:18 PM", "Jul 20, 1969, 7:18:00 PM", "July 20, 1969 at 7:18:00 PM GMT",
-                "Sunday, July 20, 1969 at 7:18:00 PM GMT", "7/20/69", "Jul 20, 1969", "July 20, 1969",
-                "Sunday, July 20, 1969", "7:18 PM", "7:18:00 PM", "7:18:00 PM GMT", "7:18:00 PM GMT" };
+                "Sunday, July 20, 1969 at 7:18:00 PM GMT", "7/20/69", "Jul 20, 1969", "July 20, 1969", "Sunday, July 20, 1969",
+                "7:18 PM", "7:18:00 PM", "7:18:00 PM GMT", "7:18:00 PM GMT" };
         Assert.assertArrayEquals(expected, got);
 
         String fr = expand(page, false, "fr.localhost");
@@ -196,10 +196,9 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testRelativeDateTime() throws Exception {
-        String page = "<!-- lackr:mustache:template name=\"t\" -->\n"
-                + "{{relative_datetime at}}\n" + "<!-- /lackr:mustache:template -->\n"
-                + "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": " + (System.currentTimeMillis() / 1000 + 86410) + " }\n"
-                + "<!-- /lackr:mustache:eval -->\n";
+        String page = "<!-- lackr:mustache:template name=\"t\" -->\n" + "{{relative_datetime at}}\n"
+                + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": "
+                + (System.currentTimeMillis() / 1000 + 86410) + " }\n" + "<!-- /lackr:mustache:eval -->\n";
         String en = expand(page, false, "localhost");
         String[] got = en.trim().split("\\n");
         String[] expected = new String[] { "1 day from now" };
@@ -209,5 +208,22 @@ public class TestMustache extends BaseTestSubstitution {
         String[] obtenu = fr.trim().split("\\n");
         String[] attendu = new String[] { "dans 1 jour" };
         Assert.assertArrayEquals(attendu, obtenu);
+    }
+
+    @Test
+    public void testDerivatives() throws Exception {
+        String page = "<!-- lackr:mustache:template name=\"t\" -->{{#items}}{{derivative item kind=\"image\"}}\n{{/items}}<!-- /lackr:mustache:template -->"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n"
+                + "{ \"items\": ["
+                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\" } },\n"
+                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"media_base_id\": \"kali-12\" } },\n"
+                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"format\": \"PNG\" } },\n"
+                + "{ \"item\": { \"_id\" : \"kali-hNvjiyDiSOA\", \"upload_grid\": \"testing\" } }\n"
+                + "] }<!-- /lackr:mustache:eval -->\n";
+        String result = expand(page).trim();
+        assertEquals("http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.jpg\n"
+                + "http://images.cdn.fotopedia.com/kali-12-image.jpg\n"
+                + "http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.png\n"
+                + "http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg", result);
     }
 }

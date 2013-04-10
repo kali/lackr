@@ -7,7 +7,7 @@
 	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd 
 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 	">
-	
+
 	<context:property-placeholder order="10"
 		location="${lackr.properties}" ignore-resource-not-found="true"
 		ignore-unresolvable="true" />
@@ -20,9 +20,9 @@
 
 	<bean id="server-factory" class="com.fotonauts.lackr.JMXAwareServerFactory" />
 
-	<bean id="Server" class="org.eclipse.jetty.server.Server" lazy-init="true"
-		factory-bean="server-factory" factory-method="getObject" init-method="start"
-		destroy-method="stop" p:handler-ref="proxyService">
+	<bean id="Server" class="org.eclipse.jetty.server.Server"
+		lazy-init="true" factory-bean="server-factory" factory-method="getObject"
+		init-method="start" destroy-method="stop" p:handler-ref="proxyService">
 
 		<property name="connectors">
 			<list>
@@ -40,7 +40,7 @@
 
 	<bean id="proxyService" class="com.fotonauts.lackr.Service"
 		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
-		p:graphiteHostAndPort="${lackr.graphite}"
+		p:graphiteHostAndPort="${lackr.graphite}" p:grid="${lackr.grid}"
 		p:rapportr-ref="rapportr" lazy-init="true">
 		<property name="backends">
 			<array>
