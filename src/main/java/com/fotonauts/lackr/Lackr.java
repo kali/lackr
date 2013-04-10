@@ -12,6 +12,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Log4jConfigurer;
 
+import com.ibm.icu.util.TimeZone;
+
 
 public class Lackr {
 
@@ -32,6 +34,8 @@ public class Lackr {
 		CmdLineParser parser = new CmdLineParser(this);
 
 		try {
+		    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+		    
 			System.setProperty("org.mortbay.util.URI.charset", "UTF-8");
 			System.setProperty("org.eclipse.jetty.util.URI.charset", "UTF-8");
 

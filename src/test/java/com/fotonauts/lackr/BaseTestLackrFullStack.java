@@ -34,6 +34,7 @@ import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.util.Log4jConfigurer;
 
 import com.fotonauts.lackr.client.JettyBackend;
+import com.ibm.icu.util.TimeZone;
 
 @Ignore
 public class BaseTestLackrFullStack {
@@ -54,6 +55,8 @@ public class BaseTestLackrFullStack {
     
     @SuppressWarnings("deprecation")
     public BaseTestLackrFullStack(boolean femtorInProcess) throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+
         Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
         currentHandler = new AtomicReference<Handler>();
 

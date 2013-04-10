@@ -178,16 +178,16 @@ public class TestMustache extends BaseTestSubstitution {
                 + "<!-- /lackr:mustache:eval -->\n";
         String en = expand(page, false, "localhost");
         String[] got = en.trim().split("\\n");
-        String[] expected = new String[] { "7/20/69, 8:18 PM", "Jul 20, 1969, 8:18:00 PM", "July 20, 1969 at 8:18:00 PM GMT+1",
-                "Sunday, July 20, 1969 at 8:18:00 PM GMT+01:00", "7/20/69", "Jul 20, 1969", "July 20, 1969",
-                "Sunday, July 20, 1969", "8:18 PM", "8:18:00 PM", "8:18:00 PM GMT+1", "8:18:00 PM GMT+01:00" };
+        String[] expected = new String[] { "7/20/69, 7:18 PM", "Jul 20, 1969, 7:18:00 PM", "July 20, 1969 at 7:18:00 PM GMT",
+                "Sunday, July 20, 1969 at 7:18:00 PM GMT", "7/20/69", "Jul 20, 1969", "July 20, 1969",
+                "Sunday, July 20, 1969", "7:18 PM", "7:18:00 PM", "7:18:00 PM GMT", "7:18:00 PM GMT" };
         Assert.assertArrayEquals(expected, got);
 
         String fr = expand(page, false, "fr.localhost");
         String[] obtenu = fr.trim().split("\\n");
-        String[] attendu = new String[] { "20/07/1969 20:18", "20 juil. 1969 20:18:00", "20 juillet 1969 20:18:00 UTC+1",
-                "dimanche 20 juillet 1969 20:18:00 UTC+01:00", "20/07/1969", "20 juil. 1969", "20 juillet 1969",
-                "dimanche 20 juillet 1969", "20:18", "20:18:00", "20:18:00 UTC+1", "20:18:00 UTC+01:00" };
+        String[] attendu = new String[] { "20/07/1969 19:18", "20 juil. 1969 19:18:00", "20 juillet 1969 19:18:00 UTC",
+                "dimanche 20 juillet 1969 19:18:00 UTC", "20/07/1969", "20 juil. 1969", "20 juillet 1969",
+                "dimanche 20 juillet 1969", "19:18", "19:18:00", "19:18:00 UTC", "19:18:00 UTC" };
         Assert.assertArrayEquals(attendu, obtenu);
     }
 
