@@ -164,16 +164,16 @@ public class Service extends AbstractHandler {
     }
 
     public void countEndpointWithTimer(String endpoint, long d) {
-        counter(endpointCounterTable, "EP", endpoint, "counter").inc();
-        counter(endpointTimerTable, "EP", endpoint, "ms").inc(d);
+        counter(endpointCounterTable, "EP", endpoint, "request-count").inc();
+        counter(endpointTimerTable, "EP", endpoint, "elapsed-millis").inc(d);
     }
 
     public void countBePerEP(String endpoint, String be, int n) {
-        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "counter").inc(n);
+        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "request-count").inc(n);
     }
 
     public void countPicorEpPerEP(String endpoint, String be, int n) {
-        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "counter").inc(n);
+        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "request-count").inc(n);
     }
 
     private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
