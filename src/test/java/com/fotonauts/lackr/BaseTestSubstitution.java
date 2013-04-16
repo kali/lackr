@@ -1,12 +1,15 @@
 package com.fotonauts.lackr;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -55,29 +58,26 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
     	});    
     }
 
-	public String expand(String testPage) throws IOException, InterruptedException {
+	public String expand(String testPage) throws IOException, InterruptedException, TimeoutException, ExecutionException {
 		return expand(testPage, false, null);
 	}
 	
-    public String expand(String testPage, boolean expectNon200) throws IOException, InterruptedException {
+    public String expand(String testPage, boolean expectNon200) throws IOException, InterruptedException, TimeoutException, ExecutionException {
         return expand(testPage, expectNon200, null);
     }
 
-    public String expand(String testPage, boolean expectNon200, String hostname) throws IOException, InterruptedException {
-    	ContentExchange e = new ContentExchange(true);
+    public String expand(String testPage, boolean expectNon200, String hostname) throws IOException, InterruptedException, TimeoutException, ExecutionException {
+    	org.eclipse.jetty.client.api.Request e = client.newRequest("http://localhost:" + lackrPort + "/page.html");
     	page.setLength(0);
     	page.append(testPage);
-    	e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/page.html");
     	if(hostname != null)
-    	    e.setRequestHeader("Host", hostname);
-    	client.send(e);
-    	while (!e.isDone())
-    		Thread.sleep(10);
-    	if((e.getResponseStatus() != 200) != expectNon200) {
-    		System.err.println(e.getResponseContent());
+    	    e.getHeaders().add("Host", hostname);
+    	ContentResponse r = e.send();
+    	if((r.getStatus() != 200) != expectNon200) {
+    		System.err.println(r.getContentAsString());
     		return null;
     	}
-    	return new String(e.getResponseContentBytes());
+    	return r.getContentAsString();
     }
 
 

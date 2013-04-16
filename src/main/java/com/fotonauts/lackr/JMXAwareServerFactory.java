@@ -11,13 +11,13 @@ public class JMXAwareServerFactory {
 	public Server getObject() throws Exception {
 		Server server = new Server();
 		MBeanContainer mbContainer = new MBeanContainer(ManagementFactory.getPlatformMBeanServer());
-		server.getContainer().addEventListener(mbContainer);
+//		server.getContainer().addEventListener(mbContainer);
 		try {
 			server.addBean(mbContainer);
 		} catch (RuntimeException e) {
 			System.err.println("Error setting up JMX: " + e);
 		}
-		mbContainer.addBean(Log.getRootLogger());
+//		mbContainer.addBean(Log.getRootLogger());
 		return server;
 	}
 }

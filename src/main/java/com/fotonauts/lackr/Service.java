@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -77,7 +78,7 @@ public class Service extends AbstractHandler {
 
     private Backend[] backends;
 
-    private Executor executor;
+    private ExecutorService executor;
     private String femtorBackend;
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -204,11 +205,11 @@ public class Service extends AbstractHandler {
         response.getOutputStream().write(baos.toByteArray());
     }
 
-    public void setExecutor(Executor executor) {
+    public void setExecutor(ExecutorService executor) {
         this.executor = executor;
     }
 
-    public Executor getExecutor() {
+    public ExecutorService getExecutor() {
         return executor;
     }
 
@@ -250,6 +251,7 @@ public class Service extends AbstractHandler {
 
     @Override
     public void doStop() throws Exception {
+        log.info("Stopping lackr Service: " + Thread.getAllStackTraces().size());
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
@@ -260,6 +262,8 @@ public class Service extends AbstractHandler {
             backend.stop();
         }
         Metrics.shutdown();
+        getExecutor().shutdown();
+        log.info("Stopped lackr Service: " + Thread.getAllStackTraces().size());
     }
 
     public Gateway getGateway() {

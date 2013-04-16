@@ -3,7 +3,9 @@ package com.fotonauts.lackr;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -63,9 +65,13 @@ public class Lackr {
 			return;
 		}
 
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
-		Server server = (Server) ctx.getBean("Server");
-				
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("lackr.xml");
+		Server server = new Server();
+		server.setHandler((Handler) ctx.getBean("proxyService"));
+		ServerConnector connector = new ServerConnector(server);
+		connector.setPort((Integer) ctx.getBean("serverPort"));
+		server.addConnector(connector);
+		
 		server.start();
 		server.join();
 	}
