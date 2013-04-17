@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +124,7 @@ public class BackendRequest {
             }
             
             if (exchange.getResponseStatus() == 399) {
-                this.query = exchange.getResponseHeaderValue(HttpHeader.LOCATION.asString());
+                this.query = exchange.getResponseHeader(HttpHeaders.LOCATION);
                 triedBackend.set(0);
                 tryNext();
                 return;
@@ -136,7 +136,7 @@ public class BackendRequest {
                 getFrontendRequest().addBackendExceptions(
                         new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponseStatus()));
             if (exchange.getRawResponseContent() != null && exchange.getRawResponseContent().length > 0) {
-                String mimeType = exchange.getResponseHeader(HttpHeader.CONTENT_TYPE.asString());
+                String mimeType = exchange.getResponseHeader(HttpHeaders.CONTENT_TYPE);
                 if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
                     parsedDocument = getFrontendRequest().getService().getInterpolr().parse(exchange.getRawResponseContent(), this);
                 else

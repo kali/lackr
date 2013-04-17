@@ -25,14 +25,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.continuation.Continuation;
+import org.eclipse.jetty.continuation.ContinuationListener;
+import org.eclipse.jetty.continuation.ContinuationSupport;
+import org.eclipse.jetty.http.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +78,7 @@ public class LackrFrontendRequest {
 
     protected BackendRequest rootRequest;
 
-    private AsyncContext continuation;
+    private Continuation continuation;
 
     private List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
 
@@ -107,31 +107,18 @@ public class LackrFrontendRequest {
         this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
         for (int i = 0; i < service.getBackends().length; i++)
             this.backendRequestCounts[i] = new AtomicInteger();
-        this.continuation = request.startAsync();
+        this.continuation = ContinuationSupport.getContinuation(request);
         this.continuation.setTimeout(getService().getTimeout() * 1000);
-        this.continuation.addListener(new AsyncListener() {
+        this.continuation.addContinuationListener(new ContinuationListener() {
 
             @Override
-            public void onComplete(AsyncEvent event) throws IOException {
+            public void onTimeout(Continuation continuation) {
+                /* onComplete will also be called after a timeout */
+            }
+
+            @Override
+            public void onComplete(Continuation continuation) {
                 service.getGateway().getRunningRequestsHolder().dec();
-            }
-
-            @Override
-            public void onTimeout(AsyncEvent event) throws IOException {
-                // TODO Auto-generated method stub
-                
-            }
-
-            @Override
-            public void onError(AsyncEvent event) throws IOException {
-                // TODO Auto-generated method stub
-                
-            }
-
-            @Override
-            public void onStartAsync(AsyncEvent event) throws IOException {
-                // TODO Auto-generated method stub
-                
             }
         });
         this.pendingCount = new AtomicInteger(0);
@@ -147,9 +134,9 @@ public class LackrFrontendRequest {
 
         logLine = RapportrService.accessLogLineTemplate(request, "lackr-front");
 
-        this.userAgent = new UserAgent(request.getHeader(HttpHeader.USER_AGENT.asString()));
+        this.userAgent = new UserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 
-//        continuation.suspend();
+        continuation.suspend();
     }
 
     public BackendRequest getSubBackendExchange(String url, String format, BackendRequest dad) throws NotAvailableException {
@@ -199,8 +186,8 @@ public class LackrFrontendRequest {
                     response.addHeader(name, value);
             }
         }
-        if (rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
-            response.addHeader(HttpHeader.CONTENT_TYPE.asString(), rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()));
+        if (rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE) != null)
+            response.addHeader(HttpHeaders.CONTENT_TYPE, rootRequest.getExchange().getResponseHeader(HttpHeaders.CONTENT_TYPE));
     }
 
     private void preflightCheck() {
@@ -315,12 +302,12 @@ public class LackrFrontendRequest {
         log.debug("writing success response for " + rootRequest.getQuery());
         if (rootRequest.getParsedDocument().length() > 0) {
             String etag = generateEtag(rootRequest.getParsedDocument());
-            response.setHeader(HttpHeader.ETAG.asString(), etag);
+            response.setHeader(HttpHeaders.ETAG, etag);
             if (log.isDebugEnabled()) {
                 log.debug("etag: " + etag);
-                log.debug("if-none-match: " + request.getHeader(HttpHeader.IF_NONE_MATCH.asString()));
+                log.debug("if-none-match: " + request.getHeader(HttpHeaders.IF_NONE_MATCH));
             }
-            if (rootExchange.getResponseStatus() == HttpStatus.OK_200 && etag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.asString()))) {
+            if (rootExchange.getResponseStatus() == HttpStatus.OK_200 && etag.equals(request.getHeader(HttpHeaders.IF_NONE_MATCH))) {
                 response.setStatus(HttpStatus.NOT_MODIFIED_304);
                 response.setHeader("Status", "304 Not Modified");
                 response.flushBuffer(); // force commiting
@@ -375,7 +362,7 @@ public class LackrFrontendRequest {
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);
             backendExceptions.add(LackrPresentableError.fromThrowable(e));
-            continuation.dispatch();
+            continuation.resume();
         }
     }
 
@@ -400,8 +387,7 @@ public class LackrFrontendRequest {
         if (pendingCount.decrementAndGet() <= 0) {
             if (log.isDebugEnabled())
                 log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size() + " exceptions.");
-            /*
-            while (continuation.) {
+            while (continuation.isInitial()) {
                 // System.err.println("finished early");
                 // rare race condition where we get there (processing all done)
                 // before the initial incoming query handling has been done
@@ -411,8 +397,7 @@ public class LackrFrontendRequest {
                     // I don't care
                 }
             }
-            */
-            continuation.dispatch();
+            continuation.resume();
         }
     }
 

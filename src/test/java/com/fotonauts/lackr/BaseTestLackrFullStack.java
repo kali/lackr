@@ -1,16 +1,14 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.io.UnsupportedEncodingException;
 import java.util.EnumSet;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.DispatcherType;
@@ -18,13 +16,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.client.ContentExchange;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.NoJspServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -41,27 +39,20 @@ import com.ibm.icu.util.TimeZone;
 @Ignore
 public class BaseTestLackrFullStack {
 
-    protected Server backendStub;
-    protected int backendStubPort = 38000;
-    protected ServerConnector backendStubConnector;
-    protected Server femtorStub;
-    protected int femtorStubPort = 38001;
+    protected Server backend;
+    private Server femtorStub;
     protected Server lackrServer;
-    protected int lackrPort = 38002;
     protected Service lackrService;
     protected HttpClient client;
     protected ClassPathXmlApplicationContext ctx;
 
     protected AtomicReference<Handler> currentHandler;
     private JettyBackend picorBackend;
-    private ContentResponse response;
-    private ServerConnector lackrStubConnector;
-    private ServerConnector femtorStubConnector;
 
     public BaseTestLackrFullStack() throws Exception {
         this(true);
     }
-
+    
     @SuppressWarnings("deprecation")
     public BaseTestLackrFullStack(boolean femtorInProcess) throws Exception {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
@@ -69,38 +60,38 @@ public class BaseTestLackrFullStack {
         Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
         currentHandler = new AtomicReference<Handler>();
 
-        backendStub = new Server();
-        backendStub.setHandler(new AbstractHandler() {
+        backend = new Server();
+        backend.addConnector(new SelectChannelConnector());
+        backend.setHandler(new AbstractHandler() {
 
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 currentHandler.get().handle(target, baseRequest, request, response);
             }
         });
-        backendStub.start();
+        backend.start();
 
         File propFile = File.createTempFile("lackr.test.", ".props");
         propFile.deleteOnExit();
 
         Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
-        if (!femtorInProcess) {
+        if(!femtorInProcess) {
             femtorStub = new Server();
-            femtorStubConnector = new ServerConnector(femtorStub);
-            femtorStub.addConnector(femtorStubConnector);
+            femtorStub.addConnector(new SelectChannelConnector());
             ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
             context.setContextPath("/");
             femtorStub.setHandler(context);
 
-            context.addFilter("com.fotonauts.lackr.DummyFemtor", "/*", EnumSet.of(DispatcherType.REQUEST));
-            context.addServlet(new ServletHolder(new NoJspServlet()), "/*");
-
+            context.addFilter("com.fotonauts.lackr.DummyFemtor","/*", EnumSet.of(DispatcherType.REQUEST));
+            context.addServlet(new ServletHolder(new NoJspServlet()),"/*");
+            
             femtorStub.start();
-            femtorStubPort = femtorStubConnector.getLocalPort();
             props.setProperty("lackr.femtorImpl", "Http");
-            props.setProperty("lackr.femtorBackend", "http://localhost:" + femtorStubPort);
-        }
+            props.setProperty("lackr.femtorBackend", "http://localhost:" + femtorStub.getConnectors()[0].getLocalPort());
+         } 
 
         props.store(new FileOutputStream(propFile), "properties for lackr test run");
+
 
         System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
@@ -108,24 +99,15 @@ public class BaseTestLackrFullStack {
         System.err.println("GET BEAN(picorBackend)");
         picorBackend = (JettyBackend) ctx.getBean("picorBackend");
         System.err.println("GET BEAN(picorBackend) DONE");
+        picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backend.getConnectors()[0].getLocalPort()));
 
-        backendStubConnector = new ServerConnector(backendStub);
-        backendStub.addConnector(backendStubConnector);
-        backendStubPort = backendStubConnector.getLocalPort();
-        picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backendStubPort));
-
-        lackrServer = new Server();
-        lackrServer.setHandler((Handler) ctx.getBean("proxyService"));
-        lackrStubConnector = new ServerConnector(lackrServer);
-        lackrServer.addConnector(lackrStubConnector);
+        lackrServer = (Server) ctx.getBean("Server");
         lackrServer.start();
-
-        lackrPort = lackrStubConnector.getLocalPort();
 
         lackrService = (Service) ctx.getBean("proxyService");
 
         client = new HttpClient();
-        client.setFollowRedirects(false);
+        client.setConnectorType(HttpClient.CONNECTOR_SELECT_CHANNEL);
         client.setConnectTimeout(5);
         client.start();
     }
@@ -137,46 +119,45 @@ public class BaseTestLackrFullStack {
         response.flushBuffer();
     }
 
-    protected org.eclipse.jetty.client.api.Request createExchange(String url) {
-        return client.newRequest(url);
+    protected ContentExchange createExchange(String url) {
+        ContentExchange e = new ContentExchange(true);
+        e.setURL(url);
+        return e;
     }
 
-    protected void runRequest(org.eclipse.jetty.client.api.Request e, String expect) {
+    protected void runRequest(ContentExchange e, String expect) {
         try {
-            response = e.timeout(15, TimeUnit.SECONDS).send();
-        } catch (InterruptedException | TimeoutException | ExecutionException e2) {
-            e2.printStackTrace();
+            client.send(e);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            assertTrue("unreachable", false);
         }
+        while (!e.isDone())
+            Thread.yield();
 
-        assertEquals(200, response.getStatus());
-        assertEquals(expect, response.getContentAsString());
+        assertEquals(200, e.getResponseStatus());
+        try {
+            assertEquals(expect, e.getResponseContent());
+        } catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+            assertTrue("unreachable", false);
+        }
     }
 
     @After
     public void tearDown() throws Exception {
         try {
             int slept = 0;
-            while (slept < 10000
-                    && (lackrService.getGateway().getRunningRequests() != 0 || picorBackend.getGateways()[0].getRunningRequests() != 0)) {
+            while(slept < 10000 && 
+                    ( lackrService.getGateway().getRunningRequests() != 0 || picorBackend.getGateways()[0].getRunningRequests() != 0)) {
                 slept += 5;
                 Thread.sleep(5);
             }
             assertEquals("all incoming requests done and closed", 0, lackrService.getGateway().getRunningRequests());
-            assertEquals("all backend requests done and closed", 0, picorBackend.getGateways()[0].getRunningRequests());
+            assertEquals("all backend requests done and closed", 0, picorBackend.getGateways()[0].getRunningRequests());                    
         } finally {
-            Object collectables[] = new Object[] { lackrService, lackrServer, lackrStubConnector, picorBackend, backendStub,
-                    backendStubConnector, femtorStub, femtorStubConnector, client, ctx };
-            String methods[] = new String[] { "stop", "close", "destroy" };
-            for (Object collectable : collectables) {
-                if (collectable != null)
-                    for (String methodName : methods)
-                        try {
-                            collectable.getClass().getMethod(methodName).invoke(collectable);
-                        } catch (Throwable t) {
-
-                        }
-            }
-            System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size());
+            lackrServer.stop();
+            ctx.close();
         }
     }
 }

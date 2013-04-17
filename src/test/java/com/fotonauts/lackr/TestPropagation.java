@@ -1,19 +1,17 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.util.StringContentProvider;
-import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 import org.springframework.util.FileCopyUtils;
@@ -30,14 +28,14 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 writeResponse(response, request.getHeader("Host").getBytes(), MimeType.TEXT_HTML);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        e.header("Host", "something");
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+        e.setRequestHeader("Host", "something");
         runRequest(e, "something");
     }
 
@@ -47,14 +45,14 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 writeResponse(response, request.getHeader("User-Agent").getBytes(), MimeType.TEXT_HTML);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        e.header("User-Agent", "something");
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+        e.setRequestHeader("User-Agent", "something");
         runRequest(e, "something");
     }
 
@@ -63,16 +61,16 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 writeResponse(response, FileCopyUtils.copyToByteArray(request.getInputStream()), MimeType.TEXT_HTML);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        e.method(HttpMethod.POST);
-        e.content(new StringContentProvider("coin"));
-        e.header("Content-Length", "4");
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+        e.setMethod("POST");
+        e.setRequestContent(new ByteArrayBuffer("coin"));
+        e.setRequestHeader("Content-Length", "4");
         runRequest(e, "coin");
     }
 
@@ -81,7 +79,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 writeResponse(response,
                         request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
@@ -89,8 +87,8 @@ public class TestPropagation extends BaseTestLackrFullStack {
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        e.header("Accept", "test/accept");
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+        e.setRequestHeader("Accept", "test/accept");
         runRequest(e, "test/accept");
     }
 
@@ -99,7 +97,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 writeResponse(response,
                         request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
@@ -107,16 +105,16 @@ public class TestPropagation extends BaseTestLackrFullStack {
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
         runRequest(e, "null");
     }
 
     @Test
-    public void redirect() throws InterruptedException, TimeoutException, ExecutionException {
+    public void redirect() {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 response.addHeader("Location", "http://blah.com");
                 response.setStatus(301);
@@ -124,19 +122,26 @@ public class TestPropagation extends BaseTestLackrFullStack {
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        ContentResponse r = e.send();
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+        try {
+            client.send(e);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            assertTrue("unreachable", false);
+        }
+        while (!e.isDone())
+            Thread.yield();
 
-        assertEquals(301, r.getStatus());
-        assertEquals("http://blah.com", r.getHeaders().getStringField("Location"));
+        assertEquals(301, e.getResponseStatus());
+        assertEquals("http://blah.com", e.getResponseFields().getStringField("Location"));
     }
 
     @Test
-    public void timeout() throws InterruptedException, TimeoutException, ExecutionException {
+    public void timeout() {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
                 try {
                     Thread.sleep(1000*1);
@@ -146,7 +151,15 @@ public class TestPropagation extends BaseTestLackrFullStack {
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        ContentResponse r = e.send();
+        ContentExchange e = createExchange("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/");
+        try {
+            client.send(e);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            assertTrue("unreachable", false);
+        }
+        while (!e.isDone())
+            Thread.yield();
+
     }
 }
