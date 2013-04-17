@@ -83,7 +83,6 @@
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
 		init-method="start" destroy-method="stop" p:connectTimeout="500" p:followRedirects="false"
 		lazy-init="true">
-		<property name="cookieStore"><bean class="org.eclipse.jetty.util.HttpCookieStore.Empty"></bean></property>
 		<!-- 
 		<property name="connectorType">
 			<util:constant

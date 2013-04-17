@@ -28,7 +28,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.NoJspServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.HttpCookieStore;
 import org.junit.After;
 import org.junit.Ignore;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -55,6 +54,7 @@ public class BaseTestLackrFullStack {
 
     protected AtomicReference<Handler> currentHandler;
     private JettyBackend picorBackend;
+    private ContentResponse response;
     private ServerConnector lackrStubConnector;
     private ServerConnector femtorStubConnector;
 
@@ -62,10 +62,11 @@ public class BaseTestLackrFullStack {
         this(true);
     }
 
+    @SuppressWarnings("deprecation")
     public BaseTestLackrFullStack(boolean femtorInProcess) throws Exception {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
-        Log4jConfigurer.initLogging("classpath:log4j.properties");
+        Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
         currentHandler = new AtomicReference<Handler>();
 
         backendStub = new Server();
@@ -126,7 +127,6 @@ public class BaseTestLackrFullStack {
         client = new HttpClient();
         client.setFollowRedirects(false);
         client.setConnectTimeout(5);
-        client.setCookieStore(new HttpCookieStore.Empty());
         client.start();
     }
 
@@ -141,17 +141,15 @@ public class BaseTestLackrFullStack {
         return client.newRequest(url);
     }
 
-    protected ContentResponse runRequest(org.eclipse.jetty.client.api.Request e, String expect) {
-        ContentResponse response = null;
+    protected void runRequest(org.eclipse.jetty.client.api.Request e, String expect) {
         try {
             response = e.timeout(15, TimeUnit.SECONDS).send();
-            assertEquals(200, response.getStatus());
-            assertEquals(expect, response.getContentAsString());
         } catch (InterruptedException | TimeoutException | ExecutionException e2) {
             e2.printStackTrace();
         }
 
-        return response;
+        assertEquals(200, response.getStatus());
+        assertEquals(expect, response.getContentAsString());
     }
 
     @After
