@@ -1,6 +1,7 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
@@ -30,8 +32,8 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 writeResponse(response, request.getHeader("Host").getBytes(), MimeType.TEXT_HTML);
             }
         });
@@ -42,13 +44,13 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void userAgenProp() {
+    public void userAgentProp() {
 
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 writeResponse(response, request.getHeader("User-Agent").getBytes(), MimeType.TEXT_HTML);
             }
         });
@@ -63,8 +65,8 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 writeResponse(response, FileCopyUtils.copyToByteArray(request.getInputStream()), MimeType.TEXT_HTML);
             }
         });
@@ -81,8 +83,8 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 writeResponse(response,
                         request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
                         MimeType.TEXT_PLAIN);
@@ -99,8 +101,8 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 writeResponse(response,
                         request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
                         MimeType.TEXT_PLAIN);
@@ -116,8 +118,8 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 response.addHeader("Location", "http://blah.com");
                 response.setStatus(301);
                 response.flushBuffer();
@@ -136,10 +138,10 @@ public class TestPropagation extends BaseTestLackrFullStack {
         currentHandler.set(new AbstractHandler() {
 
             @Override
-            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
                 try {
-                    Thread.sleep(1000*1);
+                    Thread.sleep(1000 * 1);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -148,5 +150,39 @@ public class TestPropagation extends BaseTestLackrFullStack {
 
         Request e = createExchange("http://localhost:" + lackrPort + "/");
         ContentResponse r = e.send();
+    }
+
+    @Test
+    public void cookiesIsolation() {
+        currentHandler.set(new AbstractHandler() {
+            @Override
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
+                System.err.println("request.getHeader(Cookie) = " + request.getHeader("Cookie"));
+                if (target.indexOf("SETIT") > 0)
+                    response.addHeader(HttpHeader.SET_COOKIE.asString(), "c=1; Expires=Wed, 09-Jun-2021 10:18:14 GMT");
+                writeResponse(response,
+                        request.getHeader("Cookie") != null ? request.getHeader("Cookie").getBytes() : "null".getBytes(),
+                        MimeType.TEXT_PLAIN);
+            }
+        });
+        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        runRequest(e, "null");
+        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        
+        e = createExchange("http://localhost:" + lackrPort + "/SETIT");
+        ContentResponse r = runRequest(e, "null");
+        System.err.println(r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
+        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        assertTrue("response has set-cookie", r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
+
+        e = createExchange("http://localhost:" + lackrPort + "/");
+        runRequest(e, "null");
+        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        
+        e = createExchange("http://localhost:" + lackrPort + "/");
+        e.getHeaders().add(HttpHeader.COOKIE.asString(), "c=2");
+        runRequest(e, "c=2");
+        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
     }
 }
