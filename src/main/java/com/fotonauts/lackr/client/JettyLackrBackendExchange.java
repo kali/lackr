@@ -84,7 +84,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 	@Override
 	protected void doStart() throws IOException, NotAvailableException {
 		final JettyLackrBackendExchange lackrExchange = this;
-		request.send(new BufferingResponseListener() {
+		request.send(new BufferingResponseListener(20*1024*1024) {
             
             @Override
             public void onComplete(Result r) {
