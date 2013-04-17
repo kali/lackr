@@ -4,13 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.StringTokenizer;
 
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.client.ContentExchange;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -31,43 +31,58 @@ public class TestFemtor extends BaseTestLackrFullStack {
 
 	@Test(timeout = 500)
 	public void testFemtor() throws Exception {
-		Request r = client.newRequest("http://localhost:" + lackrPort + "/femtor/hi");
-		ContentResponse e = r.send();
-    	assertEquals("Hi from dummy femtor\n", e.getContentAsString());
+		ContentExchange e = new ContentExchange(true);
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/hi");
+		client.send(e);
+    	while (!e.isDone())
+    		Thread.sleep(10);
+    	assertEquals("Hi from dummy femtor\n", e.getResponseContent());
 	}
 
 	@Test(timeout = 500)
 	public void testFemtorCrashServlet() throws Exception {
-		Request r = client.newRequest("http://localhost:" + lackrPort +  "/femtor/crash/servlet");
-		ContentResponse e = r.send();
-    	assertEquals(50, e.getStatus() / 10); // expect 50x
-    	assertTrue(e.getContentAsString().contains("catch me or you're dead."));
+		ContentExchange e = new ContentExchange(true);
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash/servlet");
+		client.send(e);
+    	while (!e.isDone())
+    		Thread.sleep(10);
+    	assertEquals(50, e.getResponseStatus() / 10); // expect 50x
+    	assertTrue(e.getResponseContent().contains("catch me or you're dead."));
 	}
 	
     @Test(timeout = 500)
     public void testFemtorCrashRE() throws Exception {
-        Request r = client.newRequest("http://localhost:" + lackrPort +  "/femtor/crash/re");
-        ContentResponse e = r.send();
-        assertEquals(50, e.getStatus() / 10); // expect 50x
-        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
+        ContentExchange e = new ContentExchange(true);
+        e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash/re");
+        client.send(e);
+        while (!e.isDone())
+            Thread.sleep(10);
+        assertEquals(50, e.getResponseStatus() / 10); // expect 50x
+        assertTrue(e.getResponseContent().contains("catch me or you're dead."));
     }
 
     @Test(timeout = 500)
     public void testFemtorCrashError() throws Exception {
-        Request r = client.newRequest("http://localhost:" + lackrPort +  "/femtor/crash/error");
-        ContentResponse e = r.send();
-        assertEquals(50, e.getStatus() / 10); // expect 50x
-        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
+        ContentExchange e = new ContentExchange(true);
+        e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/crash/error");
+        client.send(e);
+        while (!e.isDone())
+            Thread.sleep(10);
+        assertEquals(50, e.getResponseStatus() / 10); // expect 50x
+        assertTrue(e.getResponseContent().contains("catch me or you're dead."));
     }
 
     @Test
 	public void testFemtorQuery() throws Exception {
-        Request r = client.newRequest("http://localhost:" + lackrPort +  "/femtor/dump?blah=12&blih=42");
-		r.getHeaders().add("X-Ftn-OperationId", "someid");
-        ContentResponse e = r.send();		
+		ContentExchange e = new ContentExchange(true);
+		e.addRequestHeader("X-Ftn-OperationId", "someid");
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/dump?blah=12&blih=42");
+		client.send(e);
+    	while (!e.isDone())
+    		Thread.sleep(10);
 //    	System.err.println(e.getResponseContent());
-    	assertEquals(200, e.getStatus());
-    	StringTokenizer tokenizer = new StringTokenizer(e.getContentAsString(), "\n");
+    	assertEquals(200, e.getResponseStatus());
+    	StringTokenizer tokenizer = new StringTokenizer(e.getResponseContent(), "\n");
     	assertEquals("Hi from dummy femtor", tokenizer.nextToken());
     	assertEquals("method: GET", tokenizer.nextToken());
     	assertEquals("pathInfo: /femtor/dump", tokenizer.nextToken());
@@ -82,23 +97,29 @@ public class TestFemtor extends BaseTestLackrFullStack {
 
 	@Test
 	public void testFemtorBodyQuery() throws Exception {
-        Request r = client.newRequest("http://localhost:" + lackrPort + "/echobody");
-		r.getHeaders().add("X-Ftn-OperationId", "someid");
-		r.content(new StringContentProvider("yop yop yop", "UTF-8"));
-		ContentResponse e = r.send();
-    	System.err.println(e.getContentAsString());
-    	assertEquals(200, e.getStatus());
-    	assertEquals("yop yop yop", e.getContentAsString());
+		ContentExchange e = new ContentExchange(true);
+		e.addRequestHeader("X-Ftn-OperationId", "someid");
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/echobody");
+		e.setRequestContent(new ByteArrayBuffer("yop yop yop".getBytes()));
+		client.send(e);
+    	while (!e.isDone())
+    		Thread.sleep(10);
+    	System.err.println(e.getResponseContent());
+    	assertEquals(200, e.getResponseStatus());
+    	assertEquals("yop yop yop", e.getResponseContent());
 	}
 
 	@Test
 	public void testFemtorESIQuery() throws Exception {
-        Request r = client.newRequest("http://localhost:" + lackrPort + "/femtor/dumpwrapper");
-        r.getHeaders().add("X-Ftn-OperationId", "someid");
-        ContentResponse e = r.send();
+		ContentExchange e = new ContentExchange(true);
+        e.addRequestHeader("X-Ftn-OperationId", "someid");
+		e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/femtor/dumpwrapper");
+		client.send(e);
+    	while (!e.isDone())
+    		Thread.sleep(10);
 //    	System.err.println(e.getResponseContent());
-    	assertEquals(200, e.getStatus());
-    	StringTokenizer tokenizer = new StringTokenizer(e.getContentAsString(), "\n");
+    	assertEquals(200, e.getResponseStatus());
+    	StringTokenizer tokenizer = new StringTokenizer(e.getResponseContent(), "\n");
     	assertEquals("Hi from dummy femtor", tokenizer.nextToken());
     	assertEquals("method: GET", tokenizer.nextToken());
     	assertEquals("pathInfo: /femtor/dump", tokenizer.nextToken());
@@ -113,9 +134,12 @@ public class TestFemtor extends BaseTestLackrFullStack {
 
     @Test(timeout = 500)
     public void testFemtorRewrite() throws Exception {
-        Request r = client.newRequest("http://localhost:" + lackrPort + "/rewrite");
-        ContentResponse e = r.send();
-        assertEquals("Hi from dummy femtor\n", new String(e.getContent()));
+        ContentExchange e = new ContentExchange(true);
+        e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/rewrite");
+        client.send(e);
+        while (!e.isDone())
+            Thread.sleep(10);
+        assertEquals("Hi from dummy femtor\n", e.getResponseContent());
     }
     
 }

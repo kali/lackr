@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.springframework.util.Log4jConfigurer;
 
 import com.fotonauts.lackr.hashring.HashRing;
@@ -40,10 +40,9 @@ public class TestRingHA extends TestCase {
 		}
 
 		public StubServer() throws Exception {
-		    ServerConnector sc = new ServerConnector(this);
-			addConnector(sc);
+			addConnector(new SelectChannelConnector());
 			start();
-			host = new RingHost("localhost:" + sc.getLocalPort());
+			host = new RingHost("localhost:" + getConnectors()[0].getLocalPort());
 			host.setProbe("/");
 		}
 	}

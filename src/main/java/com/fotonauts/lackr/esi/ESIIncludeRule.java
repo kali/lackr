@@ -1,6 +1,6 @@
 package com.fotonauts.lackr.esi;
 
-import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpHeaders;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
@@ -20,7 +20,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 	}
 
 	protected String getMimeType(LackrBackendExchange exchange) {
-		return exchange.getResponseHeaderValue(HttpHeader.CONTENT_TYPE.asString());
+		return exchange.getResponseHeaderValue(HttpHeaders.CONTENT_TYPE);
 	}
 
 	protected String makeUrl(byte[] buffer, int start, int stop) {
