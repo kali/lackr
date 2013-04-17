@@ -18,27 +18,14 @@
 
 	<context:annotation-config />
 
-	<bean id="server-factory" class="com.fotonauts.lackr.JMXAwareServerFactory" />
-
-	<bean id="Server" class="org.eclipse.jetty.server.Server"
-		lazy-init="true" factory-bean="server-factory" factory-method="getObject"
-		init-method="start" destroy-method="stop" p:handler-ref="proxyService">
-
-		<property name="connectors">
-			<list>
-				<bean class="org.eclipse.jetty.server.nio.SelectChannelConnector"
-					p:port="${lackr.port}" />
-			</list>
-		</property>
-
-	</bean>
+	<bean id="serverPort" class="java.lang.Integer"><constructor-arg value="${lackr.port}"></constructor-arg></bean>
 
 	<bean id="rapportr" class="com.fotonauts.commons.RapportrService"
 		p:facility="lackr" p:mongoRapportrQueuePath="${lackr.rapportr.mongo}"
 		p:grid="${lackr.rapportr.grid}" p:ircErrorChannel="${lackr.rapportr.channel}"
 		p:mongoAccessLogPath="${lackr.mongolog.access}" />
 
-	<bean id="proxyService" class="com.fotonauts.lackr.Service"
+	<bean id="proxyService" class="com.fotonauts.lackr.Service" destroy-method="stop"
 		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
 		p:graphiteHostAndPort="${lackr.graphite}" p:grid="${lackr.grid}"
 		p:rapportr-ref="rapportr" lazy-init="true">
@@ -94,11 +81,13 @@
 		p:femtorHandlerClass="${lackr.femtorClass}" />
 
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
-		init-method="start" destroy-method="stop" p:connectTimeout="500"
+		init-method="start" destroy-method="stop" p:connectTimeout="500" p:followRedirects="false"
 		lazy-init="true">
+		<!-- 
 		<property name="connectorType">
 			<util:constant
 				static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />
 		</property>
+		 -->
 	</bean>
 </beans>

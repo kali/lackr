@@ -15,7 +15,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.http.HttpHeaders;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 
 public class FemtorResponse implements HttpServletResponse {
@@ -40,7 +40,7 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public String getContentType() {
-		return getHeaders().containsKey(HttpHeaders.CONTENT_TYPE) ? getHeaders().get(HttpHeaders.CONTENT_TYPE).get(0) : null;
+		return getHeaders().containsKey(HttpHeader.CONTENT_TYPE.asString()) ? getHeaders().get(HttpHeader.CONTENT_TYPE.asString()).get(0) : null;
 	}
 
 	@Override
@@ -85,7 +85,7 @@ public class FemtorResponse implements HttpServletResponse {
 
 	@Override
 	public void setContentType(String type) {
-		headers.put(HttpHeaders.CONTENT_TYPE, Arrays.asList(new String[] { type }));
+		headers.put(HttpHeader.CONTENT_TYPE.asString(), Arrays.asList(new String[] { type }));
 	}
 
 	@Override
@@ -176,7 +176,7 @@ public class FemtorResponse implements HttpServletResponse {
 	@Override
 	public void sendRedirect(String location) throws IOException {
 		this.sc = HttpStatus.MOVED_TEMPORARILY_302;
-		setHeader(HttpHeaders.LOCATION, location);
+		setHeader(HttpHeader.LOCATION.asString(), location);
 	}
 
 	@Override
