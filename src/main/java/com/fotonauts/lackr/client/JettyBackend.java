@@ -9,7 +9,6 @@ import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.Gateway;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 
 public class JettyBackend implements Backend {
 
@@ -22,7 +21,7 @@ public class JettyBackend implements Backend {
 	}
 
 	@Override
-	public LackrBackendExchange createExchange(BackendRequest request) throws NotAvailableException {
+	public LackrBackendExchange createExchange(BackendRequest request) {
 		return new JettyLackrBackendExchange(actualClient, director, request);
 	}
 
@@ -33,7 +32,6 @@ public class JettyBackend implements Backend {
 	@Override
 	public void stop() throws Exception {
 		actualClient.stop();
-        actualClient.destroy();
 	}
 	
 	@Override

@@ -3,9 +3,9 @@ package com.fotonauts.lackr;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.http.HttpMethod;
+import java.io.IOException;
+
+import org.eclipse.jetty.client.ContentExchange;
 import org.json.JSONObject;
 import org.junit.Test;
 
@@ -107,23 +107,29 @@ public class TestESI extends BaseTestSubstitution {
 
     @Test
     public void testMethodsMainRequest() throws Exception {
-        for (HttpMethod method : new HttpMethod[] { /* HttpMethod.GET, */ HttpMethod.POST }) {
-            Request r = client.newRequest("http://localhost:" + lackrPort + "/method");
-            r.method(method);
-            ContentResponse e = r.send();
-            assertEquals(method.asString(), e.getContentAsString());
+        for (String method : new String[] { "GET", "POST" }) {
+            ContentExchange e = new ContentExchange(true);
+            e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/method");
+            e.setMethod(method);
+            client.send(e);
+            while (!e.isDone())
+                Thread.sleep(10);
+            assertEquals(method, e.getResponseContent());
         }
     }
 
     @Test
     public void testMethodSubRequest() throws Exception {
-        for (HttpMethod method : new HttpMethod[] { HttpMethod.GET, HttpMethod.POST }) {
-            Request r = client.newRequest("http://localhost:" + lackrPort + "/page.html");
-            r.method(method);
+        for (String method : new String[] { "GET", "POST" }) {
+            ContentExchange e = new ContentExchange(true);
             page.setLength(0);
             page.append("<!--# include virtual=\\\"/method\\\" -->");
-            ContentResponse e = r.send();            
-            assertEquals("GET", e.getContentAsString());
+            e.setURL("http://localhost:" + lackrServer.getConnectors()[0].getLocalPort() + "/page.html");
+            e.setMethod(method);
+            client.send(e);
+            while (!e.isDone())
+                Thread.sleep(10);
+            assertEquals("GET", e.getResponseContent());
         }
     }
 }

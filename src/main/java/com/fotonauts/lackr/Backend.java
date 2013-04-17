@@ -2,11 +2,9 @@ package com.fotonauts.lackr;
 
 import java.io.PrintStream;
 
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
-
 public interface Backend {
 
-	public LackrBackendExchange createExchange(BackendRequest request) throws NotAvailableException;
+	public LackrBackendExchange createExchange(BackendRequest request);
 
 	public void dumpStatus(PrintStream ps);
 	
