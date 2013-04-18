@@ -9,6 +9,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
 		<maven.junit.fork>yes</maven.junit.fork>
+		<jetty-version>9.0.2.v20130417</jetty-version>
 	</properties>
 	<build>
 		<plugins>
@@ -120,12 +121,12 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-http</artifactId>
-			<version>9.0.0.v20130308</version>
+			<version>${jetty-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.0.0.v20130308</version>
+			<version>${jetty-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>args4j</groupId>
@@ -167,17 +168,17 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>
-			<version>9.0.0.v20130308</version>
+			<version>${jetty-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-jmx</artifactId>
-			<version>9.0.0.v20130308</version>
+			<version>${jetty-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>9.0.0.v20130308</version>
+			<version>${jetty-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.yammer.metrics</groupId>

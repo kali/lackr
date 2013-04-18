@@ -44,6 +44,9 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 		super(spec);
 		this.director = director;
         request = jettyClient.newRequest(director.getHostFor(spec).getHostname() + getBackendRequest().getQuery());
+        System.err.println("METHOD:" + getBackendRequest().getMethod());
+        System.err.println("QUERY:" + getBackendRequest().getQuery());
+        System.err.println("BODY:" + (spec.getBody() != null ? new String(spec.getBody()) : ""));
         request.method(HttpMethod.fromString(spec.getMethod()));
         if(spec.getBody() != null) {
             request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getRequest().getHeader("Content-Type"));

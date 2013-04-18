@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -72,6 +75,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
         });
 
         Request e = createExchange("http://localhost:" + lackrPort + "/");
+        System.err.println();
         e.method(HttpMethod.POST);
         e.content(new StringContentProvider("coin"));
         e.header("Content-Length", "4");
@@ -151,6 +155,29 @@ public class TestPropagation extends BaseTestLackrFullStack {
         Request e = createExchange("http://localhost:" + lackrPort + "/");
         ContentResponse r = e.send();
     }
+    
+    @Test
+    public void parameters() {
+        currentHandler.set(new AbstractHandler() {
+            @Override
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
+                writeResponse(response,
+                        (request.getParameter("par") != null ? request.getParameter("par") : "#null").getBytes(),
+                        MimeType.TEXT_PLAIN);
+            }
+        });
+        Request e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
+        runRequest(e, "toto");
+        
+        e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
+        e.method(HttpMethod.POST);
+        runRequest(e, "toto");
+        
+        e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
+        e.method(HttpMethod.PUT);
+        runRequest(e, "toto"); 
+    }
 
     @Test
     public void cookiesIsolation() {
@@ -158,7 +185,6 @@ public class TestPropagation extends BaseTestLackrFullStack {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                System.err.println("request.getHeader(Cookie) = " + request.getHeader("Cookie"));
                 if (target.indexOf("SETIT") > 0)
                     response.addHeader(HttpHeader.SET_COOKIE.asString(), "c=1; Expires=Wed, 09-Jun-2021 10:18:14 GMT");
                 writeResponse(response,
