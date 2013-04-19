@@ -8,7 +8,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
-		<maven.junit.fork>yes</maven.junit.fork>
 		<jetty-version>9.0.2.v20130417</jetty-version>
 	</properties>
 	<build>
