@@ -8,7 +8,6 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +55,7 @@ public class Service extends AbstractHandler {
     protected LookupService lookupV6;
 
     private String grid = "prod";
-    
+
     public Map<String, Counter> countryTable = new HashMap<String, Counter>();
     public Map<String, Counter> statusTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointCounterTable = new HashMap<String, Counter>();
@@ -157,35 +156,41 @@ public class Service extends AbstractHandler {
     }
 
     public void countCountry(String countryCode) {
-        counter(countryTable, "country", null, countryCode).inc();
+        counter(countryTable, "country", null, countryCode, 1);
     }
 
     public void countStatus(String statusCode) {
-        counter(statusTable, "status", null, statusCode).inc();
+        counter(statusTable, "status", null, statusCode, 1);
     }
 
     public void countEndpointWithTimer(String endpoint, long d) {
-        counter(endpointCounterTable, "EP", endpoint, "request-count").inc();
-        counter(endpointTimerTable, "EP", endpoint, "elapsed-millis").inc(d);
+        counter(endpointCounterTable, "EP", endpoint, "request-count", 1);
+        counter(endpointTimerTable, "EP", endpoint, "elapsed-millis", d);
     }
 
     public void countBePerEP(String endpoint, String be, int n) {
-        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "request-count").inc(n);
+        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "request-count", n);
     }
 
     public void countPicorEpPerEP(String endpoint, String be, int n) {
-        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "request-count").inc(n);
+        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "request-count", n);
     }
 
-    private static Counter counter(Map<String, Counter> table, String type, String scope, String key) {
-        String fullKey = scope == null ? key : scope + key;
-        synchronized (table) {
-            Counter counter = table.get(fullKey);
-            if (counter == null) {
-                counter = Metrics.newCounter(new MetricName("lackr", type, key, scope));
-                table.put(fullKey, counter);
+    private static void counter(Map<String, Counter> table, String type, String scope, String key, long n) {
+        try {
+            String fullKey = scope == null ? key : scope + key;
+            Counter counter;
+            synchronized (table) {
+                counter = table.get(fullKey);
+                if (counter == null) {
+                    counter = Metrics.newCounter(new MetricName("lackr", type, key, scope));
+                    table.put(fullKey, counter);
+                }
             }
-            return counter;
+            if(counter != null)
+                counter.inc(n);
+        } catch (Throwable t) {
+            t.printStackTrace(System.err);
         }
     }
 
