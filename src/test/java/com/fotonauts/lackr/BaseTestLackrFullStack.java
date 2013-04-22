@@ -126,7 +126,7 @@ public class BaseTestLackrFullStack {
         client = new HttpClient();
         client.setRequestBufferSize(16000);
         client.setFollowRedirects(false);
-        client.setConnectTimeout(5);
+        client.setConnectTimeout(15);
         client.setCookieStore(new HttpCookieStore.Empty());
         client.start();
     }
