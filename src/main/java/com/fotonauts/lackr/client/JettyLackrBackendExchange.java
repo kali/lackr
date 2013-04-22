@@ -88,14 +88,19 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
             
             @Override
             public void onComplete(Result r) {
-                result = r;
-                responseBody = getContent();
+                if(r.isSucceeded()) {
+                    result = r;
+                    responseBody = getContent();
+                } else {
+                    lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(r.getFailure());
+                }
                 lackrExchange.onResponseComplete(false);
             }
 
             @Override
             public void onFailure(Response arg0, Throwable x) {
                 lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(x);
+                lackrExchange.onResponseComplete(false);
             }
         });
 	}

@@ -124,6 +124,7 @@ public class BaseTestLackrFullStack {
         lackrService = (Service) ctx.getBean("proxyService");
 
         client = new HttpClient();
+        client.setRequestBufferSize(16000);
         client.setFollowRedirects(false);
         client.setConnectTimeout(5);
         client.setCookieStore(new HttpCookieStore.Empty());

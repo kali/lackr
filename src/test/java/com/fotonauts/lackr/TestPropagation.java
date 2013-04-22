@@ -4,9 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -19,6 +16,7 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 import org.springframework.util.FileCopyUtils;
@@ -155,28 +153,27 @@ public class TestPropagation extends BaseTestLackrFullStack {
         Request e = createExchange("http://localhost:" + lackrPort + "/");
         ContentResponse r = e.send();
     }
-    
+
     @Test
     public void parameters() {
         currentHandler.set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response,
-                        (request.getParameter("par") != null ? request.getParameter("par") : "#null").getBytes(),
+                writeResponse(response, (request.getParameter("par") != null ? request.getParameter("par") : "#null").getBytes(),
                         MimeType.TEXT_PLAIN);
             }
         });
         Request e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
         runRequest(e, "toto");
-        
+
         e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
         e.method(HttpMethod.POST);
         runRequest(e, "toto");
-        
+
         e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
         e.method(HttpMethod.PUT);
-        runRequest(e, "toto"); 
+        runRequest(e, "toto");
     }
 
     @Test
@@ -195,7 +192,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
         Request e = createExchange("http://localhost:" + lackrPort + "/");
         runRequest(e, "null");
         assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
-        
+
         e = createExchange("http://localhost:" + lackrPort + "/SETIT");
         ContentResponse r = runRequest(e, "null");
         System.err.println(r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
@@ -205,10 +202,33 @@ public class TestPropagation extends BaseTestLackrFullStack {
         e = createExchange("http://localhost:" + lackrPort + "/");
         runRequest(e, "null");
         assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
-        
+
         e = createExchange("http://localhost:" + lackrPort + "/");
         e.getHeaders().add(HttpHeader.COOKIE.asString(), "c=2");
         runRequest(e, "c=2");
         assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+    }
+
+    @Test
+    public void hugeCookie() {
+        currentHandler.set(new AbstractHandler() {
+            @Override
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
+                writeResponse(response, "yop!".getBytes(), MimeType.TEXT_PLAIN);
+            }
+        });
+        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        StringBuilder sb = new StringBuilder(10000);
+        for (int i = 0; i < 10000; i++)
+            sb.append("c");
+        e.getHeaders().add("Cookie", "cook=" + sb.toString());
+        ContentResponse r = null;
+        try {
+            r = e.send();
+        } catch (InterruptedException | TimeoutException | ExecutionException e1) {
+            e1.printStackTrace();
+        }
+        assertEquals(HttpStatus.REQUEST_ENTITY_TOO_LARGE_413, r.getStatus());
     }
 }
