@@ -37,7 +37,7 @@ public class MustacheEvalChunk implements Chunk {
         inner.check();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectMapper mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("rawtypes")
         Map data = null;
         try {
             inner.writeTo(baos);
@@ -84,11 +84,13 @@ public class MustacheEvalChunk implements Chunk {
             }
             builder.append("\n");
             request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             StringBuilder builder = new StringBuilder();
             builder.append("MustacheException\n");
             builder.append("url: " + request.getQuery() + "\n");
             builder.append(e.getMessage() + "\n");
+            if(e.getCause() != null && e.getCause() != e)
+                builder.append("caused by: " + e.getCause().getMessage() + "\n");
             builder.append("template name: " + name + "\n");
             String[] lines;
             try {

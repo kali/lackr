@@ -164,7 +164,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testAbsoluteDateTime() throws Exception {
-        String page = "<!-- lackr:mustache:template name=\"t\" -->\n"
+        String template = "<!-- lackr:mustache:template name=\"t\" -->\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"short\"}}\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"medium\"}}\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"long\"}}\n"
@@ -176,17 +176,26 @@ public class TestMustache extends BaseTestSubstitution {
                 + "{{absolute_datetime landed_at format=\"time\" type=\"short\"}}\n"
                 + "{{absolute_datetime landed_at format=\"time\" type=\"medium\"}}\n"
                 + "{{absolute_datetime landed_at format=\"time\" type=\"long\"}}\n"
-                + "{{absolute_datetime landed_at format=\"time\" type=\"full\"}}\n" + "<!-- /lackr:mustache:template -->\n"
-                + "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"landed_at\": -14186520 }\n"
+                + "{{absolute_datetime landed_at format=\"time\" type=\"full\"}}\n" + "<!-- /lackr:mustache:template -->\n";
+
+        String dateAsInt = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"landed_at\": -14186520 }\n"
                 + "<!-- /lackr:mustache:eval -->\n";
-        String en = expand(page, false, "localhost");
-        String[] got = en.trim().split("\\n");
+
+        String dateAsHash = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"landed_at\": { \"$DATE\" : -14186520 } }\n"
+                + "<!-- /lackr:mustache:eval -->\n";
+
         String[] expected = new String[] { "7/20/69, 7:18 PM", "Jul 20, 1969, 7:18:00 PM", "July 20, 1969 at 7:18:00 PM GMT",
                 "Sunday, July 20, 1969 at 7:18:00 PM GMT", "7/20/69", "Jul 20, 1969", "July 20, 1969", "Sunday, July 20, 1969",
                 "7:18 PM", "7:18:00 PM", "7:18:00 PM GMT", "7:18:00 PM GMT" };
+        String en = expand(template + dateAsInt, false, "localhost");
+        String[] got = en.trim().split("\\n");
         Assert.assertArrayEquals(expected, got);
 
-        String fr = expand(page, false, "fr.localhost");
+        en = expand(template + dateAsHash, false, "localhost");
+        got = en.trim().split("\\n");
+        Assert.assertArrayEquals(expected, got);
+
+        String fr = expand(template + dateAsInt, false, "fr.localhost");
         String[] obtenu = fr.trim().split("\\n");
         String[] attendu = new String[] { "20/07/1969 19:18", "20 juil. 1969 19:18:00", "20 juillet 1969 19:18:00 UTC",
                 "dimanche 20 juillet 1969 19:18:00 UTC", "20/07/1969", "20 juil. 1969", "20 juillet 1969",
@@ -196,15 +205,24 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testRelativeDateTime() throws Exception {
-        String page = "<!-- lackr:mustache:template name=\"t\" -->\n" + "{{relative_datetime at}}\n"
-                + "<!-- /lackr:mustache:template -->\n" + "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": "
-                + (System.currentTimeMillis() / 1000 + 86410) + " }\n" + "<!-- /lackr:mustache:eval -->\n";
-        String en = expand(page, false, "localhost");
+        String template = "<!-- lackr:mustache:template name=\"t\" -->\n" + "{{relative_datetime at}}\n"
+                + "<!-- /lackr:mustache:template -->\n";
+        String dateAsInt = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": " + (System.currentTimeMillis() / 1000 + 86410)
+                + " }\n" + "<!-- /lackr:mustache:eval -->\n";
+        String dateAsHash = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": { \"$DATE\" : "
+                + (System.currentTimeMillis() / 1000 + 86410) + "} }\n" + "<!-- /lackr:mustache:eval -->\n";
+
+        String en = expand(template + dateAsInt, false, "localhost");
         String[] got = en.trim().split("\\n");
         String[] expected = new String[] { "1 day from now" };
         Assert.assertArrayEquals(expected, got);
 
-        String fr = expand(page, false, "fr.localhost");
+        en = expand(template + dateAsHash, false, "localhost");
+        got = en.trim().split("\\n");
+        expected = new String[] { "1 day from now" };
+        Assert.assertArrayEquals(expected, got);
+
+        String fr = expand(template + dateAsInt, false, "fr.localhost");
         String[] obtenu = fr.trim().split("\\n");
         String[] attendu = new String[] { "dans 1 jour" };
         Assert.assertArrayEquals(attendu, obtenu);
@@ -226,7 +244,6 @@ public class TestMustache extends BaseTestSubstitution {
         assertEquals("http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.jpg\n"
                 + "http://images.cdn.fotopedia.com/kali-12-image.jpg\n"
                 + "http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.png\n"
-                + "http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg\n"
-                + "http://picor_url/", result);
+                + "http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg\n" + "http://picor_url/", result);
     }
 }
