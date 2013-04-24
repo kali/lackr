@@ -181,7 +181,7 @@ public class TestMustache extends BaseTestSubstitution {
         String dateAsInt = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"landed_at\": -14186520 }\n"
                 + "<!-- /lackr:mustache:eval -->\n";
 
-        String dateAsHash = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"landed_at\": { \"$DATE\" : -14186520 } }\n"
+        String dateAsHash = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"landed_at\": { \"$DATE\" : -14186520000 } }\n"
                 + "<!-- /lackr:mustache:eval -->\n";
 
         String[] expected = new String[] { "7/20/69, 7:18 PM", "Jul 20, 1969, 7:18:00 PM", "July 20, 1969 at 7:18:00 PM GMT",
@@ -210,7 +210,7 @@ public class TestMustache extends BaseTestSubstitution {
         String dateAsInt = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": " + (System.currentTimeMillis() / 1000 + 86410)
                 + " }\n" + "<!-- /lackr:mustache:eval -->\n";
         String dateAsHash = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": { \"$DATE\" : "
-                + (System.currentTimeMillis() / 1000 + 86410) + "} }\n" + "<!-- /lackr:mustache:eval -->\n";
+                + (System.currentTimeMillis() + 86410 * 1000) + "} }\n" + "<!-- /lackr:mustache:eval -->\n";
 
         String en = expand(template + dateAsInt, false, "localhost");
         String[] got = en.trim().split("\\n");

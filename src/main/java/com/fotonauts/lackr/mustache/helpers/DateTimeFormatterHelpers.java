@@ -11,17 +11,16 @@ import com.ibm.icu.util.ULocale;
 
 public class DateTimeFormatterHelpers {
 
-    private static Number extractTimestamp(Object object) {
+    private static Long extractTimestampMS(Object object) {
         if (object instanceof Number) {
             Number number = (Number) object;
-            return number;
+            return number.longValue() * 1000;
         } else if (object instanceof Map) {
             @SuppressWarnings("rawtypes")
             Map hash = (Map) object;
             if (hash.containsKey("$DATE")) {
                 if (hash.get("$DATE") instanceof Number) {
-                    Number number = (Number) hash.get("$DATE");
-                    return number;
+                    return ((Number) hash.get("$DATE")).longValue();
                 } else {
                     throw new RuntimeException("expected $DATE to be a number, found: " + hash.get("$DATE"));
                 }
@@ -33,11 +32,11 @@ public class DateTimeFormatterHelpers {
 
 
     public static CharSequence relative_datetime(Object object, Options options) {
-        Number timestamp = extractTimestamp(object);
+        Long timestamp = extractTimestampMS(object);
         try {
             Locale locale = (Locale) options.context.get("_ftn_locale");
             return DurationFormat.getInstance(ULocale.forLocale(locale)).formatDurationFromNow(
-                    timestamp.longValue() * 1000 - System.currentTimeMillis());
+                    timestamp.longValue() - System.currentTimeMillis());
         } catch (Exception e) {
             System.err.println(e);
             throw e;
@@ -48,10 +47,10 @@ public class DateTimeFormatterHelpers {
     // 'format' : 'time' / 'date' / 'date_time'
     // 'type' : 'short' / 'medium' / 'long' / 'full'
     public static CharSequence absolute_datetime(Object date, Options options) {
-        return icuFormatDateTime(extractTimestamp(date), options, false);
+        return icuFormatDateTime(extractTimestampMS(date), options, false);
     }
 
-    private static CharSequence icuFormatDateTime(Number number, Options options, boolean relative) {
+    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, boolean relative) {
         String format = options.hash("format", "time");
         String type = options.hash("type", "full");
         Locale locale = (Locale) options.context.get("_ftn_locale");
@@ -84,6 +83,6 @@ public class DateTimeFormatterHelpers {
             break;
         }
 
-        return df.format(new Date(number.longValue() * 1000));
+        return df.format(new Date(timestampMS));
     }
 }
