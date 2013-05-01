@@ -107,7 +107,7 @@ public class Service extends AbstractHandler {
                 }
             }
         }
-        setExecutor(Executors.newFixedThreadPool(64));
+        setExecutor(Executors.newFixedThreadPool(16));
         if (graphiteHost != null && graphitePort != 0) {
             String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
             GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname);
