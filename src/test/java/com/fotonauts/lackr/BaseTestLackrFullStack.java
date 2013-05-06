@@ -171,6 +171,7 @@ public class BaseTestLackrFullStack {
                     backendStubConnector, femtorStub, femtorStubConnector, client, ctx };
             String methods[] = new String[] { "stop", "close", "destroy" };
             for (Object collectable : collectables) {
+                //System.err.println("collectable: " + collectable);
                 if (collectable != null)
                     for (String methodName : methods)
                         try {
@@ -179,7 +180,7 @@ public class BaseTestLackrFullStack {
 
                         }
             }
-            System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size());
+            //System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size());
         }
     }
 }

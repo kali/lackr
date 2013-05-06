@@ -118,4 +118,11 @@ public class TestFemtor extends BaseTestLackrFullStack {
         assertEquals("Hi from dummy femtor\n", new String(e.getContent()));
     }
     
+    @Test(timeout = 500)
+    public void testProxy() throws Exception {
+        Request r = client.newRequest("http://localhost:" + lackrPort + "/femtor/asyncProxy?lackrPort=" + lackrPort);        
+        ContentResponse e = r.send();
+        assertEquals("Hi from dummy femtor\n", e.getContentAsString());
+    }
+    
 }

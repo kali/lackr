@@ -28,6 +28,10 @@ public class DummyFemtor implements Filter {
             throw new RuntimeException("catch me or you're dead.");
         } else if(hr.getPathInfo().startsWith("/femtor/crash/error")) {
             throw new Error("catch me or you're dead.");
+        } else if(hr.getPathInfo().startsWith("/femtor/asyncProxy")) {
+            ((HttpServletResponse) response).setStatus(398);
+            ((HttpServletResponse) response).setHeader("Location", "http://localhost:" + ((HttpServletRequest) request).getParameter("lackrPort") + "/femtor");
+            response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/femtor/dumpwrapper")) {
 			response.setContentType("text/html");
             ((HttpServletResponse) response).setHeader("X-Ftn-Set-Request-Header", "X-Ftn-IID: TheIIDValue");

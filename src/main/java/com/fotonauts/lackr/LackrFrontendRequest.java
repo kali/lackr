@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -32,7 +33,12 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.api.Response;
+import org.eclipse.jetty.client.api.Result;
+import org.eclipse.jetty.client.api.Response.CompleteListener;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,7 +287,7 @@ public class LackrFrontendRequest {
         byte[] ba = s.getBytes("UTF-8");
         response.setContentLength(ba.length);
         response.getOutputStream().write(ba);
-
+        
         String message;
         try {
             message = backendExceptions.get(0).getMessage().split("\n")[0];
@@ -297,7 +303,14 @@ public class LackrFrontendRequest {
     }
 
     public void writeSuccessResponse(HttpServletResponse response) throws IOException {
-        LackrBackendExchange rootExchange = rootRequest.getExchange();
+        LackrBackendExchange rootExchange = rootRequest.getExchange();    
+        if(rootExchange.getResponseStatus() == 398 && rootExchange.getResponseHeaderValue("Location") != null) {
+            // 398 is a special adhoc http code: used as a way for femtor to ask lackr to proxy and pipe a entirely different url
+            logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+            asyncProxy(response, rootExchange.getResponseHeaderValue("Location"));
+            return;
+        }
+
         response.setStatus(rootExchange.getResponseStatus());
         copyResponseHeaders(response);
         if (request.getCookies() != null) {
@@ -337,6 +350,41 @@ public class LackrFrontendRequest {
             logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
             response.flushBuffer(); // force commiting
         }
+    }
+
+    private void asyncProxy(final HttpServletResponse lackrResponse, String url) {
+        getRequest().startAsync();
+        Request req = getService().getClient().newRequest(url);
+        req.send(new Response.Listener.Empty() {
+            @Override
+            public void onBegin(Response response) {
+                lackrResponse.setStatus(response.getStatus());
+            }
+            
+            @Override
+            public void onHeaders(Response response) {
+                lackrResponse.setContentType(response.getHeaders().getStringField(HttpHeader.CONTENT_TYPE));
+                lackrResponse.setHeader(HttpHeader.CONTENT_LENGTH.asString(), response.getHeaders().getStringField(HttpHeader.CONTENT_LENGTH));
+                if(response.getHeaders().containsKey(HttpHeader.CACHE_CONTROL.asString()));
+                    lackrResponse.setHeader(HttpHeader.CACHE_CONTROL.asString(), response.getHeaders().getStringField(HttpHeader.CACHE_CONTROL));
+            }
+            
+            @Override
+            public void onContent(Response response, ByteBuffer content) {
+                try {
+                    while(content.hasRemaining())
+                        lackrResponse.getOutputStream().write(content.get());
+                } catch (IOException e) {
+                    throw new RuntimeException("error in proxy: " + e);
+                }
+            }
+            
+            @Override
+            public void onComplete(Result result) {
+                getRequest().getAsyncContext().complete();
+                service.getGateway().getRunningRequestsHolder().dec();
+            }
+        });
     }
 
     private String generateEtag(Document content) {

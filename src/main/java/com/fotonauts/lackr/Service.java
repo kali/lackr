@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ public class Service extends AbstractHandler {
     private int timeout;
 
     protected RapportrService rapportr;
+    
+    protected HttpClient client;
 
     protected Interpolr interpolr;
 
@@ -64,6 +67,8 @@ public class Service extends AbstractHandler {
     public Map<String, Counter> picorEpPerEPTable = new HashMap<String, Counter>();
 
     public Service() {
+        client = new HttpClient();
+        client.setFollowRedirects(false);
     }
 
     public Interpolr getInterpolr() {
@@ -94,6 +99,7 @@ public class Service extends AbstractHandler {
     @Override
     protected void doStart() throws Exception {
         upstreamService.start();
+        client.start();
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend b : backends) {
@@ -107,7 +113,7 @@ public class Service extends AbstractHandler {
                 }
             }
         }
-        setExecutor(Executors.newFixedThreadPool(16));
+        setExecutor(Executors.newFixedThreadPool(64));
         if (graphiteHost != null && graphitePort != 0) {
             String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
             GraphiteReporter.enable(10, TimeUnit.SECONDS, graphiteHost, graphitePort, "10sec.lackr." + localhostname);
@@ -268,6 +274,7 @@ public class Service extends AbstractHandler {
         }
         Metrics.shutdown();
         getExecutor().shutdown();
+        client.stop();
         log.info("Stopped lackr Service: " + Thread.getAllStackTraces().size());
     }
 
@@ -302,6 +309,10 @@ public class Service extends AbstractHandler {
 
     public void setGrid(String grid) {
         this.grid = grid;
+    }
+
+    public HttpClient getClient() {
+        return client;
     }
 
 }
