@@ -17,6 +17,8 @@ public class MediaDerivativesUrlHelper implements Helper<Object> {
 
     @Override
     public CharSequence apply(Object pictureAsObject, Options options) throws IOException {
+        if(pictureAsObject == null)
+            return "";
         @SuppressWarnings("unchecked")
         Map<String, Object> picture = (Map<String, Object>) pictureAsObject;
         String kind = (String) options.hash("kind");

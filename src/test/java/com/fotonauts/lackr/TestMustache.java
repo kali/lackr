@@ -246,4 +246,13 @@ public class TestMustache extends BaseTestSubstitution {
                 + "http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.png\n"
                 + "http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg\n" + "http://picor_url/", result);
     }
+
+    @Test
+    public void testDerivativesEmptyContext() throws Exception {
+        String page = "<!-- lackr:mustache:template name=\"t\" -->{{#item}}{{derivative cover kind=\"image\"}}\n{{/item}}<!-- /lackr:mustache:template -->"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"item\": {}" + "}<!-- /lackr:mustache:eval -->\n";
+        String result = expand(page).trim();
+        assertEquals("", result);
+    }
+
 }
