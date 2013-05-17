@@ -227,6 +227,15 @@ public class TestMustache extends BaseTestSubstitution {
         String[] obtenu = fr.trim().split("\\n");
         String[] attendu = new String[] { "dans 1 jour" };
         Assert.assertArrayEquals(attendu, obtenu);
+
+        Assert.assertNotNull(expand(template + dateAsInt, false, "it.localhost"), "icu4j it support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "es.localhost"), "icu4j es support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "zh.localhost"), "icu4j zh support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "ja.localhost"), "icu4j ja support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "pt.localhost"), "icu4j pt support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "de.localhost"), "icu4j de support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "ko.localhost"), "icu4j ko support");
+        Assert.assertNotNull(expand(template + dateAsInt, false, "ru.localhost"), "icu4j ru support");
     }
 
     @Test

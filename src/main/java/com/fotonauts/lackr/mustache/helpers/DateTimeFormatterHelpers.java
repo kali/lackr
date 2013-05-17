@@ -30,9 +30,8 @@ public class DateTimeFormatterHelpers {
             throw new RuntimeException("expected a date, found: " + object);
     }
 
-
     public static CharSequence relative_datetime(Object object, Options options) {
-        if(object == null)
+        if (object == null)
             return "";
         Long timestamp = extractTimestampMS(object);
         try {
@@ -49,15 +48,23 @@ public class DateTimeFormatterHelpers {
     // 'format' : 'time' / 'date' / 'date_time'
     // 'type' : 'short' / 'medium' / 'long' / 'full'
     public static CharSequence absolute_datetime(Object date, Options options) {
-        if(date == null)
+        if (date == null)
             return "";
         return icuFormatDateTime(extractTimestampMS(date), options, false);
     }
 
     private static CharSequence icuFormatDateTime(Long timestampMS, Options options, boolean relative) {
+        try {
+            Locale locale = (Locale) options.context.get("_ftn_locale");
+            return icuFormatDateTime(timestampMS, options, relative, locale);
+        } catch (java.util.MissingResourceException e) {
+            return icuFormatDateTime(timestampMS, options, relative, Locale.ENGLISH);
+        }
+    }
+
+    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, boolean relative, Locale locale) {
         String format = options.hash("format", "time");
         String type = options.hash("type", "full");
-        Locale locale = (Locale) options.context.get("_ftn_locale");
 
         int icuFormat;
         switch (type) {
