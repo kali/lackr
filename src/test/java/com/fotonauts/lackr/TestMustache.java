@@ -165,6 +165,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testAbsoluteDateTime() throws Exception {
         String template = "<!-- lackr:mustache:template name=\"t\" -->\n"
+                + "{{absolute_datetime nowhere format=\"date_time\" type=\"short\"}}"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"short\"}}\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"medium\"}}\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"long\"}}\n"
@@ -205,7 +206,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testRelativeDateTime() throws Exception {
-        String template = "<!-- lackr:mustache:template name=\"t\" -->\n" + "{{relative_datetime at}}\n"
+        String template = "<!-- lackr:mustache:template name=\"t\" -->\n" + "{{relative_datetime at}}{{relative_datetime nowhere}}\n"
                 + "<!-- /lackr:mustache:template -->\n";
         String dateAsInt = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": " + (System.currentTimeMillis() / 1000 + 86410)
                 + " }\n" + "<!-- /lackr:mustache:eval -->\n";

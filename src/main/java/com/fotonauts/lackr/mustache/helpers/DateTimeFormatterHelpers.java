@@ -32,6 +32,8 @@ public class DateTimeFormatterHelpers {
 
 
     public static CharSequence relative_datetime(Object object, Options options) {
+        if(object == null)
+            return "";
         Long timestamp = extractTimestampMS(object);
         try {
             Locale locale = (Locale) options.context.get("_ftn_locale");
@@ -47,6 +49,8 @@ public class DateTimeFormatterHelpers {
     // 'format' : 'time' / 'date' / 'date_time'
     // 'type' : 'short' / 'medium' / 'long' / 'full'
     public static CharSequence absolute_datetime(Object date, Options options) {
+        if(date == null)
+            return "";
         return icuFormatDateTime(extractTimestampMS(date), options, false);
     }
 
