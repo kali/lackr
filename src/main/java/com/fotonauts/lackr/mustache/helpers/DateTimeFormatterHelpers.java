@@ -36,12 +36,18 @@ public class DateTimeFormatterHelpers {
         Long timestamp = extractTimestampMS(object);
         try {
             Locale locale = (Locale) options.context.get("_ftn_locale");
-            return DurationFormat.getInstance(ULocale.forLocale(locale)).formatDurationFromNow(
-                    timestamp.longValue() - System.currentTimeMillis());
+            return relativeDatetime(timestamp, locale);
+        } catch (java.util.MissingResourceException e) {
+            return relativeDatetime(timestamp, Locale.ENGLISH);
         } catch (Exception e) {
             System.err.println(e);
             throw e;
         }
+    }
+
+    private static CharSequence relativeDatetime(Long timestamp, Locale locale) {
+        return DurationFormat.getInstance(ULocale.forLocale(locale)).formatDurationFromNow(
+                timestamp.longValue() - System.currentTimeMillis());
     }
 
     // options:
