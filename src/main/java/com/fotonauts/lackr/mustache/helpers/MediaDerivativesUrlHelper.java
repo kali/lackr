@@ -36,8 +36,6 @@ public class MediaDerivativesUrlHelper implements Helper<Object> {
         }
         
         String grid = (String) picture.get("upload_grid");
-        if (grid == null)
-            grid = service.getGrid();
         if (grid == null || grid.equals(""))
             grid = "prod";
 
