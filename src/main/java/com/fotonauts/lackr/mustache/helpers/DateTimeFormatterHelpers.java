@@ -38,7 +38,7 @@ public class DateTimeFormatterHelpers {
             Locale locale = (Locale) options.context.get("_ftn_locale");
             return relativeDatetime(timestamp, locale);
         } catch (java.util.MissingResourceException e) {
-            return relativeDatetime(timestamp, Locale.ENGLISH);
+            return icuFormatDateTime(timestamp, options);
         } catch (Exception e) {
             System.err.println(e);
             throw e;
@@ -56,19 +56,19 @@ public class DateTimeFormatterHelpers {
     public static CharSequence absolute_datetime(Object date, Options options) {
         if (date == null)
             return "";
-        return icuFormatDateTime(extractTimestampMS(date), options, false);
+        return icuFormatDateTime(extractTimestampMS(date), options);
     }
 
-    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, boolean relative) {
+    private static CharSequence icuFormatDateTime(Long timestampMS, Options options) {
         try {
             Locale locale = (Locale) options.context.get("_ftn_locale");
-            return icuFormatDateTime(timestampMS, options, relative, locale);
+            return icuFormatDateTime(timestampMS, options, locale);
         } catch (java.util.MissingResourceException e) {
-            return icuFormatDateTime(timestampMS, options, relative, Locale.ENGLISH);
+            return icuFormatDateTime(timestampMS, options, Locale.ENGLISH);
         }
     }
 
-    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, boolean relative, Locale locale) {
+    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, Locale locale) {
         String format = options.hash("format", "time");
         String type = options.hash("type", "full");
 
