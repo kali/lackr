@@ -68,7 +68,7 @@ public class Service extends AbstractHandler {
 
     public Service() {
         client = new HttpClient();
-        client.setFollowRedirects(false);
+        client.setFollowRedirects(true);
     }
 
     public Interpolr getInterpolr() {
