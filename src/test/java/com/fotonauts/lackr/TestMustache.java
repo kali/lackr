@@ -255,4 +255,14 @@ public class TestMustache extends BaseTestSubstitution {
         assertEquals("", result);
     }
 
+    @Test
+    public void testInlineWrapperSubstitution() throws Exception {
+        // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
+        String page = "<!-- lackr:mustache:template name=\"t\" -->{{blu}} {{glou}} {{glap}}<!-- /lackr:mustache:template -->"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n"
+                + "{ \"blu\": \"bla\", \"blo\":{ \"$$inline_wrapper\" : { \"glou\" : 42, \"glap\" : \"haha\" } } }"
+                + "<!-- /lackr:mustache:eval -->\n";
+        String result = expand(page).trim();
+        assertEquals("bla 42 haha", result);
+    }
 }
