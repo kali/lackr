@@ -165,6 +165,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testAbsoluteDateTime() throws Exception {
         String template = "<!-- lackr:mustache:template name=\"t\" -->\n"
+                + "{{absolute_datetime nowhere format=\"date_time\" type=\"short\"}}"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"short\"}}\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"medium\"}}\n"
                 + "{{absolute_datetime landed_at format=\"date_time\" type=\"long\"}}\n"
@@ -205,8 +206,9 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testRelativeDateTime() throws Exception {
-        String template = "<!-- lackr:mustache:template name=\"t\" -->\n" + "{{relative_datetime at}}\n"
-                + "<!-- /lackr:mustache:template -->\n";
+
+        String template = "<!-- lackr:mustache:template name=\"t\" -->\n"
+                + "{{relative_datetime at}}{{relative_datetime nowhere}}\n" + "<!-- /lackr:mustache:template -->\n";
         String dateAsInt = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": " + (System.currentTimeMillis() / 1000 + 86410)
                 + " }\n" + "<!-- /lackr:mustache:eval -->\n";
         String dateAsHash = "<!-- lackr:mustache:eval name=\"t\" -->\n" + "{ \"at\": { \"$DATE\" : "
@@ -226,6 +228,15 @@ public class TestMustache extends BaseTestSubstitution {
         String[] obtenu = fr.trim().split("\\n");
         String[] attendu = new String[] { "dans 1 jour" };
         Assert.assertArrayEquals(attendu, obtenu);
+
+        Assert.assertNotNull("icu4j it support", expand(template + dateAsInt, false, "it.localhost"));
+        Assert.assertNotNull("icu4j es support", expand(template + dateAsInt, false, "es.localhost"));
+        Assert.assertNotNull("icu4j zh support", expand(template + dateAsInt, false, "zh.localhost"));
+        Assert.assertNotNull("icu4j ja support", expand(template + dateAsInt, false, "ja.localhost"));
+        Assert.assertNotNull("icu4j pt support", expand(template + dateAsInt, false, "pt.localhost"));
+        Assert.assertNotNull("icu4j de support", expand(template + dateAsInt, false, "de.localhost"));
+        Assert.assertNotNull("icu4j ko support", expand(template + dateAsInt, false, "ko.localhost"));
+        Assert.assertNotNull("icu4j ru support", expand(template + dateAsInt, false, "ru.localhost"));
     }
 
     @Test

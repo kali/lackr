@@ -30,30 +30,47 @@ public class DateTimeFormatterHelpers {
             throw new RuntimeException("expected a date, found: " + object);
     }
 
-
     public static CharSequence relative_datetime(Object object, Options options) {
+        if (object == null)
+            return "";
         Long timestamp = extractTimestampMS(object);
         try {
             Locale locale = (Locale) options.context.get("_ftn_locale");
-            return DurationFormat.getInstance(ULocale.forLocale(locale)).formatDurationFromNow(
-                    timestamp.longValue() - System.currentTimeMillis());
+            return relativeDatetime(timestamp, locale);
+        } catch (java.util.MissingResourceException e) {
+            return icuFormatDateTime(timestamp, options);
         } catch (Exception e) {
             System.err.println(e);
             throw e;
         }
     }
 
+    private static CharSequence relativeDatetime(Long timestamp, Locale locale) {
+        return DurationFormat.getInstance(ULocale.forLocale(locale)).formatDurationFromNow(
+                timestamp.longValue() - System.currentTimeMillis());
+    }
+
     // options:
     // 'format' : 'time' / 'date' / 'date_time'
     // 'type' : 'short' / 'medium' / 'long' / 'full'
     public static CharSequence absolute_datetime(Object date, Options options) {
-        return icuFormatDateTime(extractTimestampMS(date), options, false);
+        if (date == null)
+            return "";
+        return icuFormatDateTime(extractTimestampMS(date), options);
     }
 
-    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, boolean relative) {
+    private static CharSequence icuFormatDateTime(Long timestampMS, Options options) {
+        try {
+            Locale locale = (Locale) options.context.get("_ftn_locale");
+            return icuFormatDateTime(timestampMS, options, locale);
+        } catch (java.util.MissingResourceException e) {
+            return icuFormatDateTime(timestampMS, options, Locale.ENGLISH);
+        }
+    }
+
+    private static CharSequence icuFormatDateTime(Long timestampMS, Options options, Locale locale) {
         String format = options.hash("format", "time");
         String type = options.hash("type", "full");
-        Locale locale = (Locale) options.context.get("_ftn_locale");
 
         int icuFormat;
         switch (type) {
