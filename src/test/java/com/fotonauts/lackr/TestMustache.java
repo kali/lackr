@@ -4,9 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.util.StringUtils;
 
 public class TestMustache extends BaseTestSubstitution {
 
@@ -276,4 +280,18 @@ public class TestMustache extends BaseTestSubstitution {
         String result = expand(page).trim();
         assertEquals("bla 42 haha", result);
     }
+
+    @Test
+    public void testHumanizeInteger() throws Exception {
+        // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
+        List<String> sb = new ArrayList<>();
+        for (int i : new Integer[] { 12, 9999, 10000, 10001, 9999999, 10000000, 10000001 })
+            sb.add("{ \"i\" : " + i + " }");
+        String page = "<!-- lackr:mustache:template name=\"t\" -->{{#ints}}{{humanize_integer i}} {{/ints}}<!-- /lackr:mustache:template -->"
+                + "<!-- lackr:mustache:eval name=\"t\" -->\n{ \"ints\" : ["
+                + StringUtils.arrayToCommaDelimitedString(StringUtils.toStringArray(sb)) + "]} <!-- /lackr:mustache:eval -->\n";
+        String result = expand(page).trim();
+        assertEquals("12 9999 10k 10k 9999k 10M 10M", result);
+    }
+
 }

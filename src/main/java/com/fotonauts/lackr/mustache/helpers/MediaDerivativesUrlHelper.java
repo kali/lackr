@@ -3,20 +3,11 @@ package com.fotonauts.lackr.mustache.helpers;
 import java.io.IOException;
 import java.util.Map;
 
-import com.fotonauts.lackr.Service;
-import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Options;
 
-public class MediaDerivativesUrlHelper implements Helper<Object> {
+public class MediaDerivativesUrlHelper {
 
-    private Service service;
-
-    public MediaDerivativesUrlHelper(Service service) {
-        this.service = service;
-    }
-
-    @Override
-    public CharSequence apply(Object pictureAsObject, Options options) throws IOException {
+    public static CharSequence derivative(Object pictureAsObject, Options options) throws IOException {
         if(pictureAsObject == null)
             return "";
         @SuppressWarnings("unchecked")

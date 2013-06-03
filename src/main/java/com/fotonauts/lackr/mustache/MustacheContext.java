@@ -14,6 +14,7 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
 import com.fotonauts.lackr.mustache.helpers.MediaDerivativesUrlHelper;
+import com.fotonauts.lackr.mustache.helpers.MiscelaneousHelpers;
 import com.fotonauts.lackr.mustache.helpers.ReverseEachHelper;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
@@ -54,7 +55,8 @@ public class MustacheContext {
         handlebars = new Handlebars(loader);
         handlebars.registerHelper(ReverseEachHelper.NAME, ReverseEachHelper.INSTANCE);
         handlebars.registerHelpers(new DateTimeFormatterHelpers());
-        handlebars.registerHelper("derivative", new MediaDerivativesUrlHelper(lackrFrontendRequest.getService()));
+        handlebars.registerHelpers(new MediaDerivativesUrlHelper());
+        handlebars.registerHelpers(new MiscelaneousHelpers());
     }
 
     public void checkAndCompileAll(List<LackrPresentableError> backendExceptions) {
