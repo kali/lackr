@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrService;
+import com.fotonauts.commons.UserAgent;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
@@ -46,7 +48,7 @@ public class Service extends AbstractHandler {
     private int timeout;
 
     protected RapportrService rapportr;
-    
+
     protected HttpClient client;
 
     protected Interpolr interpolr;
@@ -59,6 +61,8 @@ public class Service extends AbstractHandler {
 
     private String grid = "prod";
 
+    public Map<String, Counter> clientTable = new HashMap<String, Counter>();
+    public Map<String, Counter> codebaseTable = new HashMap<String, Counter>();
     public Map<String, Counter> countryTable = new HashMap<String, Counter>();
     public Map<String, Counter> statusTable = new HashMap<String, Counter>();
     public Map<String, Counter> endpointCounterTable = new HashMap<String, Counter>();
@@ -155,10 +159,28 @@ public class Service extends AbstractHandler {
             state.kick();
             String countryCode = getCountry(request.getHeader("x-forwarded-for"));
             countCountry(countryCode);
+            try {
+                if (request.getHeader(HttpHeader.USER_AGENT.toString()) != null) {
+                    String agent = request.getHeader(HttpHeader.USER_AGENT.toString());
+                    if (agent != null && agent.indexOf("Doolittle") >= 0) {
+                        // "Doolittle/7.3.49 China/1.2.4 iPad/iPhoneOS/6.1.3"
+                        countClient(agent.split(" ")[1].split("/")[0]);
+                        countCodebase(agent.split(" ")[0].split("/")[1].replace('.', '_'));
+                    }
+                    else
+                        countClient("other");
+                }
+            } catch (Exception e) {
+                /* ignore this */
+            }
         } else {
             log.debug("resuming processing for: " + request.getRequestURL());
             state.writeResponse(response);
         }
+    }
+
+    private void countCodebase(String codebase) {
+        counter(codebaseTable, "codebase", null, codebase, 1);        
     }
 
     public void countCountry(String countryCode) {
@@ -167,6 +189,10 @@ public class Service extends AbstractHandler {
 
     public void countStatus(String statusCode) {
         counter(statusTable, "status", null, statusCode, 1);
+    }
+
+    public void countClient(String client) {
+        counter(clientTable, "client", null, client, 1);
     }
 
     public void countEndpointWithTimer(String endpoint, long d) {
@@ -193,7 +219,7 @@ public class Service extends AbstractHandler {
                     table.put(fullKey, counter);
                 }
             }
-            if(counter != null)
+            if (counter != null)
                 counter.inc(n);
         } catch (Throwable t) {
             t.printStackTrace(System.err);
