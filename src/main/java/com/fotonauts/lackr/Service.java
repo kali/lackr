@@ -160,16 +160,14 @@ public class Service extends AbstractHandler {
             String countryCode = getCountry(request.getHeader("x-forwarded-for"));
             countCountry(countryCode);
             try {
-                if (request.getHeader(HttpHeader.USER_AGENT.toString()) != null) {
-                    String agent = request.getHeader(HttpHeader.USER_AGENT.toString());
-                    if (agent != null && agent.indexOf("Doolittle") >= 0) {
-                        // "Doolittle/7.3.49 China/1.2.4 iPad/iPhoneOS/6.1.3"
-                        countClient(agent.split(" ")[1].split("/")[0]);
-                        countCodebase(agent.split(" ")[0].split("/")[1].replace('.', '_'));
-                    }
-                    else
-                        countClient("other");
+                String agent = request.getHeader(HttpHeader.USER_AGENT.toString());
+                // "Doolittle/7.3.49 China/1.2.4 iPad/iPhoneOS/6.1.3"
+                if (agent != null && agent.indexOf("Doolittle") >= 0) {
+                    countClient(agent.split(" ")[1].split("/")[0]);
+                    countCodebase(agent.split(" ")[0].split("/")[1].replace('.', '_'));
                 }
+                else
+                    countClient("other");
             } catch (Exception e) {
                 /* ignore this */
             }
