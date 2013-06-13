@@ -1,6 +1,6 @@
 package com.fotonauts.lackr;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -76,6 +76,24 @@ DUMP: {
         assertContains(result.trim(), "NAME1: object number 1");
         assertContains(result.trim(), "NAME2: object number 1");
         assertContains(result.trim(), "NAME3: object number 1 crap");
+    }
+
+    @Test
+    public void testMustacheEvalReversed() throws Exception {
+        String archive = S(/*
+                <script type="vnd.fotonauts/picordata" id="archive_1">
+                    { "root_id": 1, "objects": { "1" : { "name": "object number 1" } } }
+                </script><!-- END OF ARCHIVE -->
+            */);
+        String result = expand(S(/*
+            <!-- lackr:mustache:template name="template_name" -->
+                NAME1: {{object.name}}
+            <!-- /lackr:mustache:template -->
+            <!-- lackr:mustache:eval name="template_name" -->
+                { "object": { "$$archive" : "archive_1", "$$id" : 1 } }
+            <!-- /lackr:mustache:eval -->
+        */) + archive);
+        assertContains(result.trim(), "NAME1: object number 1");
     }
 
     @Test

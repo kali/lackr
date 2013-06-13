@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrService;
-import com.fotonauts.commons.UserAgent;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;

@@ -15,6 +15,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.Document;
@@ -61,7 +62,7 @@ public abstract class ParsedJsonChunk implements Chunk {
         inner = request.getFrontendRequest().getService().getInterpolr().parse(buffer, start, stop, request);
     }
 
-    protected String contentAsDebugString(int lineNumber, int columnNumber) {
+    protected static String contentAsDebugString(Chunk inner, int lineNumber, int columnNumber) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             inner.writeTo(baos);
@@ -109,9 +110,9 @@ public abstract class ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    protected Map<String, Object> parse() {
+    protected static Map<String, Object> parse(Chunk inner, LackrFrontendRequest feRequest) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectMapper mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
+        ObjectMapper mapper = feRequest.getService().getJacksonObjectMapper();
         try {
             Map<String, Object> data = null;
             inner.writeTo(baos);
@@ -120,20 +121,16 @@ public abstract class ParsedJsonChunk implements Chunk {
         } catch (JsonParseException e) {
             StringBuilder builder = new StringBuilder();
             builder.append("JsonParseException\n");
-            builder.append("url: " + request.getQuery() + "\n");
             builder.append(e.getMessage() + "\n");
-            builder.append("where: " + toDebugString() + "\n");
-            builder.append(contentAsDebugString(e.getLocation().getLineNr(), e.getLocation().getColumnNr()));
+            builder.append(contentAsDebugString(inner, e.getLocation().getLineNr(), e.getLocation().getColumnNr()));
             builder.append("\n");
-            request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
+            feRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
         } catch (IOException e) {
             StringBuilder builder = new StringBuilder();
             builder.append("IOException\n");
-            builder.append("url: " + request.getQuery() + "\n");
             builder.append(e.getMessage() + "\n");
-            builder.append("where: " + toDebugString() + "\n");
-            request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
+            feRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
         }
-        return new HashMap<String, Object>();
+        return null;
     }
 }

@@ -15,6 +15,7 @@ public class Archive {
         process();
     }
     
+    @SuppressWarnings("unchecked")
     private void simplifyJavascriptObjects(Object object) {
         if(object instanceof Map<?,?>) {
             Map<String,Object> hash = (Map<String, Object>) object;
@@ -31,6 +32,7 @@ public class Archive {
         }
     }
     
+    @SuppressWarnings("unchecked")
     private void process() {
         simplifyJavascriptObjects(data);
         Map<String,Object> objects = (Map<String, Object>) data.get("objects");
@@ -51,6 +53,7 @@ public class Archive {
         }.walk(data);
     }
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getObject(int objectId) {
         return (Map<String, Object>) straightIndex.get(objectId);
     }

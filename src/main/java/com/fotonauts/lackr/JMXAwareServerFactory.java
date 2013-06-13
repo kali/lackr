@@ -4,7 +4,6 @@ import java.lang.management.ManagementFactory;
 
 import org.eclipse.jetty.jmx.MBeanContainer;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.util.log.Log;
 
 public class JMXAwareServerFactory {
 

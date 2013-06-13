@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -45,7 +44,7 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 
         @Override
         public void check() {
-            Archive archive = request.getFrontendRequest().getMustacheContext().getArchives().get(name);
+            Archive archive = request.getFrontendRequest().getMustacheContext().getArchive(name);
             ObjectMapper mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {

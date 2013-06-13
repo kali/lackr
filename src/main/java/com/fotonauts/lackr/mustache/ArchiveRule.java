@@ -19,10 +19,13 @@ public class ArchiveRule extends MarkupDetectingRule {
         BackendRequest request = (BackendRequest) context;
         try {
             String archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
-            return new Document(new Chunk[] { 
-                    new DataChunk(buffer, start, boundPairs[2]),
-                    new ArchiveChunk(archiveId, buffer, boundPairs[2], boundPairs[3], request),
-                    new DataChunk(buffer, boundPairs[3], stop)});
+            Document inner = request.getFrontendRequest().getService().getInterpolr()
+                    .parse(buffer, boundPairs[2], boundPairs[3], request);
+
+            request.getFrontendRequest().getMustacheContext().registerArchive(archiveId, inner);
+
+            return new Document(new Chunk[] { new DataChunk(buffer, start, boundPairs[2]), inner,
+                    new DataChunk(buffer, boundPairs[3], stop) });
         } catch (UnsupportedEncodingException e) {
             /* nope */
             throw new RuntimeException(e);

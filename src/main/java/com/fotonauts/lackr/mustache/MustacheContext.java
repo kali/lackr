@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -27,15 +26,19 @@ public class MustacheContext {
     private Handlebars handlebars;
     private Map<String, Document> registeredTemplatesDocument;
     private Map<String, Template> compiledTemplates;
-    private Map<String, Archive> archives;
+    private Map<String, Document> registeredArchiveDocuments;
+    private Map<String, Archive> expandedArchives;
+    private LackrFrontendRequest lackrFrontendRequest;
 
     public MustacheContext(LackrFrontendRequest lackrFrontendRequest) {
+        this.lackrFrontendRequest = lackrFrontendRequest;
         registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());
-        compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>());
+        compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>()); // not sure this one has to be synced
+        registeredArchiveDocuments = Collections.synchronizedMap(new HashMap<String, Document>());
+        expandedArchives = Collections.synchronizedMap(new HashMap<String, Archive>()); // not sure this one has to be synced
         TemplateLoader loader = new TemplateLoader() {
 
             public TemplateSource sourceAt(final String uri) throws IOException {
-                System.err.println("SOURCE AT:" + uri);
                 return new StringTemplateSource(uri, getExpandedTemplate(uri));
             }
 
@@ -61,7 +64,12 @@ public class MustacheContext {
         handlebars.registerHelpers(new MiscelaneousHelpers());
     }
 
-    public void checkAndCompileAll(List<LackrPresentableError> backendExceptions) {
+    public void checkAndCompileAll() {
+        for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
+            registered.getValue().check();
+            expandedArchives.put(registered.getKey(),
+                    new Archive(ParsedJsonChunk.parse(registered.getValue(), lackrFrontendRequest)));
+        }
         for (Entry<String, Document> registered : registeredTemplatesDocument.entrySet()) {
             registered.getValue().check();
             String expanded = getExpandedTemplate(registered.getKey());
@@ -76,7 +84,7 @@ public class MustacheContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                backendExceptions.add(new LackrPresentableError(builder.toString()));
+                lackrFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
             } catch (IOException e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Handlebars: IOException\n");
@@ -86,15 +94,18 @@ public class MustacheContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                backendExceptions.add(new LackrPresentableError(builder.toString()));
+                lackrFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
             }
 
         }
     }
 
     public void registerTemplate(String name, Document template) {
-        System.err.println("REGISTER: "  + name);
         registeredTemplatesDocument.put(name, template);
+    }
+
+    public void registerArchive(String name, Document archive) {
+        registeredArchiveDocuments.put(name, archive);
     }
 
     public Template get(String templateName) {
@@ -112,7 +123,7 @@ public class MustacheContext {
     }
 
     public Document getTemplate(String name) {
-        System.err.println("REQUIRE: "  + name);
+        System.err.println("REQUIRE: " + name);
         return registeredTemplatesDocument.get(name);
     }
 
@@ -120,9 +131,8 @@ public class MustacheContext {
         return (String[]) registeredTemplatesDocument.keySet().toArray(new String[0]);
     }
 
-    public Map<String,Archive> getArchives() {
-        if(archives == null)
-            archives = new HashMap<String, Archive>();
-        return archives;
+    public Archive getArchive(String name) {
+        return expandedArchives.get(name);
     }
+
 }

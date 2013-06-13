@@ -36,9 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.api.Result;
-import org.eclipse.jetty.client.api.Response.CompleteListener;
 import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.http.HttpHeaderValue;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -211,7 +209,7 @@ public class LackrFrontendRequest {
 
     private void preflightCheck() {
         try {
-            getMustacheContext().checkAndCompileAll(backendExceptions);
+            getMustacheContext().checkAndCompileAll();
             if (rootRequest.getParsedDocument() != null) {
                 rootRequest.getParsedDocument().check();
             }

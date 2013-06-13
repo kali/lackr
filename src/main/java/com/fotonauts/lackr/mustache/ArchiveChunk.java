@@ -32,8 +32,7 @@ public class ArchiveChunk extends ParsedJsonChunk {
 
     @Override
     public void check() {
-        inner.check();        
-        request.getFrontendRequest().getMustacheContext().getArchives().put(id, new Archive(parse()));
+        // check is handled by mustache context
     }
     
 }
