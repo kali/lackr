@@ -2,7 +2,10 @@ package com.fotonauts.lackr.mustache;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
@@ -28,11 +31,11 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
         Map<String, Object> data = null;
         try {
             data = parse();
+            MustacheContext context = request.getFrontendRequest().getMustacheContext();
+            inlineWrapperJsonEvaluation(data);
+            resolveArchiveReferences(data, context.getArchives());
             data.put("_ftn_inline_images", request.getFrontendRequest().getUserAgent().supportsInlineImages());
             data.put("_ftn_locale", request.getFrontendRequest().getPreferredLocale());
-            inlineWrapperJsonEvaluation(data);
-
-            MustacheContext context = request.getFrontendRequest().getMustacheContext();
             Template template = context.get(name);
             if (template == null) {
                 StringBuilder builder = new StringBuilder();
@@ -76,6 +79,48 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
             }
             builder.append("\n");
             request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asAReference(Object data, Map<String, Map<String, Object>> archives) {
+        if (data instanceof Map<?, ?>) {
+            Map<String, Object> dataAsMap = (Map<String, Object>) data;
+            if (dataAsMap.containsKey("$$archive") && dataAsMap.containsKey("$$id")) {
+                Map<String, Object> objects = (Map<String, Object>) archives.get(dataAsMap.get("$$archive")).get("objects");
+                return (Map<String, Object>) objects.get(dataAsMap.get("$$id").toString());
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void resolveArchiveReferences(Object data, Map<String, Map<String, Object>> archives) {
+        if (data instanceof List<?>) {
+            List<Object> dataAsList = (List<Object>) data;
+            boolean shouldChange = false;
+            for (Object s : dataAsList) {
+                resolveArchiveReferences(s, archives);
+                shouldChange = shouldChange || asAReference(s, archives) != null;
+            }
+            if (shouldChange) {
+                for (int i = 0; i < dataAsList.size(); i++) {
+                    Object resolved = asAReference(dataAsList.get(i), archives);
+                    if (resolved != null)
+                        dataAsList.set(i, resolved);
+                }
+            }
+
+        } else if (data instanceof Map<?, ?>) {
+            Map<String, Object> dataAsMap = (Map<String, Object>) data;
+            Map<String, Object> changes = new HashMap<>();
+            for (Entry<String, Object> e : dataAsMap.entrySet()) {
+                resolveArchiveReferences(e.getValue(), archives);
+                Object resolved = asAReference(e.getValue(), archives);
+                if (resolved != null)
+                    changes.put(e.getKey(), resolved);
+            }
+            dataAsMap.putAll(changes);
         }
     }
 

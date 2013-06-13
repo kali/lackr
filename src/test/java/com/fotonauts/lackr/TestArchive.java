@@ -29,9 +29,7 @@ public class TestArchive extends BaseTestSubstitution {
         */);
 
         String page = archive + S(/*DUMP: <!-- lackr:mustache:dump archive="archive_1" -->*/);
-        System.err.println(page);
         String result = expand(page);
-        System.err.println(result);
 
         assertContains(result, archive); // archive is not swallowed
         assertContains(result, S(
@@ -46,4 +44,22 @@ DUMP: {
 }*/).trim());
     }
 
+    @Test
+    public void testMustacheEval() throws Exception {
+        String archive = S(/*
+                <script type="vnd.fotonauts/picordata" id="archive_1">
+                    { "root_id": 1, "objects": { "1" : { "name": "object number 1" } } }
+                </script><!-- END OF ARCHIVE -->
+            */);
+        String result = expand(archive + S(/*
+            <!-- lackr:mustache:template name="template_name" -->
+                NAME: {{object.name}}
+            <!-- /lackr:mustache:template -->
+            <!-- lackr:mustache:eval name="template_name" -->
+                { "object": { "$$archive" : "archive_1", "$$id" : 1 } }
+            <!-- /lackr:mustache:eval -->
+        */));
+        assertContains(result.trim(), "NAME: object number 1");
+    }    
+    
 }

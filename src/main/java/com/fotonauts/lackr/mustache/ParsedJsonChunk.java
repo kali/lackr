@@ -82,8 +82,16 @@ public abstract class ParsedJsonChunk implements Chunk {
         return builder.toString();
     }
 
-    protected String prettyPrint(Map<String, Object> data) {
-        ObjectMapper mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
+    public String prettyPrint(Map<String, Object> data) {
+        return prettyPrint(data, request);
+    }
+
+    public static String prettyPrint(Map<String, Object> data, BackendRequest request) {
+        ObjectMapper mapper = null;
+        if (request != null)
+            mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
+        else
+            mapper = new ObjectMapper();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try {
             mapper.defaultPrettyPrintingWriter().writeValue(baos, data);
@@ -126,6 +134,6 @@ public abstract class ParsedJsonChunk implements Chunk {
             builder.append("where: " + toDebugString() + "\n");
             request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
         }
-        return new HashMap<String,Object>();
+        return new HashMap<String, Object>();
     }
 }
