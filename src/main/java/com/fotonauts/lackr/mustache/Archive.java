@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 public class Archive {
 
     private Map<String, Object> data;
-    private Map<Integer, Object> straightIndex = new HashMap<Integer, Object>();
+    private final Map<Integer, Object> straightIndex = new HashMap<Integer, Object>();
 
     public Archive(Map<String, Object> data) {
         this.data = data;
@@ -37,6 +37,18 @@ public class Archive {
         for(Entry<String, Object> entry : objects.entrySet()) {
             straightIndex.put(Integer.parseInt(entry.getKey()), entry.getValue());
         }
+        new ReferenceResolverWalker() {
+            @Override
+            public Object resolve(Object datum) {
+                if(datum instanceof Map<?,?>) {
+                    Map<String,Object> hash = (Map<String, Object>) datum;
+                    if(hash.containsKey("$$id") && hash.size() == 1) {
+                        return straightIndex.get(hash.get("$$id"));
+                    }
+                }
+                return null;
+            }
+        }.walk(data);
     }
 
     public Map<String, Object> getObject(int objectId) {

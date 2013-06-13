@@ -88,45 +88,20 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> asAReference(Object data, Map<String, Archive> archives) {
-        if (data instanceof Map<?, ?>) {
-            Map<String, Object> dataAsMap = (Map<String, Object>) data;
-            if (dataAsMap.containsKey("$$archive") && dataAsMap.containsKey("$$id")) {
-                Archive arch = (Archive) archives.get(dataAsMap.get("$$archive"));
-                return arch.getObject((Integer) dataAsMap.get("$$id"));
-            }
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void resolveArchiveReferences(Object data, Map<String, Archive> archives) {
-        if (data instanceof List<?>) {
-            List<Object> dataAsList = (List<Object>) data;
-            boolean shouldChange = false;
-            for (Object s : dataAsList) {
-                resolveArchiveReferences(s, archives);
-                shouldChange = shouldChange || asAReference(s, archives) != null;
-            }
-            if (shouldChange) {
-                for (int i = 0; i < dataAsList.size(); i++) {
-                    Object resolved = asAReference(dataAsList.get(i), archives);
-                    if (resolved != null)
-                        dataAsList.set(i, resolved);
+    private static void resolveArchiveReferences(Object data, final Map<String, Archive> archives) {
+        new ReferenceResolverWalker() {
+            @Override
+            public Map<String, Object> resolve(Object datum) {
+                if (datum instanceof Map<?, ?>) {
+                    Map<String, Object> datumAsMap = (Map<String, Object>) datum;
+                    if (datumAsMap.containsKey("$$archive") && datumAsMap.containsKey("$$id")) {
+                        Archive arch = (Archive) archives.get(datumAsMap.get("$$archive"));
+                        return arch.getObject((Integer) datumAsMap.get("$$id"));
+                    }
                 }
+                return null;
             }
-
-        } else if (data instanceof Map<?, ?>) {
-            Map<String, Object> dataAsMap = (Map<String, Object>) data;
-            Map<String, Object> changes = new HashMap<>();
-            for (Entry<String, Object> e : dataAsMap.entrySet()) {
-                resolveArchiveReferences(e.getValue(), archives);
-                Object resolved = asAReference(e.getValue(), archives);
-                if (resolved != null)
-                    changes.put(e.getKey(), resolved);
-            }
-            dataAsMap.putAll(changes);
-        }
+        }.walk(data);
     }
 
     @Override

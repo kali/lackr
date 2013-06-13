@@ -79,7 +79,7 @@ DUMP: {
     }
 
     @Test
-    public void testArchiveObjectDeser() throws Exception {
+    public void testArchiveJSObjectDeser() throws Exception {
         String result = expand(S(/*
                 <script type="vnd.fotonauts/picordata" id="archive_1">
                     { "root_id": 1, "objects": { 
@@ -95,7 +95,37 @@ DUMP: {
                     { "$$archive" : "archive_1", "$$id" : 1 }
                 <!-- /lackr:mustache:eval -->
         */));
-        assertContains(result.trim(), "NAME1: object number 1");
-        
+        assertContains(result.trim(), "NAME1: object number 1");        
+    }
+
+    @Test
+    public void testArchiveReferenceDeser() throws Exception {
+        String result = expand(S(/*
+                <script type="vnd.fotonauts/picordata" id="archive_1">
+                    { "root_id": 1, "objects": {
+                          "1" : { "$ATTR" : { "name": "darth", "kids" : [ { "$$id" : 2 }, { "$$id" : 3 } ] } }, 
+                          "2" : { "name": "luke", "dad": { "$$id" : 1 } }, 
+                          "3" : { "$ATTR" : { "name": "leia", "dad": { "$$id" : 1 } } } 
+                    } }
+                </script><!-- END OF ARCHIVE -->
+                
+                <!-- lackr:mustache:template name="kids" -->
+                    KIDS: {{#kids}}{{name}} {{/kids}}
+                <!-- /lackr:mustache:template -->
+                
+                <!-- lackr:mustache:eval name="kids" -->
+                    { "$$archive" : "archive_1", "$$id" : 1 }
+                <!-- /lackr:mustache:eval -->
+                
+                <!-- lackr:mustache:template name="dad" -->
+                    DAD: {{dad.name}}
+                <!-- /lackr:mustache:template -->
+                
+                <!-- lackr:mustache:eval name="dad" -->
+                    { "$$archive" : "archive_1", "$$id" : 2 }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertContains(result.trim(), "KIDS: luke leia");        
+        assertContains(result.trim(), "DAD: darth");        
     }
 }
