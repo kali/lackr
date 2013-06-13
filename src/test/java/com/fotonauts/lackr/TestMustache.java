@@ -32,6 +32,19 @@ public class TestMustache extends BaseTestSubstitution {
     }
 
     @Test
+    public void testMustacheReversed() throws Exception {
+        String result = expand(S(/*
+            <!-- lackr:mustache:eval name="template_name" -->
+                { "name": "the name", "value": "the value" }
+            <!-- /lackr:mustache:eval -->
+            <!-- lackr:mustache:template name="template_name" -->
+                some text from the template name:{{name}} value:{{value}}
+            <!-- /lackr:mustache:template -->
+        */));
+        assertNearlyEquals("some text from the template name:the name value:the value", result);
+    }
+
+    @Test
     public void testMustacheWithEsi() throws Exception {
         String result = expand(S(/*
             <!-- lackr:mustache:template name="template_name" -->
