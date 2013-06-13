@@ -88,19 +88,19 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> asAReference(Object data, Map<String, Map<String, Object>> archives) {
+    private static Map<String, Object> asAReference(Object data, Map<String, Archive> archives) {
         if (data instanceof Map<?, ?>) {
             Map<String, Object> dataAsMap = (Map<String, Object>) data;
             if (dataAsMap.containsKey("$$archive") && dataAsMap.containsKey("$$id")) {
-                Map<String, Object> objects = (Map<String, Object>) archives.get(dataAsMap.get("$$archive")).get("objects");
-                return (Map<String, Object>) objects.get(dataAsMap.get("$$id").toString());
+                Archive arch = (Archive) archives.get(dataAsMap.get("$$archive"));
+                return arch.getObject((Integer) dataAsMap.get("$$id"));
             }
         }
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    private static void resolveArchiveReferences(Object data, Map<String, Map<String, Object>> archives) {
+    private static void resolveArchiveReferences(Object data, Map<String, Archive> archives) {
         if (data instanceof List<?>) {
             List<Object> dataAsList = (List<Object>) data;
             boolean shouldChange = false;

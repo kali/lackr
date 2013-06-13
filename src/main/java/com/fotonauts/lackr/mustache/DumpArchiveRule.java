@@ -45,11 +45,11 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 
         @Override
         public void check() {
-            Map<String,Object> archive = request.getFrontendRequest().getMustacheContext().getArchives().get(name);
+            Archive archive = request.getFrontendRequest().getMustacheContext().getArchives().get(name);
             ObjectMapper mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {
-                mapper.defaultPrettyPrintingWriter().writeValue(baos, archive);
+                mapper.defaultPrettyPrintingWriter().writeValue(baos, archive.getData());
             } catch (JsonGenerationException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

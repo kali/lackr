@@ -28,7 +28,7 @@ public class MustacheContext {
     private Handlebars handlebars;
     private Map<String, Document> registeredTemplatesDocument;
     private Map<String, Template> compiledTemplates;
-    private Map<String, Map<String,Object>> archives;
+    private Map<String, Archive> archives;
 
     public MustacheContext(LackrFrontendRequest lackrFrontendRequest) {
         registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());
@@ -117,9 +117,9 @@ public class MustacheContext {
         return (String[]) registeredTemplatesDocument.keySet().toArray(new String[0]);
     }
 
-    public Map<String,Map<String,Object>> getArchives() {
+    public Map<String,Archive> getArchives() {
         if(archives == null)
-            archives = new HashMap<String, Map<String, Object>>();
+            archives = new HashMap<String, Archive>();
         return archives;
     }
 }

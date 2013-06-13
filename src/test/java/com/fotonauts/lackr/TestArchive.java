@@ -78,4 +78,24 @@ DUMP: {
         assertContains(result.trim(), "NAME3: object number 1 crap");
     }
 
+    @Test
+    public void testArchiveObjectDeser() throws Exception {
+        String result = expand(S(/*
+                <script type="vnd.fotonauts/picordata" id="archive_1">
+                    { "root_id": 1, "objects": { 
+                          "1" : { "$ATTR" : { "name": "object number 1" } } 
+                    } }
+                </script><!-- END OF ARCHIVE -->
+                
+                <!-- lackr:mustache:template name="template_name" -->
+                    NAME1: {{name}}
+                <!-- /lackr:mustache:template -->
+                
+                <!-- lackr:mustache:eval name="template_name" -->
+                    { "$$archive" : "archive_1", "$$id" : 1 }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertContains(result.trim(), "NAME1: object number 1");
+        
+    }
 }
