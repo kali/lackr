@@ -210,9 +210,13 @@ public class LackrFrontendRequest {
     }
 
     private void preflightCheck() {
-        getMustacheContext().checkAndCompileAll(backendExceptions);
-        if (rootRequest.getParsedDocument() != null) {
-            rootRequest.getParsedDocument().check();
+        try {
+            getMustacheContext().checkAndCompileAll(backendExceptions);
+            if (rootRequest.getParsedDocument() != null) {
+                rootRequest.getParsedDocument().check();
+            }
+        } catch (Throwable e) {
+            backendExceptions.add(LackrPresentableError.fromThrowable(e));
         }
     }
 
