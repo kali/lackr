@@ -53,13 +53,21 @@ DUMP: {
             */);
         String result = expand(archive + S(/*
             <!-- lackr:mustache:template name="template_name" -->
-                NAME: {{object.name}}
+                NAME1: {{object.name}}
             <!-- /lackr:mustache:template -->
             <!-- lackr:mustache:eval name="template_name" -->
                 { "object": { "$$archive" : "archive_1", "$$id" : 1 } }
             <!-- /lackr:mustache:eval -->
+            
+            <!-- lackr:mustache:template name="toplevel" -->
+                NAME2: {{name}}
+            <!-- /lackr:mustache:template -->
+            <!-- lackr:mustache:eval name="toplevel" -->
+                { "$$archive" : "archive_1", "$$id" : 1 }
+            <!-- /lackr:mustache:eval -->
         */));
-        assertContains(result.trim(), "NAME: object number 1");
+        assertContains(result.trim(), "NAME1: object number 1");
+        assertContains(result.trim(), "NAME2: object number 1");
     }
 
 }

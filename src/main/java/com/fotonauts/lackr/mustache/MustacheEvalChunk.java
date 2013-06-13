@@ -33,7 +33,12 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
             data = parse();
             MustacheContext context = request.getFrontendRequest().getMustacheContext();
             inlineWrapperJsonEvaluation(data);
-            resolveArchiveReferences(data, context.getArchives());
+            
+            Map<String,Object> wrapper = new HashMap<>();
+            wrapper.put("root", data);
+            resolveArchiveReferences(wrapper, context.getArchives());
+            data = (Map<String, Object>) wrapper.get("root");
+            
             data.put("_ftn_inline_images", request.getFrontendRequest().getUserAgent().supportsInlineImages());
             data.put("_ftn_locale", request.getFrontendRequest().getPreferredLocale());
             Template template = context.get(name);
