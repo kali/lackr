@@ -41,7 +41,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 	}
 
 	@Override
-	public Chunk substitute(byte[] buffer, int[] boundPairs, Object context) {
+	public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
 		BackendRequest request = (BackendRequest) context;
 		String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
 		BackendRequest sub;

@@ -17,7 +17,12 @@ public class Document implements Chunk {
 		getChunks().add(dataChunk);
     }
 
-	public String toDebugString() {
+    public Document(Chunk[] chunks) {
+        for(Chunk chunk: chunks)
+            getChunks().add(chunk);
+    }
+
+    public String toDebugString() {
 		StringBuilder builder = new StringBuilder();
 		for(Chunk chunk: chunks) {
 			builder.append(chunk.toDebugString());

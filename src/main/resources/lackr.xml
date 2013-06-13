@@ -40,6 +40,8 @@
 	<bean id="interpolr" class="com.fotonauts.lackr.interpolr.Interpolr">
 		<property name="rules">
 			<list>
+				<bean class="com.fotonauts.lackr.mustache.DumpArchiveRule" />
+				<bean class="com.fotonauts.lackr.mustache.ArchiveRule" />
 				<bean class="com.fotonauts.lackr.mustache.TemplateRule" />
 				<bean class="com.fotonauts.lackr.mustache.EvalRule" />
 				<bean class="com.fotonauts.lackr.interpolr.SimpleSubstitutionRule"

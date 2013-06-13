@@ -11,7 +11,7 @@ public class TestMarkupDetection extends BaseTestSubstitution {
 		inter.addRule(new MarkupDetectingRule("{*}") {
 
 			@Override
-			public Chunk substitute(byte[] buffer, int[] boundPairs, Object blah) {
+			public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object blah) {
 				return new ConstantChunk(("'" + new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0]) + "'")
 				        .getBytes());
 			}
@@ -24,7 +24,7 @@ public class TestMarkupDetection extends BaseTestSubstitution {
 		inter.addRule(new MarkupDetectingRule("{*:*}") {
 
 			@Override
-			public Chunk substitute(byte[] buffer, int[] boundPairs, Object blah) {
+			public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object blah) {
 				return new ConstantChunk(("'" + new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0]) + "->"
 				        + new String(buffer, boundPairs[2], boundPairs[3] - boundPairs[2]) + "'").getBytes());
 			}

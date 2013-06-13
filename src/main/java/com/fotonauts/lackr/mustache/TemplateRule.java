@@ -19,7 +19,7 @@ public class TemplateRule extends MarkupDetectingRule {
     }
 
 	@Override
-    public Chunk substitute(byte[] buffer, int[] boundPairs, Object context) {
+    public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
 		BackendRequest exchange = (BackendRequest) context;
 		String name = null;
 		Document template = null;

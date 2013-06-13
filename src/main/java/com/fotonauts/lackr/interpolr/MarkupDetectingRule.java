@@ -14,7 +14,7 @@ public abstract class MarkupDetectingRule implements Rule {
 			patterns[i] = new BoyerMooreScanner(parts[i].getBytes());
 	}
 
-	public abstract Chunk substitute(byte[] buffer, int[] boundPairs, Object context);
+	public abstract Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context);
 
 	@Override
 	public List<Chunk> parse(DataChunk chunk, Object context) {
@@ -48,7 +48,7 @@ public abstract class MarkupDetectingRule implements Rule {
 					if (startFound > 0) {
 						result.add(new DataChunk(chunk.getBuffer(), current, startFound));
 					}
-					result.add(substitute(chunk.getBuffer(), boundPairs, context));
+					result.add(substitute(chunk.getBuffer(), startFound, boundPairs, lookahead, context));
 					current = lookahead;
 				}
 			}

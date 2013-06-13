@@ -68,6 +68,9 @@
 				<version>2.7.2</version>
 				<configuration>
 					<argLine>-Xms512m -Xmx4G -XX:MaxPermSize=512m</argLine>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>src/test/java</additionalClasspathElement>
+                    </additionalClasspathElements>
 				</configuration>
 			</plugin>
 		</plugins>
