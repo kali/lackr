@@ -65,9 +65,17 @@ DUMP: {
             <!-- lackr:mustache:eval name="toplevel" -->
                 { "$$archive" : "archive_1", "$$id" : 1 }
             <!-- /lackr:mustache:eval -->
+
+            <!-- lackr:mustache:template name="items" -->
+                NAME3: {{#items}}{{name}} {{/items}}
+            <!-- /lackr:mustache:template -->
+            <!-- lackr:mustache:eval name="items" -->
+                { "items": [ { "$$archive" : "archive_1", "$$id" : 1 }, { "name": "crap" } ] } 
+            <!-- /lackr:mustache:eval -->
         */));
         assertContains(result.trim(), "NAME1: object number 1");
         assertContains(result.trim(), "NAME2: object number 1");
+        assertContains(result.trim(), "NAME3: object number 1 crap");
     }
 
 }
