@@ -2,7 +2,6 @@ package com.fotonauts.lackr.mustache;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -35,12 +34,13 @@ public class MustacheContext {
         compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>());
         TemplateLoader loader = new TemplateLoader() {
 
-            public TemplateSource sourceAt(final URI uri) throws IOException {
-                return new StringTemplateSource(uri.toString(), getExpandedTemplate(uri.toString()));
+            public TemplateSource sourceAt(final String uri) throws IOException {
+                System.err.println("SOURCE AT:" + uri);
+                return new StringTemplateSource(uri, getExpandedTemplate(uri));
             }
 
-            public String resolve(URI uri) {
-                return uri.toString();
+            public String resolve(String uri) {
+                return uri;
             }
 
             @Override
@@ -52,6 +52,7 @@ public class MustacheContext {
             public String getSuffix() {
                 return "";
             }
+
         };
         handlebars = new Handlebars(loader);
         handlebars.registerHelper(ReverseEachHelper.NAME, ReverseEachHelper.INSTANCE);
@@ -65,7 +66,7 @@ public class MustacheContext {
             registered.getValue().check();
             String expanded = getExpandedTemplate(registered.getKey());
             try {
-                compiledTemplates.put(registered.getKey(), handlebars.compile(expanded));
+                compiledTemplates.put(registered.getKey(), handlebars.compile(registered.getKey()));
             } catch (HandlebarsException e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Handlebars: IOException\n");
@@ -92,6 +93,7 @@ public class MustacheContext {
     }
 
     public void registerTemplate(String name, Document template) {
+        System.err.println("REGISTER: "  + name);
         registeredTemplatesDocument.put(name, template);
     }
 
@@ -110,6 +112,7 @@ public class MustacheContext {
     }
 
     public Document getTemplate(String name) {
+        System.err.println("REQUIRE: "  + name);
         return registeredTemplatesDocument.get(name);
     }
 
