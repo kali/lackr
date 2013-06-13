@@ -20,7 +20,7 @@ public class ArchiveRule extends MarkupDetectingRule {
         try {
             String archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
             return new Document(new Chunk[] { 
-                    new DataChunk(buffer, 0, boundPairs[2]),
+                    new DataChunk(buffer, start, boundPairs[2]),
                     new ArchiveChunk(archiveId, buffer, boundPairs[2], boundPairs[3], request),
                     new DataChunk(buffer, boundPairs[3], stop)});
         } catch (UnsupportedEncodingException e) {
