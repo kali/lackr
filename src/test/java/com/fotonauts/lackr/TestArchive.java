@@ -60,6 +60,6 @@ DUMP: {
             <!-- /lackr:mustache:eval -->
         */));
         assertContains(result.trim(), "NAME: object number 1");
-    }    
-    
+    }
+
 }
