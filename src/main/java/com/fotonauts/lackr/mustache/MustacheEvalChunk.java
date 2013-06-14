@@ -77,11 +77,6 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
                 }
                 builder.append("\nexpanded data:\n");
                 builder.append(contentAsDebugString(inner, -1, -1));
-                if (data != null) {
-                    builder.append("\nparsed data:\n");
-                    builder.append(prettyPrint(data));
-                }
-                builder.append("\n");
                 request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
             }
     }
