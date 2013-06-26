@@ -107,7 +107,7 @@ public class TestESI extends BaseTestSubstitution {
 
     @Test
     public void testMethodsMainRequest() throws Exception {
-        for (HttpMethod method : new HttpMethod[] { /* HttpMethod.GET, */ HttpMethod.POST }) {
+        for (HttpMethod method : new HttpMethod[] { HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT }) {
             Request r = client.newRequest("http://localhost:" + lackrPort + "/method");
             r.method(method);
             ContentResponse e = r.send();
@@ -117,13 +117,14 @@ public class TestESI extends BaseTestSubstitution {
 
     @Test
     public void testMethodSubRequest() throws Exception {
-        for (HttpMethod method : new HttpMethod[] { HttpMethod.GET, HttpMethod.POST }) {
+        for (HttpMethod method : new HttpMethod[] { HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT }) {
             Request r = client.newRequest("http://localhost:" + lackrPort + "/page.html");
             r.method(method);
             page.setLength(0);
-            page.append("<!--# include virtual=\\\"/method\\\" -->");
-            ContentResponse e = r.send();            
-            assertEquals("GET", e.getContentAsString());
+            page.append("Main request does:" + method + "\n" + "ESI does:<!--# include virtual=\\\"/method\\\" -->");
+            ContentResponse e = r.send();
+            System.err.println(e.getContentAsString());
+            assertContains(e.getContentAsString(), "ESI does:GET");
         }
     }
 }
