@@ -176,8 +176,8 @@ public class LackrFrontendRequest {
                 try {
                     request.start();
                 } catch (Throwable e) {
-                    pendingCount.decrementAndGet();
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
+                    notifySubRequestDone();
                 }
             }
         });
@@ -212,7 +212,7 @@ public class LackrFrontendRequest {
     public void writeResponse(HttpServletResponse response) throws IOException {
         if (request.getHeader("X-Ftn-OperationId") != null)
             response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
-        preflightCheck();
+
         BasicDBObject backendRequestCounters = new BasicDBObject();
         for (int i = 0; i < service.getBackends().length; i++) {
             int value = this.backendRequestCounts[i].get();
@@ -230,6 +230,10 @@ public class LackrFrontendRequest {
         }
         if (backendEndpointCounters.size() > 0)
             logLine.put("peps", backendEndpointCounters);
+
+        if(backendExceptions.isEmpty()) {
+            preflightCheck();
+        }
 
         try {
             if (pendingCount.get() > 0 || !backendExceptions.isEmpty()) {
