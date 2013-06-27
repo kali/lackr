@@ -37,6 +37,10 @@ public class DummyFemtor implements Filter {
             ((HttpServletResponse) response).setHeader("X-Ftn-Set-Request-Header", "X-Ftn-IID: TheIIDValue");
 			response.getWriter().println("<!--# include virtual=\"/femtor/dump?tut=pouet\" -->");
 			response.flushBuffer();
+        } else if(hr.getPathInfo().startsWith("/femtor/esiToInvalidUrl")) {
+            response.setContentType("text/html");
+            response.getWriter().println("<!--# include virtual=\"/femtor/dump\\\" -->");
+            response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/femtor/dump")) {
 			response.getWriter().println("Hi from dummy femtor");
 			response.getWriter().println("method: " + hr.getMethod());

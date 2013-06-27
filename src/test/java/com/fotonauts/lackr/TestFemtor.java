@@ -112,6 +112,14 @@ public class TestFemtor extends BaseTestLackrFullStack {
 	}
 
     @Test(timeout = 500)
+    public void testFemtorESItoInvalidUrl() throws Exception {
+        Request r = client.newRequest("http://localhost:" + lackrPort + "/femtor/esiToInvalidUrl");
+        ContentResponse e = r.send();
+        System.err.println(e.getContentAsString());
+        assertTrue("invalid url from ESI should cleanly crash.", e.getStatus() >= 500);
+    }
+
+    @Test(timeout = 500)
     public void testFemtorRewrite() throws Exception {
         Request r = client.newRequest("http://localhost:" + lackrPort + "/rewrite");
         ContentResponse e = r.send();

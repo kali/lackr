@@ -175,17 +175,8 @@ public class LackrFrontendRequest {
             public void run() {
                 try {
                     request.start();
-                } catch (IOException e) {
+                } catch (Throwable e) {
                     pendingCount.decrementAndGet();
-                    addBackendExceptions(LackrPresentableError.fromThrowable(e));
-                } catch (NotAvailableException e) {
-                    pendingCount.decrementAndGet();
-                    addBackendExceptions(LackrPresentableError.fromThrowable(e));
-                } catch (NullPointerException e) {
-                    pendingCount.decrementAndGet();
-                    System.out.println("The exchange " + request.getQuery() + " has thrown a NullPointerException.");
-                    e.printStackTrace(System.err);
-                    // This occurs sometimes in X-SSI-ROOT inject in the backend
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 }
             }
