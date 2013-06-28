@@ -15,8 +15,8 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
 
     private static Chunk EMPTY = new ConstantChunk(new byte[0]);
 
-    private Chunk result = EMPTY;
-    private String name;
+    Chunk result = EMPTY;
+    String name;
 
     public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, BackendRequest request) {
         super(buffer, start, stop, request);
@@ -37,8 +37,6 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
         resolveArchiveReferences(wrapper, context);
         data = (Map<String, Object>) wrapper.get("root");
 
-        data.put("_ftn_inline_images", request.getFrontendRequest().getUserAgent().supportsInlineImages());
-        data.put("_ftn_locale", request.getFrontendRequest().getPreferredLocale());
         Template template = context.get(name);
         if (template == null) {
             StringBuilder builder = new StringBuilder();
@@ -57,7 +55,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
             request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
         } else
             try {
-                result = new ConstantChunk(template.apply(data).getBytes("UTF-8"));
+                result = new ConstantChunk(context.eval(template, data).getBytes("UTF-8"));
             } catch (Throwable e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("MustacheException\n");

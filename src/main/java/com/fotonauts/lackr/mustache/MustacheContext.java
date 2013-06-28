@@ -28,6 +28,7 @@ public class MustacheContext {
     private Map<String, Template> compiledTemplates;
     private Map<String, Document> registeredArchiveDocuments;
     private Map<String, Archive> expandedArchives;
+
     private LackrFrontendRequest lackrFrontendRequest;
 
     public MustacheContext(LackrFrontendRequest lackrFrontendRequest) {
@@ -135,6 +136,17 @@ public class MustacheContext {
 
     public Archive getArchive(String name) {
         return expandedArchives.get(name);
+    }
+
+    public Handlebars getHandlebars() {
+        return handlebars;
+    }
+
+    public String eval(Template template, Map<String, Object> data) throws IOException {
+        data.put("_ftn_inline_images", lackrFrontendRequest.getUserAgent().supportsInlineImages());
+        data.put("_ftn_locale", lackrFrontendRequest.getPreferredLocale());
+        data.put("_ftn_mustache_context", this);
+        return template.apply(data);
     }
 
 }

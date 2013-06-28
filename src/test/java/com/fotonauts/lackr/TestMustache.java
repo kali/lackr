@@ -397,4 +397,54 @@ public class TestMustache extends BaseTestSubstitution {
         assertNearlyEquals("12 9999 10k 10k 9999k 10M 10M", result);
     }
 
+    @Test
+    public void testSubviewWithInlineTemplate() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv12}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12" : {
+                                "mustache_template" : "name:{{{view_model.name}}}",
+                                "view_model" : { "name" : "yopla" }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertContains(result.trim(), "name:yopla");
+    }
+
+    @Test
+    public void testSubviewRecursive() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv12}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12" : {
+                                "mustache_template" : "name:{{{view_model.name}}} {{tag_subview sv42}}",
+                                "view_model" : { "name" : "yopla" },
+                                "sv42": {
+                                    "mustache_template" : "name2:{{{view_model.value}}}",
+                                    "view_model" : { "value" : "yop yop yop" }
+                                }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertContains(result.trim(), "name:yopla name2:yop yop yop");
+    }
+
 }
