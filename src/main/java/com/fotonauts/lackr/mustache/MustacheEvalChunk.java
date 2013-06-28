@@ -28,7 +28,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     public void check() {
         inner.check();
         Map<String, Object> data = null;
-        data = parse(inner, request.getFrontendRequest());
+        data = parse(inner, request.getFrontendRequest(), name);
         MustacheContext context = request.getFrontendRequest().getMustacheContext();
         inlineWrapperJsonEvaluation(data);
 

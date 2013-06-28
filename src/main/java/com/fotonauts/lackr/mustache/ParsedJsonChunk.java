@@ -110,24 +110,34 @@ public abstract class ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    protected static Map<String, Object> parse(Chunk inner, LackrFrontendRequest feRequest) {
+    protected static Map<String, Object> parse(Chunk inner, LackrFrontendRequest feRequest, String context) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectMapper mapper = feRequest.getService().getJacksonObjectMapper();
         try {
             Map<String, Object> data = null;
             inner.writeTo(baos);
-            data = mapper.readValue(baos.toByteArray(), Map.class);
-            return data;
+            boolean haveSomething = false;
+            int i = 0;
+            byte[] byteArray = baos.toByteArray();
+            while(!haveSomething && ++i < byteArray.length) {
+                haveSomething = byteArray[i] != ' ' && byteArray[i] != '\n' &&  byteArray[i] != '\t' && byteArray[i] != '\r';
+            }
+            if(haveSomething) {
+                data = mapper.readValue(baos.toByteArray(), Map.class);
+                return data;
+            } else {
+                return null;
+            }
         } catch (JsonParseException e) {
             StringBuilder builder = new StringBuilder();
-            builder.append("JsonParseException\n");
+            builder.append("While parsing json for " + context + ": JsonParseException\n");
             builder.append(e.getMessage() + "\n");
             builder.append(contentAsDebugString(inner, e.getLocation().getLineNr(), e.getLocation().getColumnNr()));
             builder.append("\n");
             feRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
         } catch (IOException e) {
             StringBuilder builder = new StringBuilder();
-            builder.append("IOException\n");
+            builder.append("While parsing json for " + context + ": IOException\n");
             builder.append(e.getMessage() + "\n");
             feRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
         }

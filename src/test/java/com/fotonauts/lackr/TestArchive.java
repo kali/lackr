@@ -45,6 +45,19 @@ DUMP: {
     }
 
     @Test
+    public void testSurviveEmptyArchiveTag() throws Exception {
+        String archive = S(/*
+                <script type="vnd.fotonauts/picordata" id="archive_1">
+
+                </script><!-- END OF ARCHIVE -->
+            */);
+
+            String page = archive + S(/*Woohoo!*/);
+            String result = expand(page);
+            assertContains(result, "Woohoo!");
+    }
+
+    @Test
     public void testMustacheEval() throws Exception {
         String archive = S(/*
                 <script type="vnd.fotonauts/picordata" id="archive_1">

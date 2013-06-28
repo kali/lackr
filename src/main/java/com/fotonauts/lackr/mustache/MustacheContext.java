@@ -67,8 +67,10 @@ public class MustacheContext {
     public void checkAndCompileAll() {
         for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
             registered.getValue().check();
-            expandedArchives.put(registered.getKey(),
-                    new Archive(ParsedJsonChunk.parse(registered.getValue(), lackrFrontendRequest)));
+            Map<String, Object> parsedData = ParsedJsonChunk
+                    .parse(registered.getValue(), lackrFrontendRequest, registered.getKey());
+            if (parsedData != null)
+                expandedArchives.put(registered.getKey(), new Archive(parsedData));
         }
         for (Entry<String, Document> registered : registeredTemplatesDocument.entrySet()) {
             registered.getValue().check();
