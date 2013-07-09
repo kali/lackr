@@ -2,12 +2,18 @@ package com.fotonauts.lackr.mustache.helpers;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.mustache.MustacheContext;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.StringTemplateSource;
 
 public class MiscelaneousHelpers {
+
+    static Logger log = LoggerFactory.getLogger(MiscelaneousHelpers.class);
 
     public static CharSequence humanize_integer(Object numberAsObject, Options options) {
         if (numberAsObject == null)
@@ -28,9 +34,12 @@ public class MiscelaneousHelpers {
             @SuppressWarnings("unchecked")
             Map<String, Object> target = (Map<String, Object>) targetAsObject;
             MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
+            String templateString = (String) target.get("wrapped_mustache_template");
 
-            String templateString = (String) target.get("mustache_template");
-
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Rendering template \"%s\"", templateString));
+            }
+            
             Template template = mustacheContext.getHandlebars().compile(new StringTemplateSource("inner view", templateString));
             return mustacheContext.eval(template, target);
         } catch (Throwable e) {
