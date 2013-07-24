@@ -177,6 +177,24 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
+    public void queryStringParameterNotMovedToBody() {
+        currentHandler.set(new AbstractHandler() {
+            @Override
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
+                writeResponse(response, (request.getQueryString() != null ? request.getQueryString().getBytes() : "".getBytes()),
+                        MimeType.TEXT_PLAIN);
+            }
+        });
+        Request e = createExchange("http://localhost:" + lackrPort + "/queryString?par=toto");
+        runRequest(e, "par=toto");
+
+        e = createExchange("http://localhost:" + lackrPort + "/queryString?par=toto");
+        e.method(HttpMethod.POST);
+        runRequest(e, "par=toto");
+    }
+
+    @Test
     public void cookiesIsolation() {
         currentHandler.set(new AbstractHandler() {
             @Override

@@ -26,69 +26,72 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 
     static Logger log = LoggerFactory.getLogger(JettyLackrBackendExchange.class);
 
-//	ContentExchange jettyContentExchange;
-	private HttpDirectorInterface director;
-	private HttpHost upstream;
+    //	ContentExchange jettyContentExchange;
+    private HttpDirectorInterface director;
+    private HttpHost upstream;
     private Request request;
     protected Result result;
-    private byte[] responseBody; 
+    private byte[] responseBody;
 
-	@Override
-	public Gateway getUpstream() throws NotAvailableException {
-	    if(upstream == null)
-	        upstream = director.getHostFor(getBackendRequest());
-	    return upstream;
-	}
-	
-	public JettyLackrBackendExchange(HttpClient jettyClient, HttpDirectorInterface director, BackendRequest spec) throws NotAvailableException {
-		super(spec);
-		this.director = director;
-        request = jettyClient.newRequest(director.getHostFor(spec).getHostname() + getBackendRequest().getQuery());
+    @Override
+    public Gateway getUpstream() throws NotAvailableException {
+        if (upstream == null)
+            upstream = director.getHostFor(getBackendRequest());
+        return upstream;
+    }
+
+    public JettyLackrBackendExchange(HttpClient jettyClient, HttpDirectorInterface director, BackendRequest spec)
+            throws NotAvailableException {
+        super(spec);
+        this.director = director;
+        String url = director.getHostFor(spec).getHostname() + getBackendRequest().getQuery();
+        log.debug("URL: " + url);
+        request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));
-        if(spec.getBody() != null) {
+        if (spec.getBody() != null) {
             request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getRequest().getHeader("Content-Type"));
             request.content(new BytesContentProvider(spec.getBody()));
         }
-	}
+    }
 
-	@Override
-	protected int getResponseStatus() {
-	    return result.getResponse().getStatus();
-	}
+    @Override
+    protected int getResponseStatus() {
+        return result.getResponse().getStatus();
+    }
 
-	@Override
-	protected byte[] getResponseContentBytes() {
-	    return responseBody;
-	}
+    @Override
+    protected byte[] getResponseContentBytes() {
+        return responseBody;
+    }
 
-	@Override
-	protected String getResponseHeader(String name) {
-	    return result.getResponse().getHeaders().getStringField(name);
-	}
+    @Override
+    protected String getResponseHeader(String name) {
+        return result.getResponse().getHeaders().getStringField(name);
+    }
 
-	@Override
-	public void addRequestHeader(String name, String value) {
-	    request.getHeaders().add(name, value);
-	}
+    @Override
+    public void addRequestHeader(String name, String value) {
+        request.getHeaders().add(name, value);
+    }
 
-	@Override
-	protected List<String> getResponseHeaderNames() {
-		return Collections.list(result.getResponse().getHeaders().getFieldNames());
-	}
+    @Override
+    protected List<String> getResponseHeaderNames() {
+        return Collections.list(result.getResponse().getHeaders().getFieldNames());
+    }
 
-	@Override
-	public List<String> getResponseHeaderValues(String name) {
-		return Collections.list(result.getResponse().getHeaders().getValues(name));
-	}
+    @Override
+    public List<String> getResponseHeaderValues(String name) {
+        return Collections.list(result.getResponse().getHeaders().getValues(name));
+    }
 
-	@Override
-	protected void doStart() throws IOException, NotAvailableException {
-		final JettyLackrBackendExchange lackrExchange = this;
-		request.send(new BufferingResponseListener(100*1024*1024) {
-            
+    @Override
+    protected void doStart() throws IOException, NotAvailableException {
+        final JettyLackrBackendExchange lackrExchange = this;
+        request.send(new BufferingResponseListener(100 * 1024 * 1024) {
+
             @Override
             public void onComplete(Result r) {
-                if(r.isSucceeded()) {
+                if (r.isSucceeded()) {
                     result = r;
                     responseBody = getContent();
                 } else {
@@ -103,6 +106,6 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
                 lackrExchange.onResponseComplete(false);
             }
         });
-	}
+    }
 
 }

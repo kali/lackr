@@ -8,7 +8,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
-		<jetty-version>9.0.2.v20130417</jetty-version>
+		<!--<jetty-version>9.0.2.v20130417</jetty-version> -->
+		<jetty-version>9.0.4.v20130625</jetty-version>
 	</properties>
 	<build>
 		<plugins>
@@ -68,9 +69,9 @@
 				<version>2.7.2</version>
 				<configuration>
 					<argLine>-Xms512m -Xmx4G -XX:MaxPermSize=512m</argLine>
-                    <additionalClasspathElements>
-                        <additionalClasspathElement>src/test/java</additionalClasspathElement>
-                    </additionalClasspathElements>
+					<additionalClasspathElements>
+						<additionalClasspathElement>src/test/java</additionalClasspathElement>
+					</additionalClasspathElements>
 				</configuration>
 			</plugin>
 		</plugins>

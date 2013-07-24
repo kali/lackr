@@ -131,12 +131,17 @@ public class BaseTestLackrFullStack {
                 currentHandler.get().handle(target, baseRequest, request, response);
             }
         });
+        backendStubConnector = new ServerConnector(backendStub);
+        backendStub.addConnector(backendStubConnector);
         backendStub.start();
+        backendStubPort = backendStubConnector.getLocalPort();
 
         File propFile = File.createTempFile("lackr.test.", ".props");
         propFile.deleteOnExit();
 
         Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
+        props.setProperty("lackr.backends", "http://localhost:" + backendStubPort);
+        
         if (!femtorInProcess) {
             femtorStub = new Server();
             femtorStubConnector = new ServerConnector(femtorStub);
@@ -159,14 +164,7 @@ public class BaseTestLackrFullStack {
         System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
 
         ctx = new ClassPathXmlApplicationContext("lackr.xml");
-        System.err.println("GET BEAN(picorBackend)");
         picorBackend = (JettyBackend) ctx.getBean("picorBackend");
-        System.err.println("GET BEAN(picorBackend) DONE");
-
-        backendStubConnector = new ServerConnector(backendStub);
-        backendStub.addConnector(backendStubConnector);
-        backendStubPort = backendStubConnector.getLocalPort();
-        picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backendStubPort));
 
         lackrServer = new Server();
         lackrServer.setHandler((Handler) ctx.getBean("proxyService"));

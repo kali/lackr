@@ -3,10 +3,12 @@ package com.fotonauts.lackr;
 import static org.junit.Assert.assertEquals;
 
 import org.eclipse.jetty.client.api.ContentResponse;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestStatus extends BaseTestLackrFullStack {
 
+    @Ignore
 	@Test
 	public void testStatus() throws Exception {
         ContentResponse r = client.GET("http://localhost:" + lackrPort + "/_lackr_status");

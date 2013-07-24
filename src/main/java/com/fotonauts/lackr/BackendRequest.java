@@ -79,15 +79,20 @@ public class BackendRequest {
         return query.indexOf('?') == -1 ? null : query.substring(query.indexOf('?') + 1);
     }
 
-    public void start() throws IOException, NotAvailableException {
+    public void start() throws Throwable {
         tryNext();
     }
 
-    protected void tryNext() throws IOException, NotAvailableException {
-        int next = triedBackend.get();
-        LackrBackendExchange exchange = getFrontendRequest().getService().getBackends()[next].createExchange(this);
-        lastExchange.set(exchange);
-        exchange.start();
+    protected void tryNext() throws Throwable {
+        try {
+            int next = triedBackend.get();
+            LackrBackendExchange exchange = getFrontendRequest().getService().getBackends()[next].createExchange(this);
+            lastExchange.set(exchange);
+            exchange.start();
+        } catch(Throwable e) {
+            getFrontendRequest().addBackendExceptions(e);
+            throw e;
+        }
     }
 
     public LackrBackendExchange getExchange() {
