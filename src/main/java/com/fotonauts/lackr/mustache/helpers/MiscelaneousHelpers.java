@@ -31,6 +31,8 @@ public class MiscelaneousHelpers {
     }
 
     public static CharSequence tag_subview(Object targetAsObject, Options options) {
+        if(targetAsObject == null)
+            return "";
         @SuppressWarnings("unchecked")
         Map<String, Object> target = (Map<String, Object>) targetAsObject;
         MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");

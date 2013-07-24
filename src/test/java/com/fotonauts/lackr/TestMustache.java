@@ -1,6 +1,7 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -495,6 +496,59 @@ public class TestMustache extends BaseTestSubstitution {
                 <!-- /lackr:mustache:eval -->
         */), true);
         assertContains(result.trim(), "found: '-'");
+    }
+
+    @Test
+    public void testIdTopLevelSubviewNotFound() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv13}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12" : {
+                                "wrapped_mustache_template" : "name:{{{view_model.name}}}",
+                                "view_model" : { "name" : "yopla" }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertTrue(result.trim().contains("toplevel"));
+        assertFalse(result.trim().contains("name:"));
+    }
+    
+    @Test
+    public void testSubviewRecursiveNotFound() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv12}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12" : {
+                                "wrapped_mustache_template" : "name:{{{view_model.name}}} {{tag_subview sv43}}",
+                                "view_model" : { "name" : "yopla" },
+                                "sv42": {
+                                    "wrapped_mustache_template" : "name2:{{{view_model.value}}}",
+                                    "view_model" : { "value" : "yop yop yop" }
+                                }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertTrue(result.trim().contains("toplevel"));
+        assertTrue(result.trim().contains("name:"));
+        assertFalse(result.trim().contains("name2:"));
     }
 
 
