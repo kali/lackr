@@ -42,7 +42,7 @@ public class MiscelaneousHelpers {
         Template template;
         try {
             template = mustacheContext.getHandlebars().compile(new StringTemplateSource("inner view", templateString));
-        } catch (IOException e) {
+        } catch (Throwable e) {
             mustacheContext.getLackrFrontendRequest().addBackendExceptions(e);
             return "";
         }

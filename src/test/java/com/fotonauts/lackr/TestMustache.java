@@ -494,7 +494,7 @@ public class TestMustache extends BaseTestSubstitution {
                     } }
                 <!-- /lackr:mustache:eval -->
         */), true);
-        assertContains(result.trim(), "Exception");
+        assertContains(result.trim(), "found: '-'");
     }
 
 
