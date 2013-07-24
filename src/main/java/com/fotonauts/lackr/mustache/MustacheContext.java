@@ -31,6 +31,10 @@ public class MustacheContext {
 
     private LackrFrontendRequest lackrFrontendRequest;
 
+    public LackrFrontendRequest getLackrFrontendRequest() {
+        return lackrFrontendRequest;
+    }
+
     public MustacheContext(LackrFrontendRequest lackrFrontendRequest) {
         this.lackrFrontendRequest = lackrFrontendRequest;
         registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());

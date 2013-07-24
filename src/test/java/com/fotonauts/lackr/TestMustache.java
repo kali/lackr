@@ -447,4 +447,55 @@ public class TestMustache extends BaseTestSubstitution {
         assertContains(result.trim(), "name:yopla name2:yop yop yop");
     }
 
+    @Test
+    public void testIdTopLevelSubviewWithDash() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv12-}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12-" : {
+                                "wrapped_mustache_template" : "name:{{{view_model.name}}}",
+                                "view_model" : { "name" : "yopla" }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */), true);
+        assertContains(result.trim(), "Exception");
+    }
+    
+    @Test
+    public void testIdNestedSubviewWithDash() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv12}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12" : {
+                                "wrapped_mustache_template" : "name:{{{view_model.name}}} {{tag_subview sv42-}}",
+                                "view_model" : { "name" : "yopla" },
+                                "sv42-": {
+                                    "wrapped_mustache_template" : "name2:{{{view_model.value}}}",
+                                    "view_model" : { "value" : "yop yop yop" }
+                                }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */), true);
+        assertContains(result.trim(), "Exception");
+    }
+
+
 }

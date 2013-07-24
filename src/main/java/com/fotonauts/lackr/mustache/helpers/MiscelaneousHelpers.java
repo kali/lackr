@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.mustache.helpers;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -30,20 +31,24 @@ public class MiscelaneousHelpers {
     }
 
     public static CharSequence tag_subview(Object targetAsObject, Options options) {
-        try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> target = (Map<String, Object>) targetAsObject;
-            MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
-            String templateString = (String) target.get("wrapped_mustache_template");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> target = (Map<String, Object>) targetAsObject;
+        MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
+        String templateString = (String) target.get("wrapped_mustache_template");
 
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Rendering template \"%s\"", templateString));
-            }
-            
-            Template template = mustacheContext.getHandlebars().compile(new StringTemplateSource("inner view", templateString));
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("Rendering template \"%s\"", templateString));
+        }
+        Template template;
+        try {
+            template = mustacheContext.getHandlebars().compile(new StringTemplateSource("inner view", templateString));
+        } catch (IOException e) {
+            mustacheContext.getLackrFrontendRequest().addBackendExceptions(e);
+            return "";
+        }
+        try {
             return mustacheContext.eval(template, target);
         } catch (Throwable e) {
-            e.printStackTrace(System.err);
             return "";
         }
     }
