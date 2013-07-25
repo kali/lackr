@@ -551,6 +551,7 @@ public class TestMustache extends BaseTestSubstitution {
         assertFalse(result.trim().contains("name2:"));
     }
 
+    // SYNC_WITH_PICOR
     @Test
     public void testDomCompatibleId() throws Exception {
         String page = S(/*

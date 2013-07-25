@@ -52,7 +52,8 @@ public class MiscelaneousHelpers {
             return "";
         }
     }
-
+    
+    // SYNC_WITH_PICOR (grep SYNC_WITH_RUBY and SYNC_WITH_JS)
     public static CharSequence dom_compatible_id(Object targetAsObject, Options options) {
         if(targetAsObject == null)
             return "";
