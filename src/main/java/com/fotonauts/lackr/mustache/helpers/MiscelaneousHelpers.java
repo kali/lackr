@@ -1,12 +1,10 @@
 package com.fotonauts.lackr.mustache.helpers;
 
-import java.io.IOException;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.mustache.MustacheContext;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
@@ -55,4 +53,29 @@ public class MiscelaneousHelpers {
         }
     }
 
+    public static CharSequence dom_compatible_id(Object targetAsObject, Options options) {
+        if(targetAsObject == null)
+            return "";
+        String input = targetAsObject.toString();
+        StringBuilder builder = new StringBuilder("_");
+        for(char c: input.toCharArray()) {
+            switch (c) {
+                case ' ': builder.append("_spc_"); break;
+                case '!': builder.append("_bang_"); break;
+                case ':': builder.append("_colon_"); break;
+                case '.': builder.append("_dot_"); break;
+                case '#': builder.append("_hash_"); break;
+                case '(': builder.append("_lpar_"); break;
+                case ')': builder.append("_rpar_"); break;
+                case '/': builder.append("_slash_"); break;
+                case '\'': builder.append("_q_"); break;
+                case '&': builder.append("_amp_"); break;
+                case '-': builder.append("_dash_"); break;
+                case '_': builder.append("_under_"); break;
+                default: builder.append(c); break;
+            }
+        }
+        return builder.toString();
+    }
+    
 }

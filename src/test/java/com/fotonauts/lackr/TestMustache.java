@@ -551,5 +551,29 @@ public class TestMustache extends BaseTestSubstitution {
         assertFalse(result.trim().contains("name2:"));
     }
 
+    @Test
+    public void testDomCompatibleId() throws Exception {
+        String page = S(/*
+                <!-- lackr:mustache:template name="t" -->
+                    {{#strings}}
+                        {{{s}}} -> {{dom_compatible_id s}}
+                    {{/strings}}
+                <!-- /lackr:mustache:template -->"
+                <!-- lackr:mustache:eval name="t" -->
+                    { "strings": [
+                        { "s": "blah" },
+                        { "s": "12" },
+                        { "s": " !:" },
+                        { "s": ".#()" },
+                        { "s": "/'&-_" }
+                    ] }
+                <!-- /lackr:mustache:eval -->*/);
+            String result = expand(page).trim();
+            assertContains(result, "blah -> _blah");
+            assertContains(result, "12 -> _12");
+            assertContains(result, " !: -> __spc__bang__colon_");
+            assertContains(result, ".#() -> __dot__hash__lpar__rpar_");
+            assertContains(result, "/'&-_ -> __slash__q__amp__dash__under_" );
+    }
 
 }
