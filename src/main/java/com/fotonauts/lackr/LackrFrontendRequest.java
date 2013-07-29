@@ -37,6 +37,7 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -352,7 +353,12 @@ public class LackrFrontendRequest {
     private void asyncProxy(final HttpServletResponse lackrResponse, String url) {
         getRequest().startAsync();
         Request req = getService().getClient().newRequest(url);
+        req.method(HttpMethod.GET);
         req.send(new Response.Listener.Empty() {
+            @Override
+            public void onFailure(Response response, Throwable failure) {
+                System.err.println(failure);
+            }
             @Override
             public void onBegin(Response response) {
                 lackrResponse.setStatus(response.getStatus());

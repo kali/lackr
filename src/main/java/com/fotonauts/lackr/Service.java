@@ -25,6 +25,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -70,7 +71,7 @@ public class Service extends AbstractHandler {
     public Map<String, Counter> picorEpPerEPTable = new HashMap<String, Counter>();
 
     public Service() {
-        client = new HttpClient();
+        client = new HttpClient(new SslContextFactory(true));
         client.setFollowRedirects(true);
     }
 
