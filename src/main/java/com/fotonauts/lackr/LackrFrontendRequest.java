@@ -124,19 +124,19 @@ public class LackrFrontendRequest {
             @Override
             public void onTimeout(AsyncEvent event) throws IOException {
                 // TODO Auto-generated method stub
-                
+
             }
 
             @Override
             public void onError(AsyncEvent event) throws IOException {
                 // TODO Auto-generated method stub
-                
+
             }
 
             @Override
             public void onStartAsync(AsyncEvent event) throws IOException {
                 // TODO Auto-generated method stub
-                
+
             }
         });
         this.pendingCount = new AtomicInteger(0);
@@ -154,7 +154,7 @@ public class LackrFrontendRequest {
 
         this.userAgent = new UserAgent(request.getHeader(HttpHeader.USER_AGENT.asString()));
 
-//        continuation.suspend();
+        //        continuation.suspend();
     }
 
     public BackendRequest getSubBackendExchange(String url, String format, BackendRequest dad) throws NotAvailableException {
@@ -196,7 +196,8 @@ public class LackrFrontendRequest {
             }
         }
         if (rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
-            response.addHeader(HttpHeader.CONTENT_TYPE.asString(), rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()));
+            response.addHeader(HttpHeader.CONTENT_TYPE.asString(),
+                    rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()));
     }
 
     private void preflightCheck() {
@@ -232,7 +233,7 @@ public class LackrFrontendRequest {
         if (backendEndpointCounters.size() > 0)
             logLine.put("peps", backendEndpointCounters);
 
-        if(backendExceptions.isEmpty()) {
+        if (backendExceptions.isEmpty()) {
             preflightCheck();
         }
 
@@ -259,7 +260,8 @@ public class LackrFrontendRequest {
                 endpoint = endpoint.replace('/', '-').replace('.', '-').replaceAll("\\*\\*", "XXX").replace('*', 'X');
                 service.countEndpointWithTimer(endpoint, endTimestamp - startTimestamp);
                 for (Map.Entry<String, AtomicInteger> beEndpoint : backendRequestEndpointsCounters.entrySet()) {
-                    service.countPicorEpPerEP(endpoint, beEndpoint.getKey().replace('/', '-').replace('.', '-'), beEndpoint.getValue().intValue());
+                    service.countPicorEpPerEP(endpoint, beEndpoint.getKey().replace('/', '-').replace('.', '-'), beEndpoint
+                            .getValue().intValue());
                 }
                 for (int i = 0; i < service.getBackends().length; i++) {
                     int value = this.backendRequestCounts[i].get();
@@ -285,7 +287,7 @@ public class LackrFrontendRequest {
         byte[] ba = s.getBytes("UTF-8");
         response.setContentLength(ba.length);
         response.getOutputStream().write(ba);
-        
+
         String message;
         try {
             message = backendExceptions.get(0).getMessage().split("\n")[0];
@@ -301,8 +303,8 @@ public class LackrFrontendRequest {
     }
 
     public void writeSuccessResponse(HttpServletResponse response) throws IOException {
-        LackrBackendExchange rootExchange = rootRequest.getExchange();    
-        if(rootExchange.getResponseStatus() == 398 && rootExchange.getResponseHeaderValue("Location") != null) {
+        LackrBackendExchange rootExchange = rootRequest.getExchange();
+        if (rootExchange.getResponseStatus() == 398 && rootExchange.getResponseHeaderValue("Location") != null) {
             // 398 is a special adhoc http code: used as a way for femtor to ask lackr to proxy and pipe a entirely different url
             logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
             asyncProxy(response, rootExchange.getResponseHeaderValue("Location"));
@@ -331,7 +333,8 @@ public class LackrFrontendRequest {
                 log.debug("etag: " + etag);
                 log.debug("if-none-match: " + request.getHeader(HttpHeader.IF_NONE_MATCH.asString()));
             }
-            if (rootExchange.getResponseStatus() == HttpStatus.OK_200 && etag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.asString()))) {
+            if (rootExchange.getResponseStatus() == HttpStatus.OK_200
+                    && etag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.asString()))) {
                 response.setStatus(HttpStatus.NOT_MODIFIED_304);
                 response.setHeader("Status", "304 Not Modified");
                 response.flushBuffer(); // force commiting
@@ -350,7 +353,7 @@ public class LackrFrontendRequest {
         }
     }
 
-    private void asyncProxy(final HttpServletResponse lackrResponse, String url) {
+    private void asyncProxy(final HttpServletResponse lackrResponse, final String url) {
         getRequest().startAsync();
         Request req = getService().getClient().newRequest(url);
         req.method(HttpMethod.GET);
@@ -359,30 +362,36 @@ public class LackrFrontendRequest {
             public void onFailure(Response response, Throwable failure) {
                 System.err.println(failure);
             }
+
             @Override
             public void onBegin(Response response) {
                 lackrResponse.setStatus(response.getStatus());
             }
-            
+
             @Override
             public void onHeaders(Response response) {
-                lackrResponse.setContentType(response.getHeaders().getStringField(HttpHeader.CONTENT_TYPE));
-                lackrResponse.setHeader(HttpHeader.CONTENT_LENGTH.asString(), response.getHeaders().getStringField(HttpHeader.CONTENT_LENGTH));
+                String contentType = response.getHeaders().getStringField(HttpHeader.CONTENT_TYPE);
+                if (contentType == null && url.indexOf(".jpg") >= 0)
+                    contentType = "image/jpeg";
+                lackrResponse.setContentType(contentType);
+                lackrResponse.setHeader(HttpHeader.CONTENT_LENGTH.asString(),
+                        response.getHeaders().getStringField(HttpHeader.CONTENT_LENGTH));
                 lackrResponse.setHeader(HttpHeader.CONNECTION.asString(), "close");
-                if(response.getHeaders().containsKey(HttpHeader.CACHE_CONTROL.asString()));
-                    lackrResponse.setHeader(HttpHeader.CACHE_CONTROL.asString(), response.getHeaders().getStringField(HttpHeader.CACHE_CONTROL));
+                if (response.getHeaders().containsKey(HttpHeader.CACHE_CONTROL.asString()))
+                    lackrResponse.setHeader(HttpHeader.CACHE_CONTROL.asString(),
+                            response.getHeaders().getStringField(HttpHeader.CACHE_CONTROL));
             }
-            
+
             @Override
             public void onContent(Response response, ByteBuffer content) {
                 try {
-                    while(content.hasRemaining())
+                    while (content.hasRemaining())
                         lackrResponse.getOutputStream().write(content.get());
                 } catch (IOException e) {
                     throw new RuntimeException("error in proxy: " + e);
                 }
             }
-            
+
             @Override
             public void onComplete(Result result) {
                 getRequest().getAsyncContext().complete();
@@ -495,9 +504,9 @@ public class LackrFrontendRequest {
     public Locale getPreferredLocale() {
         String hostname = request.getHeader("Host");
         String langForHostname = hostname.split("[\\.:]")[0];
-        if(langForHostname.equals("www") || langForHostname.equals("localhost"))
+        if (langForHostname.equals("www") || langForHostname.equals("localhost"))
             langForHostname = "en";
-        if(request.getLocale().getLanguage() == langForHostname)
+        if (request.getLocale().getLanguage() == langForHostname)
             return request.getLocale();
         else
             return Locale.forLanguageTag(langForHostname);
