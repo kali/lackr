@@ -394,6 +394,12 @@ public class LackrFrontendRequest {
 
             @Override
             public void onComplete(Result result) {
+                try {
+                    lackrResponse.flushBuffer();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 getRequest().getAsyncContext().complete();
                 service.getGateway().getRunningRequestsHolder().dec();
             }
