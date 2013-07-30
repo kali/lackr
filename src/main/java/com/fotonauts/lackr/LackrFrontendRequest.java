@@ -368,6 +368,7 @@ public class LackrFrontendRequest {
             public void onHeaders(Response response) {
                 lackrResponse.setContentType(response.getHeaders().getStringField(HttpHeader.CONTENT_TYPE));
                 lackrResponse.setHeader(HttpHeader.CONTENT_LENGTH.asString(), response.getHeaders().getStringField(HttpHeader.CONTENT_LENGTH));
+                lackrResponse.setHeader(HttpHeader.CONNECTION.asString(), "close");
                 if(response.getHeaders().containsKey(HttpHeader.CACHE_CONTROL.asString()));
                     lackrResponse.setHeader(HttpHeader.CACHE_CONTROL.asString(), response.getHeaders().getStringField(HttpHeader.CACHE_CONTROL));
             }
