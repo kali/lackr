@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 public abstract class SimpleTriggerRule implements Rule {
 
     protected BoyerMooreScanner trigger;
@@ -14,7 +16,10 @@ public abstract class SimpleTriggerRule implements Rule {
 
     public void setTrigger(String trigger) {
     	try {
-            setTrigger(new BoyerMooreScanner(trigger.getBytes("UTF-8")));
+    	    if(StringUtils.isNotBlank(trigger))
+    	        setTrigger(new BoyerMooreScanner(trigger.getBytes("UTF-8")));
+    	    else
+    	        trigger = null;
         } catch (UnsupportedEncodingException e) {
             // unlikely
         }
@@ -28,6 +33,10 @@ public abstract class SimpleTriggerRule implements Rule {
     @Override
     public List<Chunk> parse(DataChunk chunk, Object context) {
         List<Chunk> result = new ArrayList<Chunk>();
+        if(trigger == null) {
+            result.add(chunk);
+            return result;
+        }
         int current = chunk.getStart();
         while (current < chunk.getStop()) {
             int found = trigger.searchNext(chunk.getBuffer(), current, chunk.getStop());

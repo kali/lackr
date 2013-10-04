@@ -36,6 +36,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.HttpCookieStore;
 import org.junit.After;
 import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -94,6 +96,9 @@ public class BaseTestLackrFullStack {
     protected void assertContains(String haystack, String needle) {
         assertTrue(haystack + "\n\nexpected to contain\n\n" + needle, haystack.contains(needle));
     }
+
+    @Rule
+    public TemporaryFolder assetRoot = new TemporaryFolder();
 
     protected Server backendStub;
     protected int backendStubPort = 38000;

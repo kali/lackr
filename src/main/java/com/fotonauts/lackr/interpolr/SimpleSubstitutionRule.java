@@ -1,9 +1,8 @@
 package com.fotonauts.lackr.interpolr;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 
-public class SimpleSubstitutionRule extends SimpleTriggerRule implements Rule {
+public class SimpleSubstitutionRule extends PrefixDetectingRule {
 
 	private Chunk replacement;
 
@@ -20,16 +19,22 @@ public class SimpleSubstitutionRule extends SimpleTriggerRule implements Rule {
 	}
 
 	public SimpleSubstitutionRule() {
+	    super(null);
 	}
 
 	public SimpleSubstitutionRule(String placeholder, String replacement) {
-		setTrigger(placeholder);
+	    super(placeholder);
 		setReplacement(replacement);
 	}
-	
+
     @Override
-    protected int onFound(List<Chunk> result, DataChunk chunk, int index, Object context) {
-        result.add(replacement);
-        return trigger.length();
+    public int lookaheadForEnd(byte[] buffer, int start, int stop) {
+        return start + trigger.length();
     }
+
+    @Override
+    public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
+        return replacement;
+    }
+	
 }

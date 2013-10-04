@@ -18,15 +18,17 @@
 
 	<context:annotation-config />
 
-	<bean id="serverPort" class="java.lang.Integer"><constructor-arg value="${lackr.port}"></constructor-arg></bean>
+	<bean id="serverPort" class="java.lang.Integer">
+		<constructor-arg value="${lackr.port}"></constructor-arg>
+	</bean>
 
 	<bean id="rapportr" class="com.fotonauts.commons.RapportrService"
 		p:facility="lackr" p:mongoRapportrQueuePath="${lackr.rapportr.mongo}"
 		p:grid="${lackr.rapportr.grid}" p:ircErrorChannel="${lackr.rapportr.channel}"
 		p:mongoAccessLogPath="${lackr.mongolog.access}" />
 
-	<bean id="proxyService" class="com.fotonauts.lackr.Service" destroy-method="stop"
-		p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
+	<bean id="proxyService" class="com.fotonauts.lackr.Service"
+		destroy-method="stop" p:interpolr-ref="interpolr" p:timeout="${lackr.timeout}"
 		p:graphiteHostAndPort="${lackr.graphite}" p:grid="${lackr.grid}"
 		p:rapportr-ref="rapportr" lazy-init="true">
 		<property name="backends">
@@ -54,6 +56,8 @@
 				<bean class="com.fotonauts.lackr.esi.JSEscapedMLESIRule" />
 				<bean class="com.fotonauts.lackr.esi.JSMLESIRule" />
 				<bean class="com.fotonauts.lackr.esi.MLESIRule" />
+				<bean class="com.fotonauts.lackr.picorassets.AssetPrefixRule"
+					p:resolver-ref="assetResolver" />
 			</list>
 		</property>
 	</bean>
@@ -83,15 +87,19 @@
 		p:femtorHandlerClass="${lackr.femtorClass}" />
 
 	<bean id="jettyHttpClient" class="org.eclipse.jetty.client.HttpClient"
-		init-method="start" destroy-method="stop" p:connectTimeout="500" p:followRedirects="false"
-		p:maxRequestsQueuedPerDestination="16384"
+		init-method="start" destroy-method="stop" p:connectTimeout="500"
+		p:followRedirects="false" p:maxRequestsQueuedPerDestination="16384"
 		lazy-init="true">
-		<property name="cookieStore"><bean class="org.eclipse.jetty.util.HttpCookieStore.Empty"></bean></property>
-		<!-- 
-		<property name="connectorType">
-			<util:constant
-				static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" />
+		<property name="cookieStore">
+			<bean class="org.eclipse.jetty.util.HttpCookieStore.Empty"></bean>
 		</property>
-		 -->
+		<!-- <property name="connectorType"> <util:constant static-field="org.eclipse.jetty.client.HttpClient.CONNECTOR_SELECT_CHANNEL" 
+			/> </property> -->
+	</bean>
+
+	<bean id="assetResolver" class="com.fotonauts.lackr.picorassets.PicorAssetResolver"
+		p:magicPrefix="${lackr.assets.magicPrefix}"
+		p:cdnPrefix="${lackr.assets.cdnPrefix}"
+		p:assetDirectoryPath="${lackr.assets.assetDirectoryPath}">
 	</bean>
 </beans>
