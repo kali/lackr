@@ -1,17 +1,11 @@
 package com.fotonauts.lackr.interpolr;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 
-public class SimpleSubstitutionRule implements Rule {
+public class SimpleSubstitutionRule extends SimpleTriggerRule implements Rule {
 
-	private BoyerMooreScanner placeholder;
 	private Chunk replacement;
-
-	public void setPlaceholder(String placeholder) {
-		this.placeholder = new BoyerMooreScanner(placeholder.getBytes());
-	}
 
 	public void setReplacement(String replacement) {
 		try {
@@ -20,32 +14,22 @@ public class SimpleSubstitutionRule implements Rule {
 			// no way
 		}
 	}
+	
+	public void setPlaceholder(String placeholder) {
+	    setTrigger(placeholder);
+	}
 
 	public SimpleSubstitutionRule() {
 	}
 
 	public SimpleSubstitutionRule(String placeholder, String replacement) {
-		setPlaceholder(placeholder);
+		setTrigger(placeholder);
 		setReplacement(replacement);
 	}
-
-	@Override
-	public List<Chunk> parse(DataChunk chunk, Object context) {
-		List<Chunk> result = new ArrayList<Chunk>();
-		int current = chunk.getStart();
-		while (current < chunk.getStop()) {
-			int found = placeholder.searchNext(chunk.getBuffer(), current, chunk.getStop());
-			if (found == -1) {
-				result.add(new DataChunk(chunk.getBuffer(), current, chunk.getStop()));
-				current = chunk.getStop();
-			} else {
-				if (found > 0) {
-					result.add(new DataChunk(chunk.getBuffer(), current, found));
-				}
-				result.add(replacement);
-				current = found + placeholder.length();
-			}
-		}
-		return result;
-	}
+	
+    @Override
+    protected int onFound(List<Chunk> result, DataChunk chunk, int index, Object context) {
+        result.add(replacement);
+        return trigger.length();
+    }
 }

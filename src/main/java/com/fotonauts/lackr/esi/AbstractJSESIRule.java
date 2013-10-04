@@ -50,14 +50,12 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 		if(!MimeType.isJS(exchange.getResponseHeaderValue("Content-Type")))
 			return;
 		ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService().getJacksonObjectMapper();
-		@SuppressWarnings("unchecked")
-		Map data = null;
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			baos.write("{ \"placeholder\" : ".getBytes());
 			request.getParsedDocument().writeTo(baos);
 			baos.write("}".getBytes());
-			data = mapper.readValue(baos.toByteArray(), Map.class);
+			mapper.readValue(baos.toByteArray(), Map.class);
 		} catch (JsonParseException e) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("JsonParseException: a fragment supposed to be a json value does not parse:\n");

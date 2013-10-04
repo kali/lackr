@@ -89,7 +89,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
         return params;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Enumeration getParameterNames() {
         if (request.getFrontendRequest().getRootRequest() == request)
@@ -116,7 +116,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
             return null;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Map getParameterMap() {
         if (request.getFrontendRequest().getRootRequest() == request)
@@ -126,7 +126,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
 
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Enumeration getHeaderNames() {
         return headers.getFieldNames();
@@ -137,7 +137,7 @@ public class FemtorRequest extends HttpServletRequestWrapper {
         return headers.getStringField(name);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Enumeration getHeaders(String name) {
         return headers.getValues(name);

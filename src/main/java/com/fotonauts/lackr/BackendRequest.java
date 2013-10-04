@@ -1,6 +1,5 @@
 package com.fotonauts.lackr;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -8,7 +7,6 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 

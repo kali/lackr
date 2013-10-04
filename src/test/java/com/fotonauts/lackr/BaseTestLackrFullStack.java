@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
 import java.util.EnumSet;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -56,7 +55,6 @@ public class BaseTestLackrFullStack {
         StackTraceElement element = new RuntimeException().getStackTrace()[1];
         String name = "src/test/java/" + element.getClassName().replace('.', '/') + ".java";
         InputStream in = new FileInputStream(name);
-        StringBuilder sb = new StringBuilder();
         String s = convertStreamToString(in, element.getLineNumber());
         return s.substring(s.indexOf("/*") + 2, s.indexOf("*/"));
     }

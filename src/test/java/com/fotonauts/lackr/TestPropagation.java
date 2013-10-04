@@ -151,7 +151,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
         });
 
         Request e = createExchange("http://localhost:" + lackrPort + "/");
-        ContentResponse r = e.send();
+        e.send();
     }
 
     @Test

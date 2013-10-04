@@ -70,7 +70,7 @@ public class TestMarkupDetection extends BaseTestSubstitution {
 	@Test
 	public void testNotClose() throws Exception {
 		Document r = parse(simpleIterpolr(), "tata{tititata");
-		assertEquals("(tata{tititata)", r.toDebugString());
+		assertEquals("(tata)({tititata)", r.toDebugString());
 		assertEquals("tata{tititata", expand(r));
 	}	
 	@Test
@@ -111,14 +111,14 @@ public class TestMarkupDetection extends BaseTestSubstitution {
 	@Test
 	public void testDoubleNotClose() throws Exception {
 		Document r = parse(doubleIterpolr(), "tata{tititata");
-		assertEquals("(tata{tititata)", r.toDebugString());
+		assertEquals("(tata)({tititata)", r.toDebugString());
 		assertEquals("tata{tititata", expand(r));
 	}	
 
 	@Test
 	public void testDoubleNotCloseSecond() throws Exception {
 		Document r = parse(doubleIterpolr(), "tata{titi:tata");
-		assertEquals("(tata{titi:tata)", r.toDebugString());
+		assertEquals("(tata)({titi:tata)", r.toDebugString());
 		assertEquals("tata{titi:tata", expand(r));
 	}	
 }
