@@ -40,6 +40,7 @@ public class TestAssetResolver {
         Path actualFile = Files.createFile(FileSystems.getDefault().getPath(root.getRoot().getPath(),"javascripts/reporter/some.js/4212.js"));
         Files.createSymbolicLink(FileSystems.getDefault().getPath(root.getRoot().getPath(), "javascripts/reporter/some.js/some.js"), actualFile);
         resolver.setAssetDirectoryPath(root.getRoot().toString());
+        System.err.println(root.getRoot().toString());
         resolver.setCdnPrefix("http://cdn/");
         String result = resolver.resolve(resolver.getMagicPrefix() + "javascripts/reporter/some.js");
         assertEquals("http://cdn/javascripts/reporter/4212/some.js", result);
