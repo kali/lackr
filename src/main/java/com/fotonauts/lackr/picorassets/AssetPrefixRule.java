@@ -35,7 +35,7 @@ public class AssetPrefixRule extends PrefixDetectingRule {
             goOn = (c >= '-' && c <= '9') // - . / 0-9
                     || (c >= '@' && c <= 'Z') // @ A-Z
                     || (c >= 'a' && c <= 'z') // a-z
-                    || (c == '+');
+                    || (c == '_') || (c == '+'); 
             if(goOn)
                 lookahead+=1;
         }
