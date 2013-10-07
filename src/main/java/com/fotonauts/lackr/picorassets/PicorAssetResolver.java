@@ -28,7 +28,7 @@ public class PicorAssetResolver implements AssetResolver {
                 File strippedAssetAsFile = new File(strippedAsset);
                 return cdnPrefix + strippedAssetAsFile.getParent() + "/" + sha1 + "/" + strippedAssetAsFile.getName();
             } catch (IOException e) {
-                return null;
+                throw new RuntimeException(e);
             }
         } else {
             return cdnPrefix + strippedAsset;            
