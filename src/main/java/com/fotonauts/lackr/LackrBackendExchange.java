@@ -65,8 +65,8 @@ public abstract class LackrBackendExchange {
         for(Entry<String, String> h : backendRequest.getFrontendRequest().getAncilliaryHeaders().entrySet()) {
             addRequestHeader(h.getKey(), h.getValue());
         }
-        if (backendRequest.getParent() != null)
-            addRequestHeader("X-SSI-PARENT", backendRequest.getParent());
+        if (backendRequest.getParentQuery() != null)
+            addRequestHeader("X-SSI-PARENT", backendRequest.getParentQuery());
         if (backendRequest.getSyntax() != null)
             addRequestHeader("X-SSI-INCLUDE-SYNTAX", backendRequest.getSyntax());
 
@@ -76,7 +76,7 @@ public abstract class LackrBackendExchange {
                 addRequestHeader(header, backendRequest.getFrontendRequest().getRequest().getHeader(header));
             }
             // content type is skipped, but we MUST copy it for the root request, or else...
-            if("Content-Type".equalsIgnoreCase(header) && backendRequest.getParent() == null) {
+            if("Content-Type".equalsIgnoreCase(header) && backendRequest.getParentQuery() == null) {
                 addRequestHeader(header, backendRequest.getFrontendRequest().getRequest().getHeader(header));                
             }
         }
@@ -91,8 +91,8 @@ public abstract class LackrBackendExchange {
         if (backendRequest.getParentId() != 0) {
             logLine.put(PARENT_ID.getPrettyName(), backendRequest.getParentId());
         }
-        if (backendRequest.getParent() != null) {
-            logLine.put(PARENT.getPrettyName(), backendRequest.getParent());
+        if (backendRequest.getParentQuery() != null) {
+            logLine.put(PARENT.getPrettyName(), backendRequest.getParentQuery());
         }
 
         getUpstream().getRequestCountHolder().inc();

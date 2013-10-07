@@ -10,6 +10,12 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 
+/**
+ * Represents the specification and current state of a request to be tried against one or more {@link Backend}.
+ * 
+ * @author kali
+ *
+ */
 public class BackendRequest {
 
     static Logger log = LoggerFactory.getLogger(BackendRequest.class);
@@ -18,7 +24,7 @@ public class BackendRequest {
     private Document parsedDocument;
 
     private final String method;
-    private final String parent;
+    private final String parentQuery;
     private final int parentId;
     private String query;
     private final LackrFrontendRequest frontendRequest;
@@ -29,34 +35,54 @@ public class BackendRequest {
 
     private AtomicInteger triedBackend = new AtomicInteger(0);
 
-    public BackendRequest(LackrFrontendRequest frontendRequest, String method, String query, String parent, int parentId,
+    public BackendRequest(LackrFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
             String syntax, byte[] body) {
         super();
         this.frontendRequest = frontendRequest;
         this.method = method;
         this.query = query;
-        this.parent = parent;
+        this.parentQuery = parentQuery;
         this.parentId = parentId;
         this.syntax = syntax;
         this.body = body;
     }
 
+    /**
+     * Returns the HTTP body of the request.
+     * @return the body (null if the request does not have a body).
+     */
     public byte[] getBody() {
         return body;
     }
 
+    /**
+     * Returns the HTTP method of the request.
+     * @return the method name as the usual capitalized string.
+     */
     public String getMethod() {
         return method;
     }
 
-    public String getParent() {
-        return parent;
+    /**
+     * Returns the parent query string.
+     * @return the parent query string.
+     */
+    public String getParentQuery() {
+        return parentQuery;
     }
 
+    /**
+     * For tracing purposes.
+     * @return the parent id.
+     */
     public int getParentId() {
         return parentId;
     }
 
+    /**
+     * Return the full query to send (both path and parameters).  
+     * @return the query 
+     */
     public String getQuery() {
         return query;
     }
@@ -65,18 +91,34 @@ public class BackendRequest {
         return frontendRequest;
     }
 
+    /**
+     * For ESI queries, denote the context kind in where the request was done (ml-like, or json based).
+     * @return the ESI syntax.
+     */
     public String getSyntax() {
         return syntax;
     }
 
+    /**
+     * Path part of the query.
+     * @return the path.
+     */
     public String getPath() {
         return query.indexOf('?') == -1 ? query : query.substring(0, query.indexOf('?'));
     }
 
+    /**
+     * Parameters part of the request.
+     * @return the parameters (can be null, matching the Servlet API convention).
+     */
     public String getParams() {
         return query.indexOf('?') == -1 ? null : query.substring(query.indexOf('?') + 1);
     }
 
+    /**
+     * Start processing by trying the first possible {@link Backend}.
+     * @throws Throwable
+     */
     public void start() throws Throwable {
         tryNext();
     }
@@ -93,11 +135,15 @@ public class BackendRequest {
         }
     }
 
+    /**
+     * Get the {@link LackrBackendExchange} for the current {@link Backend} being tries (or the last one tried).
+     * @return the exchange.
+     */
     public LackrBackendExchange getExchange() {
         return lastExchange.get();
     }
 
-    public void postProcess() {
+    protected void postProcess() {
         LackrBackendExchange exchange = getExchange();
         try {
             if (log.isDebugEnabled()) {

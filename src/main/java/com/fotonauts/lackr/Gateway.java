@@ -4,6 +4,12 @@ import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.MetricName;
 
+/**
+ * Store raw statistical data at boundaries of lackr for monitoring purposes using {@link Metrics}.
+ * 
+ * @author kali
+ *
+ */
 public abstract class Gateway implements GatewayMBean {
 
     private Counter runningRequests;
@@ -17,7 +23,7 @@ public abstract class Gateway implements GatewayMBean {
         requestCount = Metrics.newCounter(new MetricName("lackr", "gw", "request-count", getMBeanName()));
         elapsedMillis = Metrics.newCounter(new MetricName("lackr", "gw", "elapsed-millis", getMBeanName()));
     }
-    
+   
     @Override
     public long getRequestCount() {
         return requestCount.count();

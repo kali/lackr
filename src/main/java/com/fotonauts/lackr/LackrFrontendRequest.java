@@ -73,7 +73,7 @@ public class LackrFrontendRequest {
 
     protected HttpServletRequest request;
 
-    protected Map<String, String> ancillialiaryHeaders = Collections.synchronizedMap(new HashMap<String, String>(5));
+    protected Map<String, String> ancillaryHeaders = Collections.synchronizedMap(new HashMap<String, String>(5));
 
     protected Service service;
 
@@ -492,11 +492,11 @@ public class LackrFrontendRequest {
     }
 
     public void addAncilliaryHeader(String k, String v) {
-        ancillialiaryHeaders.put(k, v);
+        ancillaryHeaders.put(k, v);
     }
 
     public Map<String, String> getAncilliaryHeaders() {
-        return ancillialiaryHeaders;
+        return ancillaryHeaders;
     }
 
     public AtomicInteger[] getBackendRequestCounts() {
