@@ -44,9 +44,9 @@ public class Lackr {
 			if (logbackConfigFile != null) {
                 System.setProperty("logback.configurationFile",logbackConfigFile);
 			} else if (debugMode) {
-			    System.setProperty("logback.configurationFile","classpath:logback.debug.xml");
+			    System.setProperty("logback.configurationFile","logback.debug.xml");
 			} else {
-			    System.setProperty("logback.configurationFile","classpath:logback.prod.xml");
+			    System.setProperty("logback.configurationFile","logback.prod.xml");
 			}
 
 			if (arguments.isEmpty())
