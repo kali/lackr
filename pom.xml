@@ -11,6 +11,7 @@
 		<!--<jetty-version>9.0.2.v20130417</jetty-version> -->
 		<jetty-version>9.0.4.v20130625</jetty-version>
 		<!--<jetty-version>9.0.3.v20130506</jetty-version> -->
+		<spring-version>3.2.4.RELEASE</spring-version>
 	</properties>
 	<build>
 		<plugins>
@@ -103,25 +104,33 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.4</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>org.springframework.context</artifactId>
+			<version>${spring-version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.context</artifactId>
-			<version>3.0.5.RELEASE</version>
+			<artifactId>spring-expression</artifactId>
+			<version>${spring-version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.7.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.13</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-http</artifactId>
@@ -143,17 +152,11 @@
 			<version>2.10.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>20090211</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.2</version>
+			<scope>test</scope>
 		</dependency>
-		<!-- <dependency> <groupId>com.samskivert</groupId> <artifactId>jmustache</artifactId> 
-			<version>1.5</version> </dependency> -->
 		<dependency>
 			<groupId>com.github.jknack</groupId>
 			<artifactId>handlebars</artifactId>
@@ -172,11 +175,6 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>
-			<version>${jetty-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-jmx</artifactId>
 			<version>${jetty-version}</version>
 		</dependency>
 		<dependency>

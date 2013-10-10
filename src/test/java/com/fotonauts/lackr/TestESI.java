@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNull;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpMethod;
-import org.json.JSONObject;
 import org.junit.Test;
 
 public class TestESI extends BaseTestSubstitution {
@@ -15,6 +14,10 @@ public class TestESI extends BaseTestSubstitution {
         super();
     }
 
+    public String quoteJson(String text) {
+        return new String(org.codehaus.jackson.io.JsonStringEncoder.getInstance().quoteAsUTF8(text)).replaceAll("\\/", "\\\\/");
+    }
+    
     @Test
     public void testHtmlInHtml() throws Exception {
         String result = expand("before\n<!--# include virtual=\"/esi.html\" -->\nafter\n");
@@ -29,7 +32,7 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testHtmlInJs() throws Exception {
         String result = expand("before\n\"ssi:include:virtual:/esi.html\"\nafter\n");
-        assertEquals("before\n" + JSONObject.quote(ESI_HTML) + "\nafter\n", result);
+        assertEquals("before\n\"" + quoteJson(ESI_HTML) + "\"\nafter\n", result);
     }
 
     @Test
@@ -41,8 +44,8 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testHtmlInMlJs() throws Exception {
         String result = expand("before\n<!--# include virtual=\\\"/esi.html\\\" -->\nafter\n");
-        String json = JSONObject.quote(ESI_HTML);
-        assertEquals("before\n" + json.substring(1, json.length() - 1) + "\nafter\n", result);
+        String json = quoteJson(ESI_HTML);
+        assertEquals("before\n" + json + "\nafter\n", result);
     }
 
     @Test
@@ -53,8 +56,11 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testEscapedHtmlInMlJs() throws Exception {
         String result = expand("before\n\\u003C!--# include virtual=\\\"/esi.html\\\" --\\u003E\nafter\n");
-        String json = JSONObject.quote(ESI_HTML);
-        assertEquals("before\n" + json.substring(1, json.length() - 1) + "\nafter\n", result);
+        System.err.println(ESI_HTML);
+        String json = quoteJson(ESI_HTML);
+        System.err.println(json);
+        System.err.println(result);
+        assertEquals("before\n" + json + "\nafter\n", result);
     }
 
     @Test

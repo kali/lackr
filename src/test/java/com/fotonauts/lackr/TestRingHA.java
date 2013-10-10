@@ -50,8 +50,7 @@ public class TestRingHA extends TestCase {
 
 	@Override
 	protected void setUp() throws Exception {
-		Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
-
+		System.setProperty("logback.configurationFile", "logback.debug.xml");
 	}
 
 	public void testHostProbeNoConnection() throws MalformedURLException {
