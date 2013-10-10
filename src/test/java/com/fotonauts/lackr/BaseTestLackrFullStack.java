@@ -121,9 +121,9 @@ public class BaseTestLackrFullStack {
     }
 
     public BaseTestLackrFullStack(boolean femtorInProcess) throws Exception {
+
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
-        Log4jConfigurer.initLogging("classpath:log4j.properties");
         currentHandler = new AtomicReference<Handler>();
 
         backendStub = new Server();

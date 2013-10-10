@@ -11,15 +11,14 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.util.Log4jConfigurer;
 
 import com.ibm.icu.util.TimeZone;
 
 
 public class Lackr {
 
-	@Option(name = "--log4j", usage = "overrides -d")
-	private String log4jConfigFile;
+	@Option(name = "--logback", usage = "overrides -d")
+	private String logbackConfigFile;
 
 	@Option(name = "-d", usage = "run with debug logging parameters")
 	boolean debugMode;
@@ -42,12 +41,12 @@ public class Lackr {
 
 			parser.parseArgument(args);
 
-			if (log4jConfigFile != null) {
-				Log4jConfigurer.initLogging(log4jConfigFile);
+			if (logbackConfigFile != null) {
+                System.setProperty("logback.configurationFile",logbackConfigFile);
 			} else if (debugMode) {
-				Log4jConfigurer.initLogging("classpath:log4j.debug.properties");
+			    System.setProperty("logback.configurationFile","classpath:logback.debug.xml");
 			} else {
-				Log4jConfigurer.initLogging("classpath:log4j.prod.properties");
+			    System.setProperty("logback.configurationFile","classpath:logback.prod.xml");
 			}
 
 			if (arguments.isEmpty())
@@ -73,5 +72,6 @@ public class Lackr {
 		
 		server.start();
 		server.join();
+		ctx.close();
 	}
 }
