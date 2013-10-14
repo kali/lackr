@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.fotonauts.lackr.hashring.RingHost;
+import com.fotonauts.lackr.backend.hashring.RingHost;
 
 public class TestMBeanNameGenerator {
     

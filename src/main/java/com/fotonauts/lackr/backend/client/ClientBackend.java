@@ -1,17 +1,17 @@
-package com.fotonauts.lackr.client;
+package com.fotonauts.lackr.backend.client;
 
 import java.io.PrintStream;
 
 import org.eclipse.jetty.client.HttpClient;
 
-import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.Gateway;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
-public class JettyBackend implements Backend {
+public class ClientBackend implements Backend {
 
 	private HttpClient actualClient;
 	
@@ -23,7 +23,7 @@ public class JettyBackend implements Backend {
 
 	@Override
 	public LackrBackendExchange createExchange(BackendRequest request) throws NotAvailableException {
-		return new JettyLackrBackendExchange(actualClient, director, request);
+		return new ClientLackrBackendExchange(actualClient, director, request);
 	}
 
 	public void setDirector(HttpDirectorInterface director) {

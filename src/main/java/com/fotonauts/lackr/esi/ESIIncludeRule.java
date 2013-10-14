@@ -5,7 +5,7 @@ import org.eclipse.jetty.http.HttpHeader;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrFrontendRequest;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;

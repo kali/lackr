@@ -1,8 +1,12 @@
-package com.fotonauts.lackr;
+package com.fotonauts.lackr.backend;
 
 import java.io.PrintStream;
 
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.Gateway;
+import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.Service;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 /**
  * Represents a backend server or any other upstream system lackr will try to delegate a {@link BackendRequest} too. 

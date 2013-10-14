@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.femtor;
+package com.fotonauts.lackr.backend.inprocess;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;

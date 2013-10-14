@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.client;
+package com.fotonauts.lackr.backend.client;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -20,11 +20,11 @@ import com.fotonauts.lackr.Gateway;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
 import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
-public class JettyLackrBackendExchange extends LackrBackendExchange {
+public class ClientLackrBackendExchange extends LackrBackendExchange {
 
-    static Logger log = LoggerFactory.getLogger(JettyLackrBackendExchange.class);
+    static Logger log = LoggerFactory.getLogger(ClientLackrBackendExchange.class);
 
     //	ContentExchange jettyContentExchange;
     private HttpDirectorInterface director;
@@ -40,7 +40,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
         return upstream;
     }
 
-    public JettyLackrBackendExchange(HttpClient jettyClient, HttpDirectorInterface director, BackendRequest spec)
+    public ClientLackrBackendExchange(HttpClient jettyClient, HttpDirectorInterface director, BackendRequest spec)
             throws NotAvailableException {
         super(spec);
         this.director = director;
@@ -86,7 +86,7 @@ public class JettyLackrBackendExchange extends LackrBackendExchange {
 
     @Override
     protected void doStart() throws IOException, NotAvailableException {
-        final JettyLackrBackendExchange lackrExchange = this;
+        final ClientLackrBackendExchange lackrExchange = this;
         request.send(new BufferingResponseListener(100 * 1024 * 1024) {
 
             @Override

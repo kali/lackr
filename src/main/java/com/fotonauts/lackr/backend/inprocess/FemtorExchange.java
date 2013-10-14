@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.femtor;
+package com.fotonauts.lackr.backend.inprocess;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,7 +7,7 @@ import java.util.List;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.Gateway;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class FemtorExchange extends LackrBackendExchange {
 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.fotonauts.lackr.hashring;
+package com.fotonauts.lackr.backend.hashring;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

@@ -16,8 +16,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.junit.After;
 
-import com.fotonauts.lackr.hashring.HashRing;
-import com.fotonauts.lackr.hashring.RingHost;
+import com.fotonauts.lackr.backend.hashring.HashRing;
+import com.fotonauts.lackr.backend.hashring.RingHost;
 
 public class TestRingHA extends TestCase {
 

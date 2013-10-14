@@ -21,13 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.commons.RapportrService;
-import com.fotonauts.lackr.client.JettyLackrBackendExchange;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.client.ClientLackrBackendExchange;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
 
 public abstract class LackrBackendExchange {
 
-    static Logger log = LoggerFactory.getLogger(JettyLackrBackendExchange.class);
+    static Logger log = LoggerFactory.getLogger(ClientLackrBackendExchange.class);
 
     public abstract List<String> getResponseHeaderValues(String name);
 

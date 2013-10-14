@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.femtor;
+package com.fotonauts.lackr.backend.inprocess;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -9,10 +9,10 @@ import javax.servlet.Filter;
 
 import org.eclipse.jetty.util.StringUtil;
 
-import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.Gateway;
 import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.backend.Backend;
 
 public class InProcessFemtor implements Backend {
 

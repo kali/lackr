@@ -2,7 +2,7 @@ package com.fotonauts.lackr;
 
 import java.io.PrintStream;
 
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ConstantHttpDirector implements HttpDirectorInterface {
 

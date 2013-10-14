@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.femtor;
+package com.fotonauts.lackr.backend.inprocess;
 
 public class NotImplementedException extends RuntimeException{
 

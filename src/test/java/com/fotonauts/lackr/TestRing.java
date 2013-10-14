@@ -5,9 +5,9 @@ import java.util.Map.Entry;
 
 import junit.framework.TestCase;
 
-import com.fotonauts.lackr.hashring.HashRing;
-import com.fotonauts.lackr.hashring.RingHost;
-import com.fotonauts.lackr.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRing;
+import com.fotonauts.lackr.backend.hashring.RingHost;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class TestRing extends TestCase {
 

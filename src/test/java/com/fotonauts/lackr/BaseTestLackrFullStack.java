@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.UnknownHostException;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -39,10 +38,10 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import com.fotonauts.commons.RapportrService;
-import com.fotonauts.lackr.client.JettyBackend;
-import com.fotonauts.lackr.femtor.InProcessFemtor;
+import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.client.ClientBackend;
+import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
 import com.ibm.icu.util.TimeZone;
-import com.mongodb.MongoException;
 
 @Ignore
 public class BaseTestLackrFullStack {
@@ -109,7 +108,7 @@ public class BaseTestLackrFullStack {
     protected HttpClient client;
 
     protected AtomicReference<Handler> currentHandler;
-    private JettyBackend picorBackend;
+    private ClientBackend picorBackend;
     private ServerConnector lackrStubConnector;
     private ServerConnector femtorStubConnector;
 
@@ -154,8 +153,8 @@ public class BaseTestLackrFullStack {
 
         configuration = new LackrConfiguration() {
             @Override
-            protected JettyBackend buildVarnishAndPicorBackend() throws Exception {
-                picorBackend = new JettyBackend();
+            protected ClientBackend buildVarnishAndPicorBackend() throws Exception {
+                picorBackend = new ClientBackend();
                 picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backendStubPort));
                 picorBackend.setActualClient(getJettyClient());
                 return picorBackend;
@@ -170,8 +169,8 @@ public class BaseTestLackrFullStack {
             }
 
             @Override
-            protected JettyBackend buildFemtorBackendHttp() throws Exception {
-                JettyBackend femtor = new JettyBackend();
+            protected ClientBackend buildFemtorBackendHttp() throws Exception {
+                ClientBackend femtor = new ClientBackend();
                 femtor.setDirector(new ConstantHttpDirector("http://localhost:" + femtorStubPort));
                 femtor.setActualClient(getJettyClient());
                 return femtor;

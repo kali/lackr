@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.hashring;
+package com.fotonauts.lackr.backend.hashring;
 
 import java.io.PrintStream;
 import java.nio.ByteBuffer;

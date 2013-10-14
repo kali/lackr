@@ -11,15 +11,16 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.HttpCookieStore;
 
 import com.fotonauts.commons.RapportrService;
-import com.fotonauts.lackr.client.JettyBackend;
+import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.client.ClientBackend;
+import com.fotonauts.lackr.backend.hashring.HashRing;
+import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
 import com.fotonauts.lackr.esi.FemtorJSESIRule;
 import com.fotonauts.lackr.esi.HttpESIRule;
 import com.fotonauts.lackr.esi.JSESIRule;
 import com.fotonauts.lackr.esi.JSEscapedMLESIRule;
 import com.fotonauts.lackr.esi.JSMLESIRule;
 import com.fotonauts.lackr.esi.MLESIRule;
-import com.fotonauts.lackr.femtor.InProcessFemtor;
-import com.fotonauts.lackr.hashring.HashRing;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.Rule;
 import com.fotonauts.lackr.interpolr.SimpleSubstitutionRule;
@@ -106,7 +107,7 @@ public class LackrConfiguration {
     }
 
     protected Backend buildVarnishAndPicorBackend() throws Exception {
-        JettyBackend varnishAndPicorBackend = new JettyBackend();
+        ClientBackend varnishAndPicorBackend = new ClientBackend();
         varnishAndPicorBackend.setActualClient(getJettyClient());
         HashRing hashring = new HashRing(propertySource.getStringArray("lackr.backends"));
         hashring.setProbeUrl("lackr.probeUrl");
@@ -136,8 +137,8 @@ public class LackrConfiguration {
         return be;
     }
 
-    protected JettyBackend buildFemtorBackendHttp() throws Exception {
-        JettyBackend backend = new JettyBackend();
+    protected ClientBackend buildFemtorBackendHttp() throws Exception {
+        ClientBackend backend = new ClientBackend();
         backend.setActualClient(getJettyClient());
         HashRing hashring = new HashRing(propertySource.getStringArray("lackr.femtorBackend"));
         hashring.setProbeUrl("lackr.probeUrl");
