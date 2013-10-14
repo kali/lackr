@@ -6,5 +6,4 @@ public abstract class HttpHost extends Gateway {
     public abstract String getMBeanName();
     
     public abstract String getHostname();
-
 }

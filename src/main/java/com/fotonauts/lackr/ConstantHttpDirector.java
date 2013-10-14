@@ -46,6 +46,9 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
     public String getName() {
         return direction.replaceAll("[.:]","_");
     }
-	
+    
+    @Override
+    public void stop() {
+    }
 
 }

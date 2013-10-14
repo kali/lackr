@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.interpolr;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,5 +47,10 @@ public class Interpolr {
 	public void addRule(Rule rule) {
 		getRules().add(rule);
 	}
+
+
+    public void setRules(Rule[] rules2) {
+        rules = Arrays.asList(rules2);
+    }
 
 }

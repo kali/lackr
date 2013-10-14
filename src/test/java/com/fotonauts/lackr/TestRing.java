@@ -19,12 +19,14 @@ public class TestRing extends TestCase {
 			assertTrue("should raise NAE here", false);
 		} catch (NotAvailableException e) {
 		}
+		ring.stop();
 	}
 
 	public void testTrivialRing() throws Exception {
 		HashRing ring = new HashRing("localhost");
 		ring.init();
 		assertEquals("localhost", ring.getHostFor("titi").getHostname());
+        ring.stop();
 	}
 
 	public void testSingleBackendDown() throws Exception {
@@ -36,6 +38,7 @@ public class TestRing extends TestCase {
 			assertTrue("should raise NAE here", false);
 		} catch (NotAvailableException e) {
 		}
+        ring.stop();
 	}
 
 	public void testConsistency() throws Exception {
@@ -47,6 +50,8 @@ public class TestRing extends TestCase {
 			assertEquals("ring 1 and 2 should give same host", ring1.getHostFor("url" + i).getHostname(), ring2
 			        .getHostFor("url" + i).getHostname());
 		}
+        ring1.stop();
+        ring2.stop();
 	}
 	
 	public void testSpread() throws Exception {
@@ -65,6 +70,7 @@ public class TestRing extends TestCase {
 		for(Entry<RingHost, Integer> entry : result.entrySet()) {
 			assertTrue(entry.getKey().getHostname() + " got its share", entry.getValue() > 500);
 		}
+		ring.stop();
 	}
 
 	public void testAvoidDead() throws Exception {
@@ -88,5 +94,6 @@ public class TestRing extends TestCase {
 			if(result1[i] != dead)
 				assertEquals(result2[i], result1[i]);
 		}
+        ring.stop();
  	}
 }

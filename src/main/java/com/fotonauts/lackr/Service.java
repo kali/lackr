@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,9 +12,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,11 +21,10 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.interpolr.Interpolr;
@@ -79,7 +74,6 @@ public class Service extends AbstractHandler {
         return interpolr;
     }
 
-    @Required
     public void setInterpolr(Interpolr interpolr) {
         this.interpolr = interpolr;
     }
@@ -104,19 +98,6 @@ public class Service extends AbstractHandler {
     protected void doStart() throws Exception {
         upstreamService.start();
         client.start();
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        mbs.registerMBean(upstreamService, new ObjectName("com.fotonauts.lackr.gw:name=front"));
-        for (Backend b : backends) {
-            for (Gateway us : b.getGateways()) {
-                try {
-                    ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
-                    mbs.registerMBean(us, name);
-                } catch (MalformedObjectNameException e) {
-                    log.error("Bean name exception: " + us.getMBeanName());
-                    throw e;
-                }
-            }
-        }
         setExecutor(Executors.newFixedThreadPool(64));
         if (graphiteHost != null && graphitePort != 0) {
             String localhostname = InetAddress.getLocalHost().getCanonicalHostName().split("\\.")[0];
@@ -287,13 +268,7 @@ public class Service extends AbstractHandler {
     @Override
     public void doStop() throws Exception {
         log.info("Stopping lackr Service: " + Thread.getAllStackTraces().size());
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        mbs.unregisterMBean(new ObjectName("com.fotonauts.lackr.gw:name=front"));
         for (Backend backend : backends) {
-            for (Gateway us : backend.getGateways()) {
-                ObjectName name = new ObjectName("com.fotonauts.lackr.gw:name=" + us.getMBeanName());
-                mbs.unregisterMBean(name);
-            }
             backend.stop();
         }
         Metrics.shutdown();
@@ -320,7 +295,7 @@ public class Service extends AbstractHandler {
     }
 
     public void setGraphiteHostAndPort(String graphiteHostAndPort) {
-        if (!StringUtils.hasText(graphiteHostAndPort))
+        if (StringUtil.isBlank(graphiteHostAndPort))
             return;
         String[] tokens = graphiteHostAndPort.split(":");
         graphiteHost = tokens[0];

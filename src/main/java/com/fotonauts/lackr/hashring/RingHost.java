@@ -11,9 +11,9 @@ import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.HttpHost;
@@ -31,8 +31,8 @@ public class RingHost extends HttpHost {
 
     public static String getMBeanNameFromUrlPrefix(String prefix) {
         String baseName;
-        if(StringUtils.hasText(prefix))
-            if(prefix.startsWith("http://") || prefix.startsWith("https://"))
+        if (StringUtil.isNotBlank(prefix))
+            if (prefix.startsWith("http://") || prefix.startsWith("https://"))
                 baseName = prefix;
             else
                 baseName = "http://" + prefix;
@@ -103,7 +103,7 @@ public class RingHost extends HttpHost {
     }
 
     public void probe() {
-        if (!StringUtils.hasText(probeString))
+        if (StringUtil.isBlank(probeString))
             return;
         boolean after = false;
         try {
@@ -135,5 +135,5 @@ public class RingHost extends HttpHost {
     public String getMBeanName() {
         return getMBeanNameFromUrlPrefix(hostname);
     }
-
+    
 }

@@ -5,13 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.util.StringUtils;
 
 //@formatter:off
 public class TestMustache extends BaseTestSubstitution {
@@ -382,17 +378,13 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testHumanizeInteger() throws Exception {
         // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
-        List<String> sb = new ArrayList<>();
-        for (int i : new Integer[] { 12, 9999, 10000, 10001, 9999999, 10000000, 10000001 })
-            sb.add("{ \"i\" : " + i + "}");
         String page = S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{#ints}}{{humanize_integer i}} {{/ints}}
             <!-- /lackr:mustache:template -->
             <!-- lackr:mustache:eval name="t" -->
-                { "ints" : ["*/) + 
-                StringUtils.arrayToCommaDelimitedString(StringUtils.toStringArray(sb)) + 
-                S(/*]} 
+                { "ints" : [ { "i": 12}, { "i": 9999 }, { "i": 10000}, {"i": 10001},
+                             {"i": 9999999}, {"i": 9999999}, {"i": 10000000}, {"i": 10000001 } ] } 
             <!-- /lackr:mustache:eval -->"*/);
         String result = expand(page);
         assertNearlyEquals("12 9999 10k 10k 9999k 10M 10M", result);

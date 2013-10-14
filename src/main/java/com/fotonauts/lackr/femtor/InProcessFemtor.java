@@ -5,15 +5,14 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.Filter;
 
-import org.springframework.util.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.Gateway;
+import com.fotonauts.lackr.LackrBackendExchange;
 
 public class InProcessFemtor implements Backend {
 
@@ -37,10 +36,9 @@ public class InProcessFemtor implements Backend {
 	}
 
 	@SuppressWarnings("deprecation")
-    @PostConstruct
 	public void init() throws Exception {
 		Class<?> c = null;
-		if(StringUtils.hasText(femtorJar)) {
+		if(StringUtil.isNotBlank(femtorJar)) {
 			loader = URLClassLoader.newInstance(new URL[] { new File(femtorJar).toURL() }, getClass().getClassLoader());
 			c = loader.loadClass(getFemtorHandlerClass());
 		} else {

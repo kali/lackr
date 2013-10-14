@@ -8,4 +8,5 @@
     <appender-ref ref="rootLogger"/>
   </root>
   <logger name="com.fotopedia" level="DEBUG"/>
+  <logger name="org.eclipse.jetty.server.HttpChannel" level="ERROR"/>
 </configuration>

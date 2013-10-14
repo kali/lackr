@@ -32,8 +32,7 @@ public class JettyBackend implements Backend {
 
 	@Override
 	public void stop() throws Exception {
-		actualClient.stop();
-        actualClient.destroy();
+        director.stop();
 	}
 	
 	@Override

@@ -11,19 +11,17 @@ import java.util.NavigableMap;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.Gateway;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
-import com.fotonauts.lackr.Gateway;
 
 public class HashRing implements HttpDirectorInterface {
 
@@ -36,12 +34,14 @@ public class HashRing implements HttpDirectorInterface {
 	int bucketPerHost = 128;
 	AtomicInteger up = new AtomicInteger(0);
 	RingHost[] hosts;
+	private String name;
 
 	private NavigableMap<Integer, RingHost> ring;
 
 	private RapportrInterface rapportrInterface;
 	private String[] hostnames;
 	private String probeUrl;
+    private AtomicBoolean mustStop = new AtomicBoolean(false);
 
 	public String getProbeUrl() {
 		return probeUrl;
@@ -51,17 +51,6 @@ public class HashRing implements HttpDirectorInterface {
 		this.probeUrl = probeUrl;
 	}
 
-	/*
-	 * 
-	 * public HashRing(String backendString, RapportrInterface rapportr, String
-	 * probeUrl) { String[] backends = backendString.split(","); Host[] hosts =
-	 * new Host[backends.length]; for (int i = 0; i < backends.length; i++)
-	 * hosts[i] = new Host(rapportr, backends[i], probeUrl); }
-	 * 
-	 * public HashRing(String... backends) { hosts = new Host[backends.length];
-	 * for (int i = 0; i < backends.length; i++) hosts[i] = new
-	 * Host(backends[i]); init(); }
-	 */
 	public HashRing() {
 	}
 
@@ -83,7 +72,6 @@ public class HashRing implements HttpDirectorInterface {
 		init();
 	}
 
-	@PostConstruct
 	public void init() {
 		if (hosts == null && hostnames != null) {
 			hosts = new RingHost[hostnames.length];
@@ -102,22 +90,33 @@ public class HashRing implements HttpDirectorInterface {
         for (RingHost h : hosts)
             h.start();
 		up.set(hosts.length);
-		Thread prober = new Thread() {
+		Thread proberThread = new Thread() {
 			public void run() {
-				boolean running = true;
-				while (running) {
+			    System.err.println("starting hashring prober");
+				while (!mustStop.get()) {
 					for (RingHost h : hosts) {
 						h.probe();
 					}
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(100);
 					} catch (InterruptedException e) {
-						running = false;
 					}
 				}
+                System.err.println("stoping hashring prober");
 			};
 		};
-		prober.start();
+		if(hostnames != null) {
+    		StringBuilder builder = new StringBuilder();
+            for(String hostname: hostnames) {
+                if(!builder.toString().isEmpty())
+                    builder.append("_");
+                builder.append(hostname);
+            }
+            name = builder.toString();
+		}
+		proberThread.setName("HashRingProber for " + name);
+		proberThread.setDaemon(true);
+		proberThread.start();
 	}
 
 	public boolean up() {
@@ -207,7 +206,13 @@ public class HashRing implements HttpDirectorInterface {
 	
     @Override
     public String getName() {
-        return StringUtils.arrayToDelimitedString(hostnames, "_").replaceAll("[.:]","_");
+        return name;
+    }
+
+    @Override
+    public void stop() {
+        System.err.println("stopping hashring: " + hostnames);
+        mustStop.set(true);
     }
 
 

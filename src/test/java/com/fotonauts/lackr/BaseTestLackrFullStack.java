@@ -4,15 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.EnumSet;
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -35,20 +32,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.HttpCookieStore;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.util.Log4jConfigurer;
 
 import com.fotonauts.lackr.client.JettyBackend;
+import com.fotonauts.lackr.femtor.InProcessFemtor;
 import com.ibm.icu.util.TimeZone;
 
 @Ignore
 public class BaseTestLackrFullStack {
-    
+
     // From:
     // http://blog.efftinge.de/2008/10/multi-line-string-literals-in-java.html
     // Takes a comment (/**/) and turns everything inside the comment to a
@@ -92,7 +87,7 @@ public class BaseTestLackrFullStack {
 
         return sb.toString();
     }
-    
+
     protected void assertContains(String haystack, String needle) {
         assertTrue(haystack + "\n\nexpected to contain\n\n" + needle, haystack.contains(needle));
     }
@@ -109,20 +104,21 @@ public class BaseTestLackrFullStack {
     protected int lackrPort = 38002;
     protected Service lackrService;
     protected HttpClient client;
-    protected ClassPathXmlApplicationContext ctx;
 
     protected AtomicReference<Handler> currentHandler;
     private JettyBackend picorBackend;
     private ServerConnector lackrStubConnector;
     private ServerConnector femtorStubConnector;
 
+    private LackrConfiguration configuration;
+
     public BaseTestLackrFullStack() throws Exception {
         this(true);
     }
 
-    public BaseTestLackrFullStack(boolean femtorInProcess) throws Exception {
-
+    public BaseTestLackrFullStack(final boolean femtorInProcess) throws Exception {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        threadCountBefore = Thread.getAllStackTraces().size();
 
         currentHandler = new AtomicReference<Handler>();
 
@@ -139,12 +135,6 @@ public class BaseTestLackrFullStack {
         backendStub.start();
         backendStubPort = backendStubConnector.getLocalPort();
 
-        File propFile = File.createTempFile("lackr.test.", ".props");
-        propFile.deleteOnExit();
-
-        Properties props = PropertiesLoaderUtils.loadProperties(new ClassPathResource("lackr.test.properties"));
-        props.setProperty("lackr.backends", "http://localhost:" + backendStubPort);
-        
         if (!femtorInProcess) {
             femtorStub = new Server();
             femtorStubConnector = new ServerConnector(femtorStub);
@@ -158,26 +148,51 @@ public class BaseTestLackrFullStack {
 
             femtorStub.start();
             femtorStubPort = femtorStubConnector.getLocalPort();
-            props.setProperty("lackr.femtorImpl", "Http");
-            props.setProperty("lackr.femtorBackend", "http://localhost:" + femtorStubPort);
         }
 
-        props.store(new FileOutputStream(propFile), "properties for lackr test run");
+        configuration = new LackrConfiguration() {
+            @Override
+            protected JettyBackend buildVarnishAndPicorBackend() throws Exception {
+                picorBackend = new JettyBackend();
+                picorBackend.setDirector(new ConstantHttpDirector("http://localhost:" + backendStubPort));
+                picorBackend.setActualClient(getJettyClient());
+                return picorBackend;
+            }
 
-        System.setProperty("lackr.properties", "file:" + propFile.getCanonicalPath());
+            @Override
+            protected Backend getFemtorBackend() throws Exception {
+                if (femtorInProcess)
+                    return buildFemtorBackendInprocess();
+                else
+                    return buildFemtorBackendHttp();
+            }
 
-        ctx = new ClassPathXmlApplicationContext("lackr.xml");
-        picorBackend = (JettyBackend) ctx.getBean("picorBackend");
+            @Override
+            protected JettyBackend buildFemtorBackendHttp() throws Exception {
+                JettyBackend femtor = new JettyBackend();
+                femtor.setDirector(new ConstantHttpDirector("http://localhost:" + femtorStubPort));
+                femtor.setActualClient(getJettyClient());
+                return femtor;
+            }
+
+            @Override
+            protected InProcessFemtor buildFemtorBackendInprocess() throws Exception {
+                InProcessFemtor femtor = new InProcessFemtor();
+                femtor.setFemtorHandlerClass("com.fotonauts.lackr.DummyFemtor");
+                femtor.init();
+                return femtor;
+            }
+        };
 
         lackrServer = new Server();
-        lackrServer.setHandler((Handler) ctx.getBean("proxyService"));
+        lackrServer.setHandler(configuration.getLackrService());
         lackrStubConnector = new ServerConnector(lackrServer);
         lackrServer.addConnector(lackrStubConnector);
         lackrServer.start();
 
         lackrPort = lackrStubConnector.getLocalPort();
 
-        lackrService = (Service) ctx.getBean("proxyService");
+        lackrService = configuration.getLackrService();
 
         client = new HttpClient();
         client.setRequestBufferSize(16000);
@@ -211,6 +226,12 @@ public class BaseTestLackrFullStack {
         return response;
     }
 
+    private int threadCountBefore;
+
+    @Before
+    public void setup() throws Exception {
+    }
+
     @After
     public void tearDown() throws Exception {
         try {
@@ -218,13 +239,14 @@ public class BaseTestLackrFullStack {
             while (slept < 10000
                     && (lackrService.getGateway().getRunningRequests() != 0 || picorBackend.getGateways()[0].getRunningRequests() != 0)) {
                 slept += 5;
+                System.err.println("waiting !");
                 Thread.sleep(5);
             }
             assertEquals("all incoming requests done and closed", 0, lackrService.getGateway().getRunningRequests());
             assertEquals("all backend requests done and closed", 0, picorBackend.getGateways()[0].getRunningRequests());
         } finally {
             Object collectables[] = new Object[] { lackrService, lackrServer, lackrStubConnector, picorBackend, backendStub,
-                    backendStubConnector, femtorStub, femtorStubConnector, client, ctx };
+                    backendStubConnector, femtorStub, femtorStubConnector, client, configuration };
             String methods[] = new String[] { "stop", "close", "destroy" };
             for (Object collectable : collectables) {
                 //System.err.println("collectable: " + collectable);
@@ -236,7 +258,12 @@ public class BaseTestLackrFullStack {
 
                         }
             }
-            //System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size());
+            Thread.sleep(100);
+            System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size() + " (before: "
+                    + threadCountBefore + ")" + getClass());
+            if (Thread.getAllStackTraces().size() > 6) {
+                throw new RuntimeException("thread leak detected !");
+            }
         }
     }
 }

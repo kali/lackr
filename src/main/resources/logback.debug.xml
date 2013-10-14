@@ -5,8 +5,8 @@
       <pattern>%-8r [%t] %-5p %c - %m%n</pattern>
     </encoder>
   </appender>
-  <logger name="com.fotopedia" level="DEBUG"/>
-  <root level="WARN">
+  <logger name="com.fotonauts" level="DEBUG"/>
+  <root level="INFO">
     <appender-ref ref="rootLogger"/>
   </root>
 </configuration>

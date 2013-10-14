@@ -13,5 +13,7 @@ public interface HttpDirectorInterface {
     Gateway[] getGateways();
 
     String getName();
+
+    void stop();
 	
 }

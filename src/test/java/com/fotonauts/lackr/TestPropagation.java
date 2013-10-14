@@ -18,8 +18,8 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.IO;
 import org.junit.Test;
-import org.springframework.util.FileCopyUtils;
 
 public class TestPropagation extends BaseTestLackrFullStack {
 
@@ -68,7 +68,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, FileCopyUtils.copyToByteArray(request.getInputStream()), MimeType.TEXT_HTML);
+                writeResponse(response, IO.readBytes(request.getInputStream()), MimeType.TEXT_HTML);
             }
         });
 

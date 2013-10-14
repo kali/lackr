@@ -39,10 +39,10 @@ import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.util.IO;
+import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.FileCopyUtils;
-import org.springframework.util.StringUtils;
 
 import com.fotonauts.commons.FrontendEndpointMatcher;
 import com.fotonauts.commons.RapportrService;
@@ -146,7 +146,7 @@ public class LackrFrontendRequest {
         } catch (URISyntaxException e) {
             throw new RuntimeException("invalid URL");
         }
-        rootUrl = StringUtils.hasText(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString() : uri
+        rootUrl = StringUtil.isNotBlank(request.getQueryString()) ? uri.toASCIIString() + '?' + request.getQueryString() : uri
                 .toASCIIString();
         rootUrl = rootUrl.replace(" ", "%20");
 
@@ -435,7 +435,7 @@ public class LackrFrontendRequest {
         try {
             byte[] body = null;
             if (request.getContentLength() > 0)
-                body = FileCopyUtils.copyToByteArray(request.getInputStream());
+                body = IO.readBytes(request.getInputStream());
             rootRequest = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null, 0,
                     null, body);
             scheduleUpstreamRequest(rootRequest);
