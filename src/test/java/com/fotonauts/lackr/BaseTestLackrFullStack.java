@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.UnknownHostException;
 import java.util.EnumSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -37,9 +38,11 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.client.JettyBackend;
 import com.fotonauts.lackr.femtor.InProcessFemtor;
 import com.ibm.icu.util.TimeZone;
+import com.mongodb.MongoException;
 
 @Ignore
 public class BaseTestLackrFullStack {
@@ -159,7 +162,7 @@ public class BaseTestLackrFullStack {
             }
 
             @Override
-            protected Backend getFemtorBackend() throws Exception {
+            protected Backend buildFemtorBackend() throws Exception {
                 if (femtorInProcess)
                     return buildFemtorBackendInprocess();
                 else
@@ -181,6 +184,11 @@ public class BaseTestLackrFullStack {
                 femtor.init();
                 return femtor;
             }
+
+            protected RapportrService buildRapportrService() throws Exception {
+                return new RapportrService();
+            }
+            
         };
 
         lackrServer = new Server();
@@ -255,9 +263,11 @@ public class BaseTestLackrFullStack {
 
                         }
             }
+            /*
             int slept = 0;
             int targetThreadCount = 5;
             while(slept < 10000 && Thread.getAllStackTraces().size() > targetThreadCount) {
+                System.err.println("remaineing thread" + Thread.getAllStackTraces().size());
                 System.gc();
                 Thread.sleep(5);
                 slept += 5;
@@ -265,6 +275,7 @@ public class BaseTestLackrFullStack {
             if (Thread.getAllStackTraces().size() > targetThreadCount) {
                 throw new RuntimeException("thread leak detected !");
             }
+            */
         }
     }
 }

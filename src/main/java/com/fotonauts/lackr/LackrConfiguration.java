@@ -55,19 +55,23 @@ public class LackrConfiguration {
         return resolver;
     }
 
-    public RapportrService getRapportrService() throws NumberFormatException, UnknownHostException, MongoException {
-        if(rapportrService == null) {
-            rapportrService = new RapportrService();
-            rapportrService.setFacility("lackr");
-            rapportrService.setGrid(propertySource.getString("lackr.rapportr.grid"));
-            rapportrService.setIrcErrorChannel(propertySource.getString("lackr.rapportr.channel"));
-            rapportrService.setMongoRapportrQueuePath(propertySource.getString("lackr.rapportr.mongo"));
-            rapportrService.setMongoAccessLogPath(propertySource.getString("lackr.mongolog.access"));
-        }
+    protected RapportrService buildRapportrService() throws NumberFormatException, UnknownHostException, MongoException, Exception {
+        RapportrService rapportrService = new RapportrService();
+        rapportrService.setFacility("lackr");
+        rapportrService.setGrid(propertySource.getString("lackr.rapportr.grid"));
+        rapportrService.setIrcErrorChannel(propertySource.getString("lackr.rapportr.channel"));
+        rapportrService.setMongoRapportrQueuePath(propertySource.getString("lackr.rapportr.mongo"));
+        rapportrService.setMongoAccessLogPath(propertySource.getString("lackr.mongolog.access"));
         return rapportrService;
     }
 
-    public Service getLackrService() throws Exception {
+    public final RapportrService getRapportrService() throws Exception {
+        if (rapportrService == null)
+            rapportrService = buildRapportrService();
+        return rapportrService;
+    }
+
+    public final Service getLackrService() throws Exception {
         if (service == null) {
             service = new Service();
             service.setTimeout(propertySource.getInt("lackr.timeout"));
@@ -94,7 +98,7 @@ public class LackrConfiguration {
         return interpolr;
     }
 
-    protected Backend getVarnishPicorBackend() throws Exception {
+    protected final Backend getVarnishPicorBackend() throws Exception {
         if (varnishAndPicorBackend == null) {
             varnishAndPicorBackend = buildVarnishAndPicorBackend();
         }
@@ -110,14 +114,18 @@ public class LackrConfiguration {
         return varnishAndPicorBackend;
     }
 
-    protected Backend getFemtorBackend() throws Exception {
-        if (femtorBackend == null) {
-            if ("Http".equals(propertySource.getString("lackr.femtorImpl")))
-                femtorBackend = buildFemtorBackendHttp();
-            else
-                femtorBackend = buildFemtorBackendInprocess();
-        }
+    protected final Backend getFemtorBackend() throws Exception {
+        if (femtorBackend == null)
+            femtorBackend = buildFemtorBackend();
+
         return femtorBackend;
+    }
+
+    protected Backend buildFemtorBackend() throws Exception {
+        if ("Http".equals(propertySource.getString("lackr.femtorImpl")))
+            return buildFemtorBackendHttp();
+        else
+            return buildFemtorBackendInprocess();
     }
 
     protected InProcessFemtor buildFemtorBackendInprocess() throws Exception {
@@ -137,7 +145,7 @@ public class LackrConfiguration {
         return backend;
     }
 
-    protected HttpClient getJettyClient() throws Exception {
+    protected final HttpClient getJettyClient() throws Exception {
         if (client == null) {
             client = new HttpClient();
             client.setConnectTimeout(500);
@@ -154,9 +162,9 @@ public class LackrConfiguration {
             rapportrService.stop();
         if (service != null)
             service.stop();
-        if(femtorBackend != null)
+        if (femtorBackend != null)
             femtorBackend.stop();
-        if(varnishAndPicorBackend != null)
+        if (varnishAndPicorBackend != null)
             varnishAndPicorBackend.stop();
         if (client != null) {
             client.stop();
