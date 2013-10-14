@@ -42,6 +42,7 @@ public class HashRing implements HttpDirectorInterface {
 	private String[] hostnames;
 	private String probeUrl;
     private AtomicBoolean mustStop = new AtomicBoolean(false);
+    private Thread proberThread;
 
 	public String getProbeUrl() {
 		return probeUrl;
@@ -90,9 +91,8 @@ public class HashRing implements HttpDirectorInterface {
         for (RingHost h : hosts)
             h.start();
 		up.set(hosts.length);
-		Thread proberThread = new Thread() {
+		proberThread = new Thread() {
 			public void run() {
-			    System.err.println("starting hashring prober");
 				while (!mustStop.get()) {
 					for (RingHost h : hosts) {
 						h.probe();
@@ -102,7 +102,6 @@ public class HashRing implements HttpDirectorInterface {
 					} catch (InterruptedException e) {
 					}
 				}
-                System.err.println("stoping hashring prober");
 			};
 		};
 		if(hostnames != null) {
@@ -210,9 +209,9 @@ public class HashRing implements HttpDirectorInterface {
     }
 
     @Override
-    public void stop() {
-        System.err.println("stopping hashring: " + hostnames);
+    public void stop() throws InterruptedException {
         mustStop.set(true);
+        proberThread.join();
     }
 
 

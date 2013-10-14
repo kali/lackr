@@ -14,6 +14,6 @@ public interface HttpDirectorInterface {
 
     String getName();
 
-    void stop();
+    void stop() throws InterruptedException;
 	
 }

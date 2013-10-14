@@ -1,7 +1,5 @@
 package com.fotonauts.lackr;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,11 +54,8 @@ public class TestRingHA extends TestCase {
         }
     }
 
-    private int threadCountBefore;
-
     @Override
     protected void setUp() throws Exception {
-        threadCountBefore = Thread.getAllStackTraces().size();
         System.setProperty("logback.configurationFile", "logback.debug.xml");
     }
 
@@ -129,10 +124,7 @@ public class TestRingHA extends TestCase {
 
     @After
     public void tearDown() throws Exception {
-        Thread.sleep(100);
-        System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size() + " (before: "
-                + threadCountBefore + ")" + getClass());
-        if (Thread.getAllStackTraces().size() > 6) {
+        if (Thread.getAllStackTraces().size() > 5) {
             throw new RuntimeException("thread leak detected !");
         }
     }

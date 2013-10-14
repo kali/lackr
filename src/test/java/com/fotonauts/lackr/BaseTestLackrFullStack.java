@@ -118,7 +118,6 @@ public class BaseTestLackrFullStack {
 
     public BaseTestLackrFullStack(final boolean femtorInProcess) throws Exception {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        threadCountBefore = Thread.getAllStackTraces().size();
 
         currentHandler = new AtomicReference<Handler>();
 
@@ -226,8 +225,6 @@ public class BaseTestLackrFullStack {
         return response;
     }
 
-    private int threadCountBefore;
-
     @Before
     public void setup() throws Exception {
     }
@@ -258,10 +255,14 @@ public class BaseTestLackrFullStack {
 
                         }
             }
-            Thread.sleep(100);
-            System.err.println("remaining thread after collection: " + Thread.getAllStackTraces().size() + " (before: "
-                    + threadCountBefore + ")" + getClass());
-            if (Thread.getAllStackTraces().size() > 6) {
+            int slept = 0;
+            int targetThreadCount = 5;
+            while(slept < 10000 && Thread.getAllStackTraces().size() > targetThreadCount) {
+                System.gc();
+                Thread.sleep(5);
+                slept += 5;
+            }
+            if (Thread.getAllStackTraces().size() > targetThreadCount) {
                 throw new RuntimeException("thread leak detected !");
             }
         }
