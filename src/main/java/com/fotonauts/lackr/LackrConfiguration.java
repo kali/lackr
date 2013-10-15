@@ -45,7 +45,6 @@ public class LackrConfiguration {
     public LackrConfiguration() throws ConfigurationException {
         propertySource = new CompositeConfiguration();
         propertySource.addConfiguration(new SystemConfiguration());
-        propertySource.addConfiguration(new PropertiesConfiguration("lackr.eclipse.properties"));
         propertySource.addConfiguration(new PropertiesConfiguration("lackr.default.properties"));
     }
 
