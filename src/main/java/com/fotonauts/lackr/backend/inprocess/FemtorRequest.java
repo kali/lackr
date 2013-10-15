@@ -12,7 +12,6 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
-import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.MultiMap;
 import org.eclipse.jetty.util.UrlEncoded;
 
@@ -21,7 +20,6 @@ import com.fotonauts.lackr.backend.LackrBackendRequest;
 public class FemtorRequest extends HttpServletRequestWrapper {
 
     LackrBackendRequest request;
-    private HttpFields headers = new HttpFields();
     private MultiMap<String> params;
     private BufferedReader reader;
     private ServletInputStream inputStream;
@@ -77,10 +75,6 @@ public class FemtorRequest extends HttpServletRequestWrapper {
         return request.getPath();
     }
 
-    public void addHeader(String name, String value) {
-        headers.add(name, value);
-    }
-
     protected MultiMap<String> getParams() {
         if (params == null) {
             params = new MultiMap<String>();
@@ -129,17 +123,17 @@ public class FemtorRequest extends HttpServletRequestWrapper {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Enumeration getHeaderNames() {
-        return headers.getFieldNames();
+        return request.getFields().getFieldNames();
     }
 
     @Override
     public String getHeader(String name) {
-        return headers.getStringField(name);
+        return request.getFields().getStringField(name);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Enumeration getHeaders(String name) {
-        return headers.getValues(name);
+        return request.getFields().getValues(name);
     }
 }

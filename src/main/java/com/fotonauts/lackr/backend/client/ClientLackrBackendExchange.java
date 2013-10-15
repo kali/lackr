@@ -48,6 +48,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
         String url = director.getHostFor(spec).getHostname() + getBackendRequest().getQuery();
         request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));
+        request.getHeaders().add(spec.getFields());
         if (spec.getBody() != null) {
             request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getRequest().getHeader("Content-Type"));
             request.content(new BytesContentProvider(spec.getBody()));
@@ -58,11 +59,6 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     @Override
     public LackrBackendResponse getResponse() {
         return response;
-    }
-
-    @Override
-    public void addRequestHeader(String name, String value) {
-        request.getHeaders().add(name, value);
     }
 
     public class ResponseAdapter extends LackrBackendResponse {

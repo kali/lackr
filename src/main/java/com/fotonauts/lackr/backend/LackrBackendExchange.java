@@ -7,15 +7,11 @@ import static com.fotonauts.commons.RapportrLoggingKeys.PARENT_ID;
 import static com.fotonauts.commons.RapportrLoggingKeys.PATH;
 import static com.fotonauts.commons.RapportrLoggingKeys.QUERY_PARMS;
 
-import java.util.Enumeration;
-import java.util.Map.Entry;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.BaseGatewayMetrics;
-import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
@@ -26,7 +22,7 @@ public abstract class LackrBackendExchange {
 
     public abstract LackrBackendResponse getResponse();
     
-    public abstract void addRequestHeader(String name, String value);
+//    public abstract void addRequestHeader(String name, String value);
 
     protected BasicDBObject logLine;
     protected long startTimestamp;
@@ -47,6 +43,7 @@ public abstract class LackrBackendExchange {
     
     public void start() throws NotAvailableException {
         log.debug("Starting exchange {}", this);
+        /*
         addRequestHeader("X-NGINX-SSI", "yes");
         addRequestHeader("X-SSI-ROOT", lackrBackendRequest.getFrontendRequest().getRequest().getRequestURI());
         addRequestHeader("X-FTN-NORM-USER-AGENT", lackrBackendRequest.getFrontendRequest().getUserAgent().toString());
@@ -60,6 +57,8 @@ public abstract class LackrBackendExchange {
         if (lackrBackendRequest.getSyntax() != null)
             addRequestHeader("X-SSI-INCLUDE-SYNTAX", lackrBackendRequest.getSyntax());
 
+*/
+        /*
         for (Enumeration<?> e = lackrBackendRequest.getFrontendRequest().getRequest().getHeaderNames(); e.hasMoreElements();) {
             String header = (String) e.nextElement();
             if (!LackrFrontendRequest.skipHeader(header)) {
@@ -70,6 +69,7 @@ public abstract class LackrBackendExchange {
                 addRequestHeader(header, lackrBackendRequest.getFrontendRequest().getRequest().getHeader(header));                
             }
         }
+        */
         startTimestamp = System.currentTimeMillis();
         logLine = RapportrService.accessLogLineTemplate(lackrBackendRequest.getFrontendRequest().getRequest(), "lackr-back");
 

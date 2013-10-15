@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.api.Result;
+import org.eclipse.jetty.http.HttpField;
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
@@ -166,7 +169,7 @@ public class LackrFrontendRequest {
         LackrBackendRequest ex = backendRequestCache.get(key);
         if (ex != null)
             return ex;
-        ex = new LackrBackendRequest(this, "GET", url, dad.getQuery(), dad.hashCode(), format, null);
+        ex = new LackrBackendRequest(this, "GET", url, dad.getQuery(), dad.hashCode(), format, null, dad.getFields());
         backendRequestCache.put(key, ex);
         scheduleUpstreamRequest(ex);
         return ex;
@@ -446,13 +449,26 @@ public class LackrFrontendRequest {
             if (request.getContentLength() > 0)
                 body = IO.readBytes(request.getInputStream());
             rootRequest = new LackrBackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null,
-                    0, null, body);
+                    0, null, body, buildHttpFields());
             scheduleUpstreamRequest(rootRequest);
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);
             backendExceptions.add(LackrPresentableError.fromThrowable(e));
             continuation.dispatch();
         }
+    }
+
+    private HttpFields buildHttpFields() {
+        HttpFields fields = new HttpFields();
+        for (Enumeration<?> e = getRequest().getHeaderNames(); e.hasMoreElements();) {
+            String header = (String) e.nextElement();
+            if (!LackrFrontendRequest.skipHeader(header)) {
+                fields.add(header, getRequest().getHeader(header));
+            }
+        }
+        if(getRequest().getContentLength() > 0 && getRequest().getContentType() != null)
+            fields.add(HttpField.CONTENT_TYPE.toString(), getRequest().getContentType());
+        return fields;
     }
 
     public void addBackendExceptions(LackrPresentableError x) {

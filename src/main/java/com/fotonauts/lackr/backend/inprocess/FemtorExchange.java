@@ -24,11 +24,6 @@ public class FemtorExchange extends LackrBackendExchange {
 	}
 
 	@Override
-	public void addRequestHeader(String name, String value) {
-		request.addHeader(name, value);
-	}
-
-	@Override
 	protected void doStart() throws Exception {
         inProcessFemtor.filter.doFilter(request, response, null);
         onComplete();

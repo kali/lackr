@@ -2,6 +2,7 @@ package com.fotonauts.lackr.backend;
 
 import java.io.IOException;
 
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +35,14 @@ public class LackrBackendRequest {
     private final String method;
     private final String parentQuery;
     private final int parentId;
-    private String query;
+    private final String query;
     private final LackrFrontendRequest frontendRequest;
     private LackrBackendExchange exchange;
     private final String syntax;
+    private final HttpFields fields;
 
     public LackrBackendRequest(LackrFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
-            String syntax, byte[] body) {
+            String syntax, byte[] body, HttpFields fields) {
         super();
         this.frontendRequest = frontendRequest;
         this.method = method;
@@ -49,6 +51,7 @@ public class LackrBackendRequest {
         this.parentId = parentId;
         this.syntax = syntax;
         this.body = body;
+        this.fields = fields;
     }
 
     /**
@@ -206,5 +209,9 @@ public class LackrBackendRequest {
     @Override
     public String toString() {
         return String.format("%s %s", getMethod(), getQuery());
+    }
+
+    public HttpFields getFields() {
+        return fields;
     }
 }

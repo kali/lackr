@@ -75,11 +75,6 @@ public class TryPassBackendExchange extends LackrBackendExchange {
     }
 
     @Override
-    public void addRequestHeader(String name, String value) {
-        /* nothing on purpose */
-    }
-
-    @Override
     public LackrBackendResponse getResponse() {
         return lastExchange.get().getResponse();
     }
