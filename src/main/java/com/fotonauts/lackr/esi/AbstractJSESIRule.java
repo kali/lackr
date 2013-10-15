@@ -47,7 +47,7 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 		LackrBackendExchange exchange = request.getExchange();
 		// FIXME this is here to find a bug. it is probably unecessary as it
 		// will be parsed later
-		if(!MimeType.isJS(exchange.getResponseHeaderValue("Content-Type")))
+		if(!MimeType.isJS(exchange.getResponse().getResponseHeaderValue("Content-Type")))
 			return;
 		ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService().getJacksonObjectMapper();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

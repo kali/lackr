@@ -19,6 +19,7 @@ import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.backend.LackrBackendResponse;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ClientLackrBackendExchange extends LackrBackendExchange {
@@ -30,6 +31,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     private HttpHost upstream;
     private Request request;
     protected Result result;
+    private LackrBackendResponse response;
     private byte[] responseBody;
 
     @Override
@@ -39,8 +41,8 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
         return upstream;
     }
 
-    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, HttpDirectorInterface director, LackrBackendRequest spec)
-            throws NotAvailableException {
+    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, HttpDirectorInterface director,
+            LackrBackendRequest spec) throws NotAvailableException {
         super(backend, spec);
         this.director = director;
         String url = director.getHostFor(spec).getHostname() + getBackendRequest().getQuery();
@@ -54,18 +56,8 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     }
 
     @Override
-    public int getResponseStatus() {
-        return result.getResponse().getStatus();
-    }
-
-    @Override
-    public byte[] getResponseBodyBytes() {
-        return responseBody;
-    }
-
-    @Override
-    public String getResponseHeader(String name) {
-        return result.getResponse().getHeaders().getStringField(name);
+    public LackrBackendResponse getResponse() {
+        return response;
     }
 
     @Override
@@ -73,14 +65,37 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
         request.getHeaders().add(name, value);
     }
 
-    @Override
-    public List<String> getResponseHeaderNames() {
-        return Collections.list(result.getResponse().getHeaders().getFieldNames());
-    }
+    public class ResponseAdapter extends LackrBackendResponse {
 
-    @Override
-    public List<String> getResponseHeaderValues(String name) {
-        return Collections.list(result.getResponse().getHeaders().getValues(name));
+        public ResponseAdapter(LackrBackendExchange exchange) {
+            super(exchange);
+        }
+
+        @Override
+        public int getStatus() {
+            return result.getResponse().getStatus();
+        }
+
+        @Override
+        public byte[] getBodyBytes() {
+            return responseBody;
+        }
+
+        @Override
+        public String getHeader(String name) {
+            return result.getResponse().getHeaders().getStringField(name);
+        }
+
+        @Override
+        public List<String> getHeaderNames() {
+            return Collections.list(result.getResponse().getHeaders().getFieldNames());
+        }
+
+        @Override
+        public List<String> getHeaderValues(String name) {
+            return Collections.list(result.getResponse().getHeaders().getValues(name));
+        }
+
     }
 
     @Override
@@ -93,6 +108,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
                 if (r.isSucceeded()) {
                     lackrExchange.result = r;
                     lackrExchange.responseBody = getContent();
+                    response = new ResponseAdapter(lackrExchange);
                     lackrExchange.onComplete();
                 } else {
                     lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(r.getFailure());

@@ -194,15 +194,15 @@ public class LackrFrontendRequest {
     }
 
     public void copyResponseHeaders(HttpServletResponse response) {
-        for (String name : rootRequest.getExchange().getResponseHeaderNames()) {
+        for (String name : rootRequest.getExchange().getResponse().getHeaderNames()) {
             if (!skipHeader(name)) {
-                for (String value : rootRequest.getExchange().getResponseHeaderValues(name))
+                for (String value : rootRequest.getExchange().getResponse().getHeaderValues(name))
                     response.addHeader(name, value);
             }
         }
-        if (rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
+        if (rootRequest.getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
             response.addHeader(HttpHeader.CONTENT_TYPE.asString(),
-                    rootRequest.getExchange().getResponseHeader(HttpHeader.CONTENT_TYPE.asString()));
+                    rootRequest.getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()));
     }
 
     private void preflightCheck() {
@@ -313,14 +313,14 @@ public class LackrFrontendRequest {
 
     public void writeSuccessResponse(HttpServletResponse response) throws IOException {
         LackrBackendExchange rootExchange = rootRequest.getExchange();
-        if (rootExchange.getResponseStatus() == 398 && rootExchange.getResponseHeaderValue("Location") != null) {
+        if (rootExchange.getResponse().getStatus() == 398 && rootExchange.getResponse().getResponseHeaderValue("Location") != null) {
             // 398 is a special adhoc http code: used as a way for femtor to ask lackr to proxy and pipe a entirely different url
-            logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
-            asyncProxy(response, rootExchange.getResponseHeaderValue("Location"));
+            logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponse().getStatus()));
+            asyncProxy(response, rootExchange.getResponse().getResponseHeaderValue("Location"));
             return;
         }
 
-        response.setStatus(rootExchange.getResponseStatus());
+        response.setStatus(rootExchange.getResponse().getStatus());
         copyResponseHeaders(response);
         if (request.getCookies() != null) {
             for (Cookie c : request.getCookies())
@@ -342,14 +342,14 @@ public class LackrFrontendRequest {
                 log.debug("etag: " + etag);
                 log.debug("if-none-match: " + request.getHeader(HttpHeader.IF_NONE_MATCH.asString()));
             }
-            if (rootExchange.getResponseStatus() == HttpStatus.OK_200
+            if (rootExchange.getResponse().getStatus() == HttpStatus.OK_200
                     && etag.equals(request.getHeader(HttpHeader.IF_NONE_MATCH.asString()))) {
                 response.setStatus(HttpStatus.NOT_MODIFIED_304);
                 response.setHeader("Status", "304 Not Modified");
                 response.flushBuffer(); // force commiting
                 logLine.put(STATUS.getPrettyName(), Integer.toString(HttpStatus.NOT_MODIFIED_304));
             } else {
-                logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+                logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponse().getStatus()));
                 response.setContentLength(rootRequest.getParsedDocument().length());
                 if (request.getMethod() != "HEAD")
                     rootRequest.getParsedDocument().writeTo(response.getOutputStream());
@@ -357,7 +357,7 @@ public class LackrFrontendRequest {
             }
             logLine.put(SIZE.getPrettyName(), rootRequest.getParsedDocument().length());
         } else {
-            logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponseStatus()));
+            logLine.put(STATUS.getPrettyName(), Integer.toString(rootExchange.getResponse().getStatus()));
             response.flushBuffer(); // force commiting
         }
     }

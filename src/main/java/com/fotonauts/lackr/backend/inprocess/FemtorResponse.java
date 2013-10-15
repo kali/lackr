@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,7 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 
-public class FemtorResponse implements HttpServletResponse {
+import com.fotonauts.lackr.backend.LackrBackendResponse;
+
+public class FemtorResponse extends LackrBackendResponse implements HttpServletResponse {
 
 	public static final int NONE = 0, STREAM = 1, WRITER = 2;
 
@@ -30,6 +33,7 @@ public class FemtorResponse implements HttpServletResponse {
 	private int _outputState;
 
 	public FemtorResponse(FemtorExchange exchange) {
+	    super(exchange);
 		_outputState = NONE;
 	}
 
@@ -230,6 +234,7 @@ public class FemtorResponse implements HttpServletResponse {
 		return baos.toByteArray();
 	}
 
+	@Override
 	public int getStatus() {
 		return sc;
 	}
@@ -240,13 +245,22 @@ public class FemtorResponse implements HttpServletResponse {
     }
 
     @Override
-    public Collection<String> getHeaderNames() {
-        return headers.keySet();
+    public List<String> getHeaderNames() {
+        return new ArrayList<String>( headers.keySet());
     }
 
     @Override
     public Collection<String> getHeaders(String arg0) {
         return headers.get(arg0) != null && headers.get(arg0).size() > 0 ? headers.get(arg0) : null;
+    }
+    @Override
+    public List<String> getHeaderValues(String name) {
+        return getHeaders().get(name);
+    }
+
+    @Override
+    public byte[] getBodyBytes() {
+        return getContentBytes();
     }
 
 }

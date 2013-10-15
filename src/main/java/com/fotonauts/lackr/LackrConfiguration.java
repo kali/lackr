@@ -12,10 +12,10 @@ import org.eclipse.jetty.util.HttpCookieStore;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.backend.Backend;
-import com.fotonauts.lackr.backend.TryPassBackend;
 import com.fotonauts.lackr.backend.client.ClientBackend;
 import com.fotonauts.lackr.backend.hashring.HashRing;
 import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
+import com.fotonauts.lackr.backend.trypass.TryPassBackend;
 import com.fotonauts.lackr.esi.FemtorJSESIRule;
 import com.fotonauts.lackr.esi.HttpESIRule;
 import com.fotonauts.lackr.esi.JSESIRule;

@@ -1,6 +1,5 @@
-package com.fotonauts.lackr.backend;
+package com.fotonauts.lackr.backend.trypass;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -8,8 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.BaseGatewayMetrics;
-import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
+import com.fotonauts.lackr.backend.LackrBackendResponse;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class TryPassBackendExchange extends LackrBackendExchange {
@@ -19,18 +21,6 @@ public class TryPassBackendExchange extends LackrBackendExchange {
     private AtomicInteger triedBackend = new AtomicInteger(0);
 
     private AtomicReference<LackrBackendExchange> lastExchange = new AtomicReference<LackrBackendExchange>();
-
-    public List<String> getResponseHeaderValues(String name) {
-        return lastExchange.get().getResponseHeaderValues(name);
-    }
-
-    public String getResponseHeaderValue(String name) {
-        return lastExchange.get().getResponseHeaderValue(name);
-    }
-
-    public List<String> getResponseHeaderNames() {
-        return lastExchange.get().getResponseHeaderNames();
-    }
 
     public TryPassBackendExchange(TryPassBackend backend, LackrBackendRequest spec) {
         super(backend, spec);
@@ -49,7 +39,7 @@ public class TryPassBackendExchange extends LackrBackendExchange {
             public void complete() {
                 try {
                     log.debug("entering subExchange {} completion handler", subExchange);
-                    if (subExchange.getResponseStatus() == 501
+                    if (subExchange.getResponse().getStatus() == 501
                             && triedBackend.incrementAndGet() < ((TryPassBackend) backend).getBackends().length) {
                         tryNext();
                     } else {
@@ -74,21 +64,6 @@ public class TryPassBackendExchange extends LackrBackendExchange {
     }
 
     @Override
-    public String getResponseHeader(String name) {
-        return lastExchange.get().getResponseHeader(name);
-    }
-
-    @Override
-    public byte[] getResponseBodyBytes() {
-        return lastExchange.get().getResponseBodyBytes();
-    }
-
-    @Override
-    public int getResponseStatus() {
-        return lastExchange.get().getResponseStatus();
-    }
-
-    @Override
     public BaseGatewayMetrics getUpstream() throws NotAvailableException {
         return null;
     }
@@ -102,5 +77,10 @@ public class TryPassBackendExchange extends LackrBackendExchange {
     @Override
     public void addRequestHeader(String name, String value) {
         /* nothing on purpose */
+    }
+
+    @Override
+    public LackrBackendResponse getResponse() {
+        return lastExchange.get().getResponse();
     }
 }

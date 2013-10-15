@@ -1,20 +1,13 @@
 package com.fotonauts.lackr.backend;
 
-import static com.fotonauts.commons.RapportrLoggingKeys.DATE;
-import static com.fotonauts.commons.RapportrLoggingKeys.ELAPSED;
 import static com.fotonauts.commons.RapportrLoggingKeys.FRAGMENT_ID;
 import static com.fotonauts.commons.RapportrLoggingKeys.METHOD;
 import static com.fotonauts.commons.RapportrLoggingKeys.PARENT;
 import static com.fotonauts.commons.RapportrLoggingKeys.PARENT_ID;
 import static com.fotonauts.commons.RapportrLoggingKeys.PATH;
 import static com.fotonauts.commons.RapportrLoggingKeys.QUERY_PARMS;
-import static com.fotonauts.commons.RapportrLoggingKeys.SIZE;
-import static com.fotonauts.commons.RapportrLoggingKeys.STATUS;
 
-import java.io.IOException;
-import java.util.Date;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.slf4j.Logger;
@@ -23,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.LackrFrontendRequest;
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
@@ -32,18 +24,10 @@ public abstract class LackrBackendExchange {
 
     static Logger log = LoggerFactory.getLogger(LackrBackendExchange.class);
 
-    public abstract List<String> getResponseHeaderValues(String name);
-
-    public abstract List<String> getResponseHeaderNames();
-
+    public abstract LackrBackendResponse getResponse();
+    
     public abstract void addRequestHeader(String name, String value);
 
-    public abstract String getResponseHeader(String name);
-
-    public abstract byte[] getResponseBodyBytes();
-    
-    public abstract int getResponseStatus();
-    
     protected BasicDBObject logLine;
     protected long startTimestamp;
     protected LackrBackendRequest lackrBackendRequest;
@@ -157,19 +141,6 @@ public abstract class LackrBackendExchange {
 
     protected abstract void doStart() throws Exception;
 
-    public String getResponseHeaderValue(String name) {
-        List<String> values = null;
-        try {
-            values = getResponseHeaderValues(name);
-        } catch (NullPointerException exception) {
-            return null;
-        }
-        if (values == null || values.isEmpty())
-            return null;
-        else
-            return values.get(0);
-    }
-    
     @Override
     public String toString() {
         return String.format("%s:%s", this.getClass().getSimpleName(), getBackendRequest());

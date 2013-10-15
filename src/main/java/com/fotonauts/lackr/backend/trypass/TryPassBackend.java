@@ -1,8 +1,11 @@
-package com.fotonauts.lackr.backend;
+package com.fotonauts.lackr.backend.trypass;
 
 import java.io.PrintStream;
 
 import com.fotonauts.lackr.BaseGatewayMetrics;
+import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class TryPassBackend implements Backend {

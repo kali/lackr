@@ -156,16 +156,16 @@ public class LackrBackendRequest {
             */
 
             if (this != getFrontendRequest().getRootRequest()
-                    && (exchange.getResponseStatus() / 100 == 4 || exchange.getResponseStatus() / 100 == 5)
-                    && exchange.getResponseHeader("X-SSI-AWARE") == null)
+                    && (exchange.getResponse().getStatus() / 100 == 4 || exchange.getResponse().getStatus() / 100 == 5)
+                    && exchange.getResponse().getHeader("X-SSI-AWARE") == null)
                 getFrontendRequest().addBackendExceptions(
-                        new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponseStatus()));
-            if (exchange.getResponseBodyBytes() != null && exchange.getResponseBodyBytes().length > 0) {
-                String mimeType = exchange.getResponseHeader(HttpHeader.CONTENT_TYPE.asString());
+                        new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponse().getStatus()));
+            if (exchange.getResponse().getBodyBytes() != null && exchange.getResponse().getBodyBytes().length > 0) {
+                String mimeType = exchange.getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString());
                 if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-                    parsedDocument = getFrontendRequest().getService().getInterpolr().parse(exchange.getResponseBodyBytes(), this);
+                    parsedDocument = getFrontendRequest().getService().getInterpolr().parse(exchange.getResponse().getBodyBytes(), this);
                 else
-                    parsedDocument = new Document(new DataChunk(exchange.getResponseBodyBytes()));
+                    parsedDocument = new Document(new DataChunk(exchange.getResponse().getBodyBytes()));
             } else
                 parsedDocument = new Document(new DataChunk(new byte[0]));
 

@@ -20,7 +20,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 	}
 
 	protected String getMimeType(LackrBackendExchange exchange) {
-		return exchange.getResponseHeaderValue(HttpHeader.CONTENT_TYPE.asString());
+		return exchange.getResponse().getResponseHeaderValue(HttpHeader.CONTENT_TYPE.asString());
 	}
 
 	protected String makeUrl(byte[] buffer, int start, int stop) {
