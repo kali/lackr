@@ -21,8 +21,9 @@ import com.fotonauts.lackr.interpolr.Document;
  */
 public class LackrBackendRequest {
 
-    public static interface CompletionListener {
-        public void run();
+    public static interface Listener {
+        public void complete();
+        public void fail(Throwable t);
     }
     
     static Logger log = LoggerFactory.getLogger(LackrBackendRequest.class);
@@ -182,11 +183,20 @@ public class LackrBackendRequest {
         log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
         exchange = getFrontendRequest().getService().getBackend().createExchange(this);
         log.debug("Created exchange {}", exchange);
-        exchange.setCompletionListener(new CompletionListener() {
+        exchange.setCompletionListener(new Listener() {
             
             @Override
-            public void run() {
-                postProcess();
+            public void complete() {
+                try {
+                    postProcess();
+                } finally {
+                    getFrontendRequest().notifySubRequestDone();
+                }
+            }
+
+            @Override
+            public void fail(Throwable t) {
+                getFrontendRequest().addBackendExceptions(t instanceof LackrPresentableError ? t : LackrPresentableError.fromThrowableAndExchange(t, exchange));
                 getFrontendRequest().notifySubRequestDone();
             }
         });

@@ -24,7 +24,7 @@ import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.backend.LackrBackendRequest.CompletionListener;
+import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
 
@@ -48,7 +48,7 @@ public abstract class LackrBackendExchange {
     protected long startTimestamp;
     protected LackrBackendRequest lackrBackendRequest;
     protected Backend backend;
-    private CompletionListener completionListener;
+    private Listener listener;
 
     public LackrBackendRequest getBackendRequest() {
         return lackrBackendRequest;
@@ -108,8 +108,7 @@ public abstract class LackrBackendExchange {
         try {
             doStart();
         } catch (Throwable e) {
-            e.printStackTrace(System.err);
-            getBackendRequest().getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowableAndExchange(e, this));
+            getCompletionListener().fail(e);
         }
 
     }
@@ -142,7 +141,7 @@ public abstract class LackrBackendExchange {
         /*
         if (sync) {
             log.debug("Start post-processing {}", this);
-            completionListener.run();
+            listener.run();
         } else
         */
             log.debug("Enqueue post-processing {}", this);
@@ -150,7 +149,7 @@ public abstract class LackrBackendExchange {
 
                 @Override
                 public void run() {
-                    getCompletionListener().run();
+                    getCompletionListener().complete();
                 }
             });
 
@@ -176,11 +175,11 @@ public abstract class LackrBackendExchange {
         return String.format("%s:%s", this.getClass().getSimpleName(), getBackendRequest());
     }
 
-    public CompletionListener getCompletionListener() {
-        return completionListener;
+    public Listener getCompletionListener() {
+        return listener;
     }
 
-    public void setCompletionListener(CompletionListener completionListener) {
-        this.completionListener = completionListener;
+    public void setCompletionListener(Listener listener) {
+        this.listener = listener;
     }
 }

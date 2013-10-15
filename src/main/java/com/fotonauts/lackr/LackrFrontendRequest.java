@@ -50,8 +50,6 @@ import com.fotonauts.commons.UserAgent;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
-import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
-import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.MustacheContext;
 import com.mongodb.BasicDBList;

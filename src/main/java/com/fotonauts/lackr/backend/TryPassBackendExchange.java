@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.backend.LackrBackendRequest.CompletionListener;
+import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class TryPassBackendExchange extends LackrBackendExchange {
@@ -43,10 +43,10 @@ public class TryPassBackendExchange extends LackrBackendExchange {
         final LackrBackendExchange subExchange = be.createExchange(getBackendRequest());
         lastExchange.set(subExchange);
         final LackrBackendExchange that = this;
-        subExchange.setCompletionListener(new CompletionListener() {
+        subExchange.setCompletionListener(new Listener() {
 
             @Override
-            public void run() {
+            public void complete() {
                 try {
                     log.debug("entering subExchange {} completion handler", subExchange);
                     if (subExchange.getResponseStatus() == 501
@@ -55,13 +55,18 @@ public class TryPassBackendExchange extends LackrBackendExchange {
                     } else {
                         log.debug("{} handled {}, calling my own completion listener {}.", be, getBackendRequest(),
                                 that.getCompletionListener());
-                        that.getCompletionListener().run();
+                        that.getCompletionListener().complete();
                     }
                 } catch (Throwable e) {
-                    e.printStackTrace(System.err);
-                    getBackendRequest().getFrontendRequest().addBackendExceptions(
-                            LackrPresentableError.fromThrowableAndExchange(e, that));
+                    System.err.println("1");
+                    that.getCompletionListener().fail(e);
                 }
+            }
+            
+            @Override
+            public void fail(Throwable t) {
+                System.err.println("2");
+                that.getCompletionListener().fail(t);
             }
 
         });
