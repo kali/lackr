@@ -8,10 +8,10 @@ import java.util.Map;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 
@@ -22,7 +22,7 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(BackendRequest exchange) {
+	public Chunk filterDocumentAsChunk(LackrBackendRequest exchange) {
 		String mimeType = getMimeType(exchange.getExchange());
 		if (MimeType.isJS(mimeType))
 			return exchange.getParsedDocument();
@@ -43,7 +43,7 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public void check(BackendRequest request) {
+	public void check(LackrBackendRequest request) {
 		LackrBackendExchange exchange = request.getExchange();
 		// FIXME this is here to find a bug. it is probably unecessary as it
 		// will be parsed later

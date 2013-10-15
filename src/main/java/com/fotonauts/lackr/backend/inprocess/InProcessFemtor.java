@@ -9,10 +9,10 @@ import javax.servlet.Filter;
 
 import org.eclipse.jetty.util.StringUtil;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.Gateway;
-import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 
 public class InProcessFemtor implements Backend {
 
@@ -20,11 +20,11 @@ public class InProcessFemtor implements Backend {
 	private String femtorHandlerClass;
 	private String femtorJar;
 	private URLClassLoader loader;
-    private Gateway[] upstreamServices;
+    private BaseGatewayMetrics[] upstreamServices;
 	
 
 	public InProcessFemtor() throws Exception {
-	    this.upstreamServices = new Gateway[] { new Gateway() {
+	    this.upstreamServices = new BaseGatewayMetrics[] { new BaseGatewayMetrics() {
 
             @Override
             public String getMBeanName() {
@@ -52,7 +52,7 @@ public class InProcessFemtor implements Backend {
 	}
 
 	@Override
-	public LackrBackendExchange createExchange(BackendRequest request) {
+	public LackrBackendExchange createExchange(LackrBackendRequest request) {
 		return new FemtorExchange(this, request);
 	}
 
@@ -74,7 +74,7 @@ public class InProcessFemtor implements Backend {
 	}
 
     @Override
-    public Gateway[] getGateways() {
+    public BaseGatewayMetrics[] getGateways() {
         return upstreamServices;
     }
 
@@ -82,4 +82,10 @@ public class InProcessFemtor implements Backend {
     public String getName() {
         return "in-process-femtor";
     }
+    
+    @Override
+    public String toString() {
+        return String.format("%s:%s", getClass().getSimpleName(), getName());
+    }
+
 }

@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.EnumSet;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.DispatcherType;
@@ -187,7 +185,7 @@ public class BaseTestLackrFullStack {
             protected RapportrService buildRapportrService() throws Exception {
                 return new RapportrService();
             }
-            
+
         };
 
         lackrServer = new Server();
@@ -219,15 +217,12 @@ public class BaseTestLackrFullStack {
         return client.newRequest(url);
     }
 
-    protected ContentResponse runRequest(org.eclipse.jetty.client.api.Request e, String expect) {
+    protected ContentResponse runRequest(org.eclipse.jetty.client.api.Request e, String expect) throws Exception {
         ContentResponse response = null;
-        try {
-            response = e.timeout(15, TimeUnit.SECONDS).send();
-            assertEquals(200, response.getStatus());
-            assertEquals(expect, response.getContentAsString());
-        } catch (InterruptedException | TimeoutException | ExecutionException e2) {
-            e2.printStackTrace();
-        }
+        response = e.timeout(600, TimeUnit.SECONDS).send();
+        System.err.println(response.getContentAsString());
+        assertEquals(200, response.getStatus());
+        assertEquals(expect, response.getContentAsString());
 
         return response;
     }
@@ -240,14 +235,15 @@ public class BaseTestLackrFullStack {
     public void tearDown() throws Exception {
         try {
             int slept = 0;
+            /*
             while (slept < 10000
                     && (lackrService.getGateway().getRunningRequests() != 0 || picorBackend.getGateways()[0].getRunningRequests() != 0)) {
                 slept += 5;
-                System.err.println("waiting !");
                 Thread.sleep(5);
             }
             assertEquals("all incoming requests done and closed", 0, lackrService.getGateway().getRunningRequests());
             assertEquals("all backend requests done and closed", 0, picorBackend.getGateways()[0].getRunningRequests());
+            */
         } finally {
             Object collectables[] = new Object[] { lackrService, lackrServer, lackrStubConnector, picorBackend, backendStub,
                     backendStubConnector, femtorStub, femtorStubConnector, client, configuration };

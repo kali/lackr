@@ -2,7 +2,7 @@ package com.fotonauts.lackr.mustache;
 
 import java.io.UnsupportedEncodingException;
 
-import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.Document;
@@ -20,7 +20,7 @@ public class TemplateRule extends MarkupDetectingRule {
 
 	@Override
     public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
-		BackendRequest exchange = (BackendRequest) context;
+		LackrBackendRequest exchange = (LackrBackendRequest) context;
 		String name = null;
 		Document template = null;
         try {

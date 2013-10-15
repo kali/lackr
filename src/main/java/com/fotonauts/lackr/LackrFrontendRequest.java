@@ -47,8 +47,11 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.commons.FrontendEndpointMatcher;
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.commons.UserAgent;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
+import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.MustacheContext;
 import com.mongodb.BasicDBList;
@@ -59,7 +62,7 @@ public class LackrFrontendRequest {
             "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since",
             "if-none-match", "range", "accept-ranges" };
 
-    static boolean skipHeader(String header) {
+    public static boolean skipHeader(String header) {
         for (String skip : headersToSkip) {
             if (skip.equals(header.toLowerCase()))
                 return true;
@@ -81,7 +84,7 @@ public class LackrFrontendRequest {
 
     private String opid;
 
-    protected BackendRequest rootRequest;
+    protected LackrBackendRequest rootRequest;
 
     private AsyncContext continuation;
 
@@ -95,7 +98,7 @@ public class LackrFrontendRequest {
 
     private MustacheContext mustacheContext;
 
-    private ConcurrentHashMap<String, BackendRequest> backendRequestCache = new ConcurrentHashMap<String, BackendRequest>();
+    private ConcurrentHashMap<String, LackrBackendRequest> backendRequestCache = new ConcurrentHashMap<String, LackrBackendRequest>();
 
     private AtomicInteger backendRequestCounts[];
 
@@ -109,9 +112,11 @@ public class LackrFrontendRequest {
             opid = "<noopid:" + UUID.randomUUID().toString() + ">";
         this.request = request;
         this.mustacheContext = new MustacheContext(this);
+        /*
         this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
         for (int i = 0; i < service.getBackends().length; i++)
             this.backendRequestCounts[i] = new AtomicInteger();
+            */
         this.continuation = request.startAsync();
         this.continuation.setTimeout(getService().getTimeout() * 1000);
         this.continuation.addListener(new AsyncListener() {
@@ -157,18 +162,19 @@ public class LackrFrontendRequest {
         //        continuation.suspend();
     }
 
-    public BackendRequest getSubBackendExchange(String url, String format, BackendRequest dad) throws NotAvailableException {
+    public LackrBackendRequest getSubBackendExchange(String url, String format, LackrBackendRequest dad)
+            throws NotAvailableException {
         String key = format + "::" + url;
-        BackendRequest ex = backendRequestCache.get(key);
+        LackrBackendRequest ex = backendRequestCache.get(key);
         if (ex != null)
             return ex;
-        ex = new BackendRequest(this, "GET", url, dad.getQuery(), dad.hashCode(), format, null);
+        ex = new LackrBackendRequest(this, "GET", url, dad.getQuery(), dad.hashCode(), format, null);
         backendRequestCache.put(key, ex);
         scheduleUpstreamRequest(ex);
         return ex;
     }
 
-    private void scheduleUpstreamRequest(final BackendRequest request) throws NotAvailableException {
+    private void scheduleUpstreamRequest(final LackrBackendRequest request) throws NotAvailableException {
         this.pendingCount.incrementAndGet();
         getService().getExecutor().execute(new Runnable() {
 
@@ -177,10 +183,11 @@ public class LackrFrontendRequest {
                 try {
                     request.start();
                 } catch (Throwable e) {
+                    e.printStackTrace(System.err);
                     addBackendExceptions(LackrPresentableError.fromThrowable(e));
-                    notifySubRequestDone();
                 }
             }
+
         });
     }
 
@@ -215,6 +222,7 @@ public class LackrFrontendRequest {
         if (request.getHeader("X-Ftn-OperationId") != null)
             response.addHeader("X-Ftn-OperationId", request.getHeader("X-Ftn-OperationId"));
 
+        /*
         BasicDBObject backendRequestCounters = new BasicDBObject();
         for (int i = 0; i < service.getBackends().length; i++) {
             int value = this.backendRequestCounts[i].get();
@@ -222,6 +230,7 @@ public class LackrFrontendRequest {
                 backendRequestCounters.put(service.getBackends()[i].getClass().getSimpleName() + "-" + i, value);
         }
         logLine.put("counters", backendRequestCounters);
+        */
 
         BasicDBList backendEndpointCounters = new BasicDBList();
         for (Map.Entry<String, AtomicInteger> endpoint : backendRequestEndpointsCounters.entrySet()) {
@@ -263,6 +272,7 @@ public class LackrFrontendRequest {
                     service.countPicorEpPerEP(endpoint, beEndpoint.getKey().replace('/', '-').replace('.', '-'), beEndpoint
                             .getValue().intValue());
                 }
+                /*
                 for (int i = 0; i < service.getBackends().length; i++) {
                     int value = this.backendRequestCounts[i].get();
                     if (value > 0) {
@@ -270,6 +280,7 @@ public class LackrFrontendRequest {
                         service.countBePerEP(endpoint, nicerName, value);
                     }
                 }
+                */
 
             }
         }
@@ -436,8 +447,8 @@ public class LackrFrontendRequest {
             byte[] body = null;
             if (request.getContentLength() > 0)
                 body = IO.readBytes(request.getInputStream());
-            rootRequest = new BackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null, 0,
-                    null, body);
+            rootRequest = new LackrBackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), rootUrl, null,
+                    0, null, body);
             scheduleUpstreamRequest(rootRequest);
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);
@@ -463,10 +474,9 @@ public class LackrFrontendRequest {
     }
 
     public void notifySubRequestDone() {
-        log.debug("notifySubRequestDone pending: " + pendingCount.get());
+        log.debug("notifySubRequestDone (pending was: {})", pendingCount.get());
         if (pendingCount.decrementAndGet() <= 0) {
-            if (log.isDebugEnabled())
-                log.debug("Gathered all fragments for " + rootUrl + " with " + backendExceptions.size() + " exceptions.");
+                log.debug("Gathered all fragments for {} with {} exceptions. Re-dispatching request.", rootUrl, backendExceptions.size());
             /*
             while (continuation.) {
                 // System.err.println("finished early");
@@ -487,7 +497,7 @@ public class LackrFrontendRequest {
         return mustacheContext;
     }
 
-    public BackendRequest getRootRequest() {
+    public LackrBackendRequest getRootRequest() {
         return rootRequest;
     }
 

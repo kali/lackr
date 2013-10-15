@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+
 @SuppressWarnings("serial")
 public class LackrPresentableError extends RuntimeException {
 

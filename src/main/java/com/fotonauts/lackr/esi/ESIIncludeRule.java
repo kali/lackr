@@ -2,9 +2,9 @@ package com.fotonauts.lackr.esi;
 
 import org.eclipse.jetty.http.HttpHeader;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrFrontendRequest;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
@@ -42,9 +42,9 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 
 	@Override
 	public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
-		BackendRequest request = (BackendRequest) context;
+		LackrBackendRequest request = (LackrBackendRequest) context;
 		String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
-		BackendRequest sub;
+		LackrBackendRequest sub;
 		try {
 			LackrFrontendRequest front = request.getFrontendRequest();
 			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), request);
@@ -56,7 +56,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 
 	public abstract String getSyntaxIdentifier();
 
-	public abstract Chunk filterDocumentAsChunk(BackendRequest exchange);
+	public abstract Chunk filterDocumentAsChunk(LackrBackendRequest exchange);
 
-	public abstract void check(BackendRequest request);
+	public abstract void check(LackrBackendRequest request);
 }

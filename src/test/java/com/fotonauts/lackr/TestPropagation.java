@@ -45,7 +45,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void userAgentProp() {
+    public void userAgentProp() throws Exception {
 
         currentHandler.set(new AbstractHandler() {
 
@@ -62,7 +62,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void reqBodyProp() {
+    public void reqBodyProp() throws Exception {
         currentHandler.set(new AbstractHandler() {
 
             @Override
@@ -81,7 +81,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void accept() {
+    public void accept() throws Exception {
         currentHandler.set(new AbstractHandler() {
 
             @Override
@@ -99,7 +99,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void noAccept() {
+    public void noAccept() throws Exception {
         currentHandler.set(new AbstractHandler() {
 
             @Override
@@ -155,7 +155,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void parameters() {
+    public void parameters() throws Exception {
         currentHandler.set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
@@ -177,7 +177,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void queryStringParameterNotMovedToBody() {
+    public void queryStringParameterNotMovedToBody() throws Exception {
         currentHandler.set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
@@ -195,7 +195,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
     }
 
     @Test
-    public void cookiesIsolation() {
+    public void cookiesIsolation() throws Exception {
         currentHandler.set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,

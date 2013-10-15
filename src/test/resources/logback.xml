@@ -4,9 +4,9 @@
       <pattern>%-8r [%t] %-5p %c - %m%n</pattern>
     </encoder>
   </appender>
-  <root level="WARN">
+  <root level="INFO">
     <appender-ref ref="rootLogger"/>
   </root>
-  <logger name="com.fotopedia" level="DEBUG"/>
+  <logger name="com.fotonauts" level="DEBUG"/>
   <logger name="org.eclipse.jetty.server.HttpChannel" level="ERROR"/>
 </configuration>

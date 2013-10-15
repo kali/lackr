@@ -1,8 +1,8 @@
 package com.fotonauts.lackr.esi;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 
@@ -18,14 +18,14 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(BackendRequest request) {
+	public Chunk filterDocumentAsChunk(LackrBackendRequest request) {
 		if (request.getParsedDocument() == null || request.getParsedDocument().length() == 0)
 			return NULL_CHUNK;
 		return new JsonQuotingChunk(request.getParsedDocument(), false);
 	}
 
 	@Override
-	public void check(BackendRequest request) {
+	public void check(LackrBackendRequest request) {
 		String mimeType = getMimeType(request.getExchange());
 		if (MimeType.isJS(mimeType)) {
 			request.getFrontendRequest().addBackendExceptions(

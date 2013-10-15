@@ -1,6 +1,5 @@
 package com.fotonauts.lackr.backend.client;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,11 +14,11 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.Gateway;
+import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
-import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ClientLackrBackendExchange extends LackrBackendExchange {
@@ -34,38 +33,38 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     private byte[] responseBody;
 
     @Override
-    public Gateway getUpstream() throws NotAvailableException {
+    public BaseGatewayMetrics getUpstream() throws NotAvailableException {
         if (upstream == null)
             upstream = director.getHostFor(getBackendRequest());
         return upstream;
     }
 
-    public ClientLackrBackendExchange(HttpClient jettyClient, HttpDirectorInterface director, BackendRequest spec)
+    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, HttpDirectorInterface director, LackrBackendRequest spec)
             throws NotAvailableException {
-        super(spec);
+        super(backend, spec);
         this.director = director;
         String url = director.getHostFor(spec).getHostname() + getBackendRequest().getQuery();
-        log.debug("URL: " + url);
         request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));
         if (spec.getBody() != null) {
             request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getRequest().getHeader("Content-Type"));
             request.content(new BytesContentProvider(spec.getBody()));
         }
+        log.debug("Created {}", this);
     }
 
     @Override
-    protected int getResponseStatus() {
+    public int getResponseStatus() {
         return result.getResponse().getStatus();
     }
 
     @Override
-    protected byte[] getResponseContentBytes() {
+    public byte[] getResponseBodyBytes() {
         return responseBody;
     }
 
     @Override
-    protected String getResponseHeader(String name) {
+    public String getResponseHeader(String name) {
         return result.getResponse().getHeaders().getStringField(name);
     }
 
@@ -75,7 +74,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     }
 
     @Override
-    protected List<String> getResponseHeaderNames() {
+    public List<String> getResponseHeaderNames() {
         return Collections.list(result.getResponse().getHeaders().getFieldNames());
     }
 
@@ -85,25 +84,24 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     }
 
     @Override
-    protected void doStart() throws IOException, NotAvailableException {
+    protected void doStart() {
         final ClientLackrBackendExchange lackrExchange = this;
         request.send(new BufferingResponseListener(100 * 1024 * 1024) {
 
             @Override
             public void onComplete(Result r) {
                 if (r.isSucceeded()) {
-                    result = r;
-                    responseBody = getContent();
+                    lackrExchange.result = r;
+                    lackrExchange.responseBody = getContent();
+                    lackrExchange.onComplete();
                 } else {
                     lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(r.getFailure());
                 }
-                lackrExchange.onResponseComplete(false);
             }
 
             @Override
             public void onFailure(Response arg0, Throwable x) {
                 lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(x);
-                lackrExchange.onResponseComplete(false);
             }
         });
     }

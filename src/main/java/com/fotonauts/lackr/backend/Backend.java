@@ -2,14 +2,12 @@ package com.fotonauts.lackr.backend;
 
 import java.io.PrintStream;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.Gateway;
-import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.Service;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 /**
- * Represents a backend server or any other upstream system lackr will try to delegate a {@link BackendRequest} too. 
+ * Represents a backend server or any other upstream system lackr will try to delegate a {@link LackrBackendRequest} too. 
  *  
  * @author kali
  *
@@ -23,7 +21,7 @@ public interface Backend {
      * @return a {@link LackrBackendExchange} materialising the transaction with the Backend.
      * @throws NotAvailableException if the Backend is not available.
      */
-	public LackrBackendExchange createExchange(BackendRequest request) throws NotAvailableException;
+	public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException;
 
 	/**
 	 * Dumps current state in a {@link PrintStream} or monitoring and/or debugging.
@@ -43,7 +41,7 @@ public interface Backend {
 	 * 
 	 * @return the gateways
 	 */
-	public Gateway[] getGateways();
+	public BaseGatewayMetrics[] getGateways();
 	
 	/**
 	 * For debugging purposes.

@@ -1,8 +1,8 @@
 package com.fotonauts.lackr.esi;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.esi.filters.AmpersandEscapeChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 
@@ -18,7 +18,7 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(BackendRequest request) {
+	public Chunk filterDocumentAsChunk(LackrBackendRequest request) {
 		String mimeType = getMimeType(request.getExchange());
 		// JS is detected by check()
 		if (MimeType.isML(mimeType))
@@ -29,7 +29,7 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public void check(BackendRequest request) {
+	public void check(LackrBackendRequest request) {
 		String mimeType = getMimeType(request.getExchange());
 		if (MimeType.isJS(mimeType))
 			request.getFrontendRequest().addBackendExceptions(

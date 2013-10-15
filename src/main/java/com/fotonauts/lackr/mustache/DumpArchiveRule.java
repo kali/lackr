@@ -9,7 +9,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
@@ -19,10 +19,10 @@ public class DumpArchiveRule extends MarkupDetectingRule {
     public static class DumpArchiveChunk implements Chunk {
 
         private String name;
-        private BackendRequest request;
+        private LackrBackendRequest request;
         private Chunk result;
         
-        public DumpArchiveChunk(String archiveName, BackendRequest request) {
+        public DumpArchiveChunk(String archiveName, LackrBackendRequest request) {
             this.name = archiveName;
             this.request = request;
         }
@@ -76,6 +76,6 @@ public class DumpArchiveRule extends MarkupDetectingRule {
         } catch (UnsupportedEncodingException e) {
             /* no thanks */
         }
-	    return new DumpArchiveChunk(archiveId, (BackendRequest) context);
+	    return new DumpArchiveChunk(archiveId, (LackrBackendRequest) context);
 	}
 }

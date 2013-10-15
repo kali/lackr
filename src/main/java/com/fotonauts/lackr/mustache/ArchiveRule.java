@@ -2,7 +2,7 @@ package com.fotonauts.lackr.mustache;
 
 import java.io.UnsupportedEncodingException;
 
-import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
@@ -16,7 +16,7 @@ public class ArchiveRule extends MarkupDetectingRule {
 
     @Override
     public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
-        BackendRequest request = (BackendRequest) context;
+        LackrBackendRequest request = (LackrBackendRequest) context;
         try {
             String archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
             Document inner = request.getFrontendRequest().getService().getInterpolr()

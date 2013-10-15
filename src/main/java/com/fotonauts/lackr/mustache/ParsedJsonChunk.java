@@ -14,16 +14,16 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.Document;
 
 public abstract class ParsedJsonChunk implements Chunk {
 
     protected Document inner;
-    protected BackendRequest request;
+    protected LackrBackendRequest request;
 
     @SuppressWarnings("unchecked")
     public static void inlineWrapperJsonEvaluation(Object data) {
@@ -56,7 +56,7 @@ public abstract class ParsedJsonChunk implements Chunk {
         }
     }
 
-    public ParsedJsonChunk(byte[] buffer, int start, int stop, BackendRequest request) {
+    public ParsedJsonChunk(byte[] buffer, int start, int stop, LackrBackendRequest request) {
         super();
         this.request = request;
         inner = request.getFrontendRequest().getService().getInterpolr().parse(buffer, start, stop, request);
@@ -87,7 +87,7 @@ public abstract class ParsedJsonChunk implements Chunk {
         return prettyPrint(data, request);
     }
 
-    public static String prettyPrint(Map<String, Object> data, BackendRequest request) {
+    public static String prettyPrint(Map<String, Object> data, LackrBackendRequest request) {
         ObjectMapper mapper = null;
         if (request != null)
             mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();

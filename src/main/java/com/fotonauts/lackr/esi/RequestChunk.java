@@ -3,19 +3,19 @@ package com.fotonauts.lackr.esi;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 
 public class RequestChunk implements Chunk {
 
 	private boolean isChecked = false;
 	
-	private BackendRequest sub;
+	private LackrBackendRequest sub;
 	
 	private ESIIncludeRule rule;
 	
-	public RequestChunk(BackendRequest sub, ESIIncludeRule rule) {
+	public RequestChunk(LackrBackendRequest sub, ESIIncludeRule rule) {
 		this.sub = sub;
 		this.rule = rule;
     }

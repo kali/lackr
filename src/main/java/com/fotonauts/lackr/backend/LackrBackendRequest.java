@@ -1,13 +1,15 @@
-package com.fotonauts.lackr;
+package com.fotonauts.lackr.backend;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.io.IOException;
 
 import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.LackrFrontendRequest;
+import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
 
@@ -17,9 +19,13 @@ import com.fotonauts.lackr.interpolr.Document;
  * @author kali
  *
  */
-public class BackendRequest {
+public class LackrBackendRequest {
 
-    static Logger log = LoggerFactory.getLogger(BackendRequest.class);
+    public static interface CompletionListener {
+        public void run();
+    }
+    
+    static Logger log = LoggerFactory.getLogger(LackrBackendRequest.class);
 
     private final byte[] body;
     private Document parsedDocument;
@@ -29,14 +35,10 @@ public class BackendRequest {
     private final int parentId;
     private String query;
     private final LackrFrontendRequest frontendRequest;
-
-    private AtomicReference<LackrBackendExchange> lastExchange = new AtomicReference<LackrBackendExchange>();
-
+    private LackrBackendExchange exchange;
     private final String syntax;
 
-    private AtomicInteger triedBackend = new AtomicInteger(0);
-
-    public BackendRequest(LackrFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
+    public LackrBackendRequest(LackrFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
             String syntax, byte[] body) {
         super();
         this.frontendRequest = frontendRequest;
@@ -117,40 +119,24 @@ public class BackendRequest {
     }
 
     /**
-     * Start processing by trying the first possible {@link Backend}.
-     * @throws Throwable
-     */
-    public void start() throws Throwable {
-        tryNext();
-    }
-
-    protected void tryNext() throws Throwable {
-        try {
-            int next = triedBackend.get();
-            LackrBackendExchange exchange = getFrontendRequest().getService().getBackends()[next].createExchange(this);
-            lastExchange.set(exchange);
-            exchange.start();
-        } catch(Throwable e) {
-            getFrontendRequest().addBackendExceptions(e);
-            throw e;
-        }
-    }
-
-    /**
      * Get the {@link LackrBackendExchange} for the current {@link Backend} being tries (or the last one tried).
      * @return the exchange.
      */
     public LackrBackendExchange getExchange() {
-        return lastExchange.get();
+        return exchange;
     }
 
-    protected void postProcess() {
+    // TODO: "parsedDocument": that is interpolr crap
+    public void postProcess() {
         LackrBackendExchange exchange = getExchange();
         try {
+            /*
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%s %s backend %s returned %d (?)", getMethod(), getQuery(), getFrontendRequest()
                         .getService().getBackends()[triedBackend.get()].getClass().getName(), exchange.getResponseStatus()));
             }
+            */
+            /*
             if (exchange.getResponseHeaderValues("X-Ftn-Set-Request-Header") != null) {
                 for (String setRequestHeaders : exchange.getResponseHeaderValues("X-Ftn-Set-Request-Header")) {
                     int index = setRequestHeaders.indexOf(':');
@@ -160,37 +146,25 @@ public class BackendRequest {
                     }
                 }
             }
-            if (exchange.getResponseStatus() == 501) {
-                if (triedBackend.incrementAndGet() < getFrontendRequest().getService().getBackends().length) {
-                    tryNext();
-                    return;
-                }
-            }
-
-            getFrontendRequest().getBackendRequestCounts()[triedBackend.get()].incrementAndGet();
+*/
+            /*
             if(exchange.getResponseHeader("X-Ftn-Picor-Endpoint") != null) {
                 getFrontendRequest().getBackendRequestEndpointsCounters().putIfAbsent(exchange.getResponseHeader("X-Ftn-Picor-Endpoint"), new AtomicInteger(0));
                 getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("X-Ftn-Picor-Endpoint")).incrementAndGet();
             }
-            
-            if (exchange.getResponseStatus() == 399) {
-                this.query = exchange.getResponseHeaderValue(HttpHeader.LOCATION.asString());
-                triedBackend.set(0);
-                tryNext();
-                return;
-            }
+            */
 
             if (this != getFrontendRequest().getRootRequest()
                     && (exchange.getResponseStatus() / 100 == 4 || exchange.getResponseStatus() / 100 == 5)
                     && exchange.getResponseHeader("X-SSI-AWARE") == null)
                 getFrontendRequest().addBackendExceptions(
                         new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponseStatus()));
-            if (exchange.getRawResponseContent() != null && exchange.getRawResponseContent().length > 0) {
+            if (exchange.getResponseBodyBytes() != null && exchange.getResponseBodyBytes().length > 0) {
                 String mimeType = exchange.getResponseHeader(HttpHeader.CONTENT_TYPE.asString());
                 if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-                    parsedDocument = getFrontendRequest().getService().getInterpolr().parse(exchange.getRawResponseContent(), this);
+                    parsedDocument = getFrontendRequest().getService().getInterpolr().parse(exchange.getResponseBodyBytes(), this);
                 else
-                    parsedDocument = new Document(new DataChunk(exchange.getRawResponseContent()));
+                    parsedDocument = new Document(new DataChunk(exchange.getResponseBodyBytes()));
             } else
                 parsedDocument = new Document(new DataChunk(new byte[0]));
 
@@ -198,12 +172,29 @@ public class BackendRequest {
             e.printStackTrace();
             getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
         }
-
-        getFrontendRequest().notifySubRequestDone();
     }
 
     public Document getParsedDocument() {
         return parsedDocument;
     }
 
+    public void start() throws NotAvailableException, IOException {
+        log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
+        exchange = getFrontendRequest().getService().getBackend().createExchange(this);
+        log.debug("Created exchange {}", exchange);
+        exchange.setCompletionListener(new CompletionListener() {
+            
+            @Override
+            public void run() {
+                postProcess();
+                getFrontendRequest().notifySubRequestDone();
+            }
+        });
+        exchange.start();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s", getMethod(), getQuery());
+    }
 }

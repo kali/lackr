@@ -1,6 +1,6 @@
 package com.fotonauts.lackr;
 
-public abstract class HttpHost extends Gateway {
+public abstract class HttpHost extends BaseGatewayMetrics {
 
     @Override
     public abstract String getMBeanName();

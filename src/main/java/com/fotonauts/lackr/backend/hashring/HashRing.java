@@ -18,10 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.commons.RapportrInterface;
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.Gateway;
+import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 
 public class HashRing implements HttpDirectorInterface {
 
@@ -163,7 +163,7 @@ public class HashRing implements HttpDirectorInterface {
 
 	}
 
-	public Gateway[] getGateways() {
+	public BaseGatewayMetrics[] getGateways() {
 		return hosts;
 	}
 
@@ -172,7 +172,7 @@ public class HashRing implements HttpDirectorInterface {
     }
 
 	@Override
-	public HttpHost getHostFor(BackendRequest request) throws NotAvailableException {
+	public HttpHost getHostFor(LackrBackendRequest request) throws NotAvailableException {
 		return getHostFor(request.getQuery());
 	}
 

@@ -16,17 +16,17 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.MultiMap;
 import org.eclipse.jetty.util.UrlEncoded;
 
-import com.fotonauts.lackr.BackendRequest;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 
 public class FemtorRequest extends HttpServletRequestWrapper {
 
-    BackendRequest request;
+    LackrBackendRequest request;
     private HttpFields headers = new HttpFields();
     private MultiMap<String> params;
     private BufferedReader reader;
     private ServletInputStream inputStream;
 
-    public FemtorRequest(HttpServletRequest httpServletRequest, BackendRequest request) {
+    public FemtorRequest(HttpServletRequest httpServletRequest, LackrBackendRequest request) {
         super(httpServletRequest);
         this.request = request;
     }

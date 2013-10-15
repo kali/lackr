@@ -5,8 +5,8 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fotonauts.lackr.BackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.github.jknack.handlebars.Template;
@@ -18,7 +18,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     Chunk result = EMPTY;
     String name;
 
-    public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, BackendRequest request) {
+    public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, LackrBackendRequest request) {
         super(buffer, start, stop, request);
         this.name = name;
     }

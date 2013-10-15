@@ -12,6 +12,7 @@ import org.eclipse.jetty.util.HttpCookieStore;
 
 import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.TryPassBackend;
 import com.fotonauts.lackr.backend.client.ClientBackend;
 import com.fotonauts.lackr.backend.hashring.HashRing;
 import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
@@ -80,7 +81,7 @@ public class LackrConfiguration {
             service.setGraphiteHostAndPort(propertySource.getString("lackr.graphite"));
             service.setGrid(propertySource.getString("lackr.grid"));
             service.setRapportr(getRapportrService());
-            service.setBackends(new Backend[] { getFemtorBackend(), getVarnishPicorBackend() });
+            service.setBackend(new TryPassBackend(getFemtorBackend(), getVarnishPicorBackend()));
         }
         return service;
     }

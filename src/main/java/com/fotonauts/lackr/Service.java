@@ -65,6 +65,8 @@ public class Service extends AbstractHandler {
     public Map<String, Counter> endpointTimerTable = new HashMap<String, Counter>();
     public Map<String, Counter> bePerEPTable = new HashMap<String, Counter>();
     public Map<String, Counter> picorEpPerEPTable = new HashMap<String, Counter>();
+    
+    private Backend backend;
 
     public Service() {
         client = new HttpClient(new SslContextFactory(true));
@@ -79,7 +81,6 @@ public class Service extends AbstractHandler {
         this.interpolr = interpolr;
     }
 
-    private Backend[] backends;
 
     private ExecutorService executor;
     private String femtorBackend;
@@ -88,7 +89,7 @@ public class Service extends AbstractHandler {
     private String graphiteHost = null;
     private int graphitePort = 0;
 
-    private Gateway upstreamService = new Gateway() {
+    private BaseGatewayMetrics upstreamService = new BaseGatewayMetrics() {
         @Override
         public String getMBeanName() {
             return "front";
@@ -115,7 +116,7 @@ public class Service extends AbstractHandler {
 
     private void dumpSelector() {
         System.err.println("gna gna gna");
-        backends[0].dumpStatus(System.err);
+        backend.dumpStatus(System.err);
     }
 
     @Override
@@ -160,32 +161,32 @@ public class Service extends AbstractHandler {
     }
 
     private void countCodebase(String codebase) {
-        counter(codebaseTable, "codebase", null, codebase, 1);        
+//        counter(codebaseTable, "codebase", null, codebase, 1);        
     }
 
     public void countCountry(String countryCode) {
-        counter(countryTable, "country", null, countryCode, 1);
+//        counter(countryTable, "country", null, countryCode, 1);
     }
 
     public void countStatus(String statusCode) {
-        counter(statusTable, "status", null, statusCode, 1);
+//        counter(statusTable, "status", null, statusCode, 1);
     }
 
     public void countClient(String client) {
-        counter(clientTable, "client", null, client, 1);
+//        counter(clientTable, "client", null, client, 1);
     }
 
     public void countEndpointWithTimer(String endpoint, long d) {
-        counter(endpointCounterTable, "EP", endpoint, "request-count", 1);
-        counter(endpointTimerTable, "EP", endpoint, "elapsed-millis", d);
+//        counter(endpointCounterTable, "EP", endpoint, "request-count", 1);
+//        counter(endpointTimerTable, "EP", endpoint, "elapsed-millis", d);
     }
 
     public void countBePerEP(String endpoint, String be, int n) {
-        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "request-count", n);
+//        counter(bePerEPTable, "EP", endpoint + ".BE." + be, "request-count", n);
     }
 
     public void countPicorEpPerEP(String endpoint, String be, int n) {
-        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "request-count", n);
+//        counter(picorEpPerEPTable, "EP", endpoint + ".picor." + be, "request-count", n);
     }
 
     private static void counter(Map<String, Counter> table, String type, String scope, String key, long n) {
@@ -212,9 +213,7 @@ public class Service extends AbstractHandler {
         response.setContentType("text/plain");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
-        for (Backend b : backends) {
-            b.dumpStatus(ps);
-        }
+        backend.dumpStatus(ps);
         ps.println();
         ps.flush();
 
@@ -258,27 +257,25 @@ public class Service extends AbstractHandler {
         this.rapportr = rapportr;
     }
 
-    public Backend[] getBackends() {
-        return backends;
+    public Backend getBackend() {
+        return backend;
     }
 
-    public void setBackends(Backend[] backends) {
-        this.backends = backends;
+    public void setBackend(Backend backend) {
+        this.backend = backend;
     }
 
     @Override
     public void doStop() throws Exception {
         log.info("Stopping lackr Service: " + Thread.getAllStackTraces().size());
-        for (Backend backend : backends) {
-            backend.stop();
-        }
+        backend.stop();
         Metrics.shutdown();
         getExecutor().shutdown();
         client.stop();
         log.info("Stopped lackr Service: " + Thread.getAllStackTraces().size());
     }
 
-    public Gateway getGateway() {
+    public BaseGatewayMetrics getGateway() {
         return upstreamService;
     }
 

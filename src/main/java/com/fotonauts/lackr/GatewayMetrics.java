@@ -1,11 +1,11 @@
 package com.fotonauts.lackr;
 
 /**
- * JMX interface over {@link Gateway}.
+ * JMX interface over {@link BaseGatewayMetrics}.
  * @author kali
  *
  */
-public interface GatewayMBean {
+public interface GatewayMetrics {
 
     /**
      * Total number of millisecond elapsed in processed requests.

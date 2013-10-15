@@ -10,7 +10,7 @@ import com.yammer.metrics.core.MetricName;
  * @author kali
  *
  */
-public abstract class Gateway implements GatewayMBean {
+public abstract class BaseGatewayMetrics implements GatewayMetrics {
 
     private Counter runningRequests;
     private Counter requestCount;

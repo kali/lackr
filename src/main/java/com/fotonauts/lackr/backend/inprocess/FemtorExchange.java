@@ -1,22 +1,26 @@
 package com.fotonauts.lackr.backend.inprocess;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fotonauts.lackr.BackendRequest;
-import com.fotonauts.lackr.LackrBackendExchange;
-import com.fotonauts.lackr.Gateway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fotonauts.lackr.BaseGatewayMetrics;
+import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class FemtorExchange extends LackrBackendExchange {
 
+    static Logger log = LoggerFactory.getLogger(FemtorExchange.class);
+    
 	private FemtorRequest request;
 	private FemtorResponse response;
 	private InProcessFemtor inProcessFemtor;
 
-	public FemtorExchange(InProcessFemtor inProcessFemtor, BackendRequest spec) {
-		super(spec);
+	public FemtorExchange(InProcessFemtor inProcessFemtor, LackrBackendRequest spec) {
+		super(inProcessFemtor, spec);
 		this.request = new FemtorRequest(spec.getFrontendRequest().getRequest(), spec);
 		this.response = new FemtorResponse(this);
 		this.inProcessFemtor = inProcessFemtor;
@@ -28,7 +32,7 @@ public class FemtorExchange extends LackrBackendExchange {
 	}
 
 	@Override
-	protected List<String> getResponseHeaderNames() {
+	public List<String> getResponseHeaderNames() {
 		return new ArrayList<String>(response.getHeaders().keySet());
 	}
 
@@ -38,30 +42,24 @@ public class FemtorExchange extends LackrBackendExchange {
 	}
 
 	@Override
-	protected String getResponseHeader(String name) {
+	public String getResponseHeader(String name) {
 		return response.getHeaders().containsKey(name) ? response.getHeaders().get(name).get(0) : null;
 	}
 
 	@Override
-	protected byte[] getResponseContentBytes() {
+	public byte[] getResponseBodyBytes() {
 		return response.getContentBytes();
 	}
 
 	@Override
-	protected int getResponseStatus() {
+	public int getResponseStatus() {
 		return response.getStatus();
 	}
 
 	@Override
-	protected void doStart() throws IOException, NotAvailableException {
-		try {
-			inProcessFemtor.filter.doFilter(request, response, null);
-		} catch (Throwable e) {
-			response.setStatus(500);
-			getBackendRequest().getFrontendRequest().addBackendExceptions(e);
-		} finally {
-            onResponseComplete(false);
-		}
+	protected void doStart() throws Exception {
+        inProcessFemtor.filter.doFilter(request, response, null);
+        onComplete();
 	}
 
 	public FemtorResponse getResponse() {
@@ -69,7 +67,7 @@ public class FemtorExchange extends LackrBackendExchange {
 	}
 
     @Override
-    public Gateway getUpstream() throws NotAvailableException {
+    public BaseGatewayMetrics getUpstream() throws NotAvailableException {
         return inProcessFemtor.getGateways()[0];
     }
 

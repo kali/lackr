@@ -2,12 +2,13 @@ package com.fotonauts.lackr;
 
 import java.io.PrintStream;
 
+import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ConstantHttpDirector implements HttpDirectorInterface {
 
 	final private String direction;
-	private Gateway[] gateways;
+	private BaseGatewayMetrics[] gateways;
 	private HttpHost host;
 	
 	public ConstantHttpDirector(final String direction) {
@@ -24,11 +25,11 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
             }
         };
         host.start();
-		this.gateways = new Gateway[] { host };
+		this.gateways = new BaseGatewayMetrics[] { host };
     }
 	
 	@Override
-    public HttpHost getHostFor(BackendRequest request) throws NotAvailableException {
+    public HttpHost getHostFor(LackrBackendRequest request) throws NotAvailableException {
 	    return host;
     }
 
@@ -38,7 +39,7 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
     }
 
     @Override
-    public Gateway[] getGateways() {
+    public BaseGatewayMetrics[] getGateways() {
         return gateways;
     }
 
