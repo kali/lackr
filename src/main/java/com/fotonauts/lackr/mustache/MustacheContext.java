@@ -138,6 +138,10 @@ public class MustacheContext {
         return (String[]) registeredTemplatesDocument.keySet().toArray(new String[0]);
     }
 
+    public String[] getAllArchiveNames() {
+        return (String[]) expandedArchives.keySet().toArray(new String[0]);
+    }
+
     public Archive getArchive(String name) {
         return expandedArchives.get(name);
     }

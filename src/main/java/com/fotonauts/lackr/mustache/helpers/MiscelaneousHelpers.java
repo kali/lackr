@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fotonauts.lackr.mustache.Archive;
 import com.fotonauts.lackr.mustache.MustacheContext;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Options;
@@ -32,6 +33,20 @@ public class MiscelaneousHelpers {
         return numberAsObject.toString();
     }
 
+    public static CharSequence localize(Object targetAsObject, Options options) {
+        if (targetAsObject == null)
+            return "";
+        MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
+        for(String name : mustacheContext.getAllArchiveNames()) {
+            Archive archive = mustacheContext.getArchive(name);
+            Map<String,Object> table = archive.getObject(0);
+            if(table.containsKey(targetAsObject.toString())) {
+                return table.get(targetAsObject.toString()).toString();
+            }
+        }
+        return targetAsObject.toString();
+    }
+    
     public static CharSequence tag_subview(Object targetAsObject, Options options) {
         if (targetAsObject == null)
             return "";

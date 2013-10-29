@@ -325,16 +325,25 @@ public class TestMustache extends BaseTestSubstitution {
     }
 
     protected void assertNearlyEquals(String expected, String got) {
-        if(!expected.replaceAll("[ \n]","").equals(expected.replaceAll("[ \n]","")))
+        assertNotNull(got);
+        if(!expected.trim().replaceAll("[ \n]+"," ").equals(got.trim().replaceAll("[ \n]+"," "))) {
+            /*
+            System.err.println();
+            System.err.println(expected.replaceAll("[ \n]",""));
+            System.err.println();
+            System.err.println();
+            System.err.println(got.replaceAll("[ \n]",""));
+            */
             assertEquals(expected, got);
+        }
     }
     
     @Test
     public void testDerivatives() throws Exception {
         String page = S(/*
             <!-- lackr:mustache:template name="t" -->
-                {{#items}}{{derivative item kind="image"}}\n{{/items}}
-            <!-- /lackr:mustache:template -->"
+                {{#items}}{{derivative item kind="image"}} {{/items}}
+            <!-- /lackr:mustache:template -->
             <!-- lackr:mustache:eval name="t" -->
                 { "items": [
                     { "item": { "_id" : "kali-hNvjiyDiSOA" } },
@@ -346,20 +355,23 @@ public class TestMustache extends BaseTestSubstitution {
                 ] }
             <!-- /lackr:mustache:eval -->*/);
         String result = expand(page).trim();
-        assertNearlyEquals(S(/*http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.jpg
+        assertNearlyEquals(S(/*
+                http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.jpg
                 http://images.cdn.fotopedia.com/kali-12-image.jpg
                 http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.png
-                http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg http://picor_url/*/), result);
+                http://images.cdn.testing.ftnz.net/kali-hNvjiyDiSOA-image.jpg
+                http://picor_url/
+        */), result);
     }
 
     @Test
     public void testDerivativesEmptyContext() throws Exception {
         String page = S(/*
             <!-- lackr:mustache:template name="t" -->
-                {{#item}}{{derivative cover kind="image"}}\n{{/item}}
+                {{#item}}{{derivative cover kind="image"}} {{/item}}
             <!-- /lackr:mustache:template -->
             <!-- lackr:mustache:eval name="t" -->
-                { "item": {}" }
+                { "item": {} }
             <!-- /lackr:mustache:eval -->*/);
         String result = expand(page);
         assertNearlyEquals("", result);
@@ -390,12 +402,32 @@ public class TestMustache extends BaseTestSubstitution {
                 {{#ints}}{{humanize_integer i}} {{/ints}}
             <!-- /lackr:mustache:template -->
             <!-- lackr:mustache:eval name="t" -->
-                { "ints" : ["*/) + 
+                { "ints" : [*/) + 
                 StringUtils.arrayToCommaDelimitedString(StringUtils.toStringArray(sb)) + 
                 S(/*]} 
-            <!-- /lackr:mustache:eval -->"*/);
+            <!-- /lackr:mustache:eval -->*/);
         String result = expand(page);
         assertNearlyEquals("12 9999 10k 10k 9999k 10M 10M", result);
+    }
+
+    @Test
+    public void testLocalize() throws Exception {
+        String page = S(/*
+            <script type="vnd.fotonauts/picordata" id="translations/foo">
+                { "root_id": 0, "objects": { "0" : { "Tap to set slide title" : "Tappe donc pour editer" } } }
+            </script><!-- END OF ARCHIVE -->
+            <script type="vnd.fotonauts/picordata" id="translations/bar">
+                { "root_id": 0, "objects": { "0" : { "or go play in the mixer" : "ou vas jouer dans le mixer" } } }
+            </script><!-- END OF ARCHIVE -->
+            <!-- lackr:mustache:template name="tmpl" -->
+                {{localize "Tap to set slide title"}} {{localize "or go play in the mixer"}}
+            <!-- /lackr:mustache:template -->
+            <!-- lackr:mustache:eval name="tmpl" -->
+                {}
+            <!-- /lackr:mustache:eval -->
+            */);
+        String result = expand(page);
+        assertContains(result.trim(), "Tappe donc pour editer ou vas jouer dans le mixer");
     }
 
     @Test
