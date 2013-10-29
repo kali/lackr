@@ -1,14 +1,18 @@
 package com.fotonauts.lackr.mustache.helpers;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.mustache.MustacheContext;
+import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.StringTemplateSource;
+import com.github.jknack.handlebars.io.TemplateLoader;
+import com.github.jknack.handlebars.io.TemplateSource;
 
 public class MiscelaneousHelpers {
 
@@ -29,19 +33,53 @@ public class MiscelaneousHelpers {
     }
 
     public static CharSequence tag_subview(Object targetAsObject, Options options) {
-        if(targetAsObject == null)
+        if (targetAsObject == null)
             return "";
         @SuppressWarnings("unchecked")
         Map<String, Object> target = (Map<String, Object>) targetAsObject;
         MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
         String templateString = (String) target.get("wrapped_mustache_template");
 
+        Handlebars handlebars = mustacheContext.getHandlebars();
+        final Object partialsAsObject = target.get("mustache_partials");
+        TemplateLoader templateLoader = new TemplateLoader() {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public TemplateSource sourceAt(String uri) throws IOException {
+                Map<String, Object> partials = (Map<String, Object>) partialsAsObject;
+                Map<String, Object> partial = (Map<String, Object>) partials.get(uri);
+                String template = (String) partial.get("mustache");
+                return new StringTemplateSource(uri, template);
+
+            }
+
+            @Override
+            public String resolve(String location) {
+                return location;
+            }
+
+            @Override
+            public String getSuffix() {
+                return "";
+            }
+
+            @Override
+            public String getPrefix() {
+                return "";
+            }
+        };
+        
+        if (partialsAsObject != null && partialsAsObject instanceof Map) {
+            handlebars = handlebars.with(templateLoader, handlebars.getLoader());
+        }
+
         if (log.isDebugEnabled()) {
             log.debug(String.format("Rendering template \"%s\"", templateString));
         }
         Template template;
         try {
-            template = mustacheContext.getHandlebars().compile(new StringTemplateSource("inner view", templateString));
+            template = handlebars.compile(new StringTemplateSource("inner view", templateString));
         } catch (Throwable e) {
             mustacheContext.getLackrFrontendRequest().addBackendExceptions(e);
             return "";
@@ -52,31 +90,57 @@ public class MiscelaneousHelpers {
             return "";
         }
     }
-    
+
     // SYNC_WITH_PICOR (grep SYNC_WITH_RUBY and SYNC_WITH_JS)
     public static CharSequence dom_compatible_id(Object targetAsObject, Options options) {
-        if(targetAsObject == null)
+        if (targetAsObject == null)
             return "";
         String input = targetAsObject.toString();
         StringBuilder builder = new StringBuilder("_");
-        for(char c: input.toCharArray()) {
+        for (char c : input.toCharArray()) {
             switch (c) {
-                case ' ': builder.append("_spc_"); break;
-                case '!': builder.append("_bang_"); break;
-                case ':': builder.append("_colon_"); break;
-                case '.': builder.append("_dot_"); break;
-                case '#': builder.append("_hash_"); break;
-                case '(': builder.append("_lpar_"); break;
-                case ')': builder.append("_rpar_"); break;
-                case '/': builder.append("_slash_"); break;
-                case '\'': builder.append("_q_"); break;
-                case '&': builder.append("_amp_"); break;
-                case '-': builder.append("_dash_"); break;
-                case '_': builder.append("_under_"); break;
-                default: builder.append(c); break;
+            case ' ':
+                builder.append("_spc_");
+                break;
+            case '!':
+                builder.append("_bang_");
+                break;
+            case ':':
+                builder.append("_colon_");
+                break;
+            case '.':
+                builder.append("_dot_");
+                break;
+            case '#':
+                builder.append("_hash_");
+                break;
+            case '(':
+                builder.append("_lpar_");
+                break;
+            case ')':
+                builder.append("_rpar_");
+                break;
+            case '/':
+                builder.append("_slash_");
+                break;
+            case '\'':
+                builder.append("_q_");
+                break;
+            case '&':
+                builder.append("_amp_");
+                break;
+            case '-':
+                builder.append("_dash_");
+                break;
+            case '_':
+                builder.append("_under_");
+                break;
+            default:
+                builder.append(c);
+                break;
             }
         }
         return builder.toString();
     }
-    
+
 }

@@ -449,6 +449,38 @@ public class TestMustache extends BaseTestSubstitution {
     }
 
     @Test
+    public void testSubviewRecursiveWithPartial() throws Exception {
+        String result = expand(S(/*
+                <!-- lackr:mustache:template name="tmpl" -->
+                    <div class="toplevel">
+                        {{tag_subview top.subviews_by_id.sv12}}
+                    </div>
+                <!-- /lackr:mustache:template -->
+
+                <!-- lackr:mustache:eval name="tmpl" -->
+                    { "top" : {
+                        "subviews_by_id" : {
+                            "sv12" : {
+                                "wrapped_mustache_template" : "name:{{{view_model.name}}} {{tag_subview sv42}}",
+                                "view_model" : { "name" : "yopla" },
+                                "sv42": {
+                                    "view_model" : { "value" : "yop yop yop" },
+                                    "wrapped_mustache_template" : "name2:{{>pp1}}",
+                                    "mustache_partials": {
+                                          "pp1": {
+                                              "mustache": "PP1 partial: {{{view_model.value}}}"
+                                          }
+                                    }
+                                }
+                            }
+                        }
+                    } }
+                <!-- /lackr:mustache:eval -->
+        */));
+        assertContains(result.trim(), "name:yopla name2:PP1 partial: yop yop yop");
+    }
+
+    @Test
     public void testIdTopLevelSubviewWithDash() throws Exception {
         String result = expand(S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
