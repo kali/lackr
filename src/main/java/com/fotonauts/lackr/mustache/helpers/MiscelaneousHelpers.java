@@ -59,53 +59,59 @@ public class MiscelaneousHelpers {
         String templateString = (String) target.get("wrapped_mustache_template");
 
         Handlebars handlebars = mustacheContext.getHandlebars();
-        final Object partialsAsObject = target.get("mustache_partials");
-        TemplateLoader templateLoader = new TemplateLoader() {
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public TemplateSource sourceAt(String uri) throws IOException {
-                Map<String, Object> partials = (Map<String, Object>) partialsAsObject;
-                Map<String, Object> partial = (Map<String, Object>) partials.get(uri);
-                String template = (String) partial.get("mustache");
-                return new StringTemplateSource(uri, template);
-
+        TemplateLoader oldLoader = handlebars.getLoader();
+        try {
+            final Object partialsAsObject = target.get("mustache_partials");
+            TemplateLoader templateLoader = new TemplateLoader() {
+    
+                @Override
+                @SuppressWarnings("unchecked")
+                public TemplateSource sourceAt(String uri) throws IOException {
+                    Map<String, Object> partials = (Map<String, Object>) partialsAsObject;
+                    Map<String, Object> partial = (Map<String, Object>) partials.get(uri);
+                    String template = (String) partial.get("mustache");
+                    return new StringTemplateSource(uri, template);
+                }
+    
+                @Override
+                public String resolve(String location) {
+                    return location;
+                }
+    
+                @Override
+                public String getSuffix() {
+                    return "";
+                }
+    
+                @Override
+                public String getPrefix() {
+                    return "";
+                }
+            };
+    
+            if (partialsAsObject != null && partialsAsObject instanceof Map) {
+                handlebars = handlebars.with(templateLoader, handlebars.getLoader());
             }
-
-            @Override
-            public String resolve(String location) {
-                return location;
+    
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Rendering template \"%s\"", templateString));
             }
-
-            @Override
-            public String getSuffix() {
+            Template template;
+            try {
+                template = handlebars.compile(new StringTemplateSource("inner view", templateString));
+            } catch (Throwable e) {
+                log.debug("error in mustache partial compile:", e);
+                mustacheContext.getLackrFrontendRequest().addBackendExceptions(e);
                 return "";
             }
-
-            @Override
-            public String getPrefix() {
+            try {
+                return mustacheContext.eval(template, target);
+            } catch (Throwable e) {
+                log.debug("error in mustache partial eval:", e);
                 return "";
             }
-        };
-
-        if (partialsAsObject != null && partialsAsObject instanceof Map) {
-            handlebars = handlebars.with(templateLoader, handlebars.getLoader());
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Rendering template \"%s\"", templateString));
-        }
-        Template template;
-        try {
-            template = handlebars.compile(new StringTemplateSource("inner view", templateString));
-        } catch (Throwable e) {
-            mustacheContext.getLackrFrontendRequest().addBackendExceptions(e);
-            return "";
-        }
-        try {
-            return mustacheContext.eval(template, target);
-        } catch (Throwable e) {
-            return "";
+        } finally {
+            handlebars.with(oldLoader);
         }
     }
 
