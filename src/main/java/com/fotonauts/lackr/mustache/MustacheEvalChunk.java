@@ -83,7 +83,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     private static void resolveArchiveReferences(Object data, final MustacheContext context) {
         new ReferenceResolverWalker() {
             @Override
-            public Map<String, Object> resolve(Object datum) {
+            public Object resolve(Object datum) {
                 if (datum instanceof Map<?, ?>) {
                     Map<String, Object> datumAsMap = (Map<String, Object>) datum;
                     if (datumAsMap.containsKey("$$archive") && datumAsMap.containsKey("$$id")) {

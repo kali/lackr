@@ -413,6 +413,9 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testLocalize() throws Exception {
         String page = S(/*
+            <script type="vnd.fotonauts/picordata" id="leave-me-alone">
+                { "root_id": 0, "objects": { "0" : [] } }
+            </script><!-- END OF ARCHIVE -->
             <script type="vnd.fotonauts/picordata" id="translations/foo">
                 { "root_id": 0, "objects": { "0" : { "Tap to set slide title" : "Tappe donc pour editer" } } }
             </script><!-- END OF ARCHIVE -->
@@ -422,6 +425,9 @@ public class TestMustache extends BaseTestSubstitution {
             <!-- lackr:mustache:template name="tmpl" -->
                 {{localize "Tap to set slide title"}} {{localize "or go play in the mixer"}}
             <!-- /lackr:mustache:template -->
+            <script type="vnd.fotonauts/picordata" id="translations/illformed">
+                { "root_id": 0, "objects": { "0" : [] } }
+            </script><!-- END OF ARCHIVE -->
             <!-- lackr:mustache:eval name="tmpl" -->
                 {}
             <!-- /lackr:mustache:eval -->

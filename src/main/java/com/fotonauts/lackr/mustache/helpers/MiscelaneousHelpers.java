@@ -39,10 +39,12 @@ public class MiscelaneousHelpers {
         MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
         for (String name : mustacheContext.getAllArchiveNames()) {
             Archive archive = mustacheContext.getArchive(name);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> table = (Map<String, Object>) archive.getRootObject();
-            if (table != null && table.containsKey(targetAsObject.toString())) {
-                return table.get(targetAsObject.toString()).toString();
+            if (name.startsWith("translations/") && archive.getRootObject() instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> table = (Map<String, Object>) archive.getRootObject();
+                if (table != null && table.containsKey(targetAsObject.toString())) {
+                    return table.get(targetAsObject.toString()).toString();
+                }
             }
         }
         return targetAsObject.toString();
