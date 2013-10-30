@@ -417,7 +417,7 @@ public class TestMustache extends BaseTestSubstitution {
                 { "root_id": 0, "objects": { "0" : { "Tap to set slide title" : "Tappe donc pour editer" } } }
             </script><!-- END OF ARCHIVE -->
             <script type="vnd.fotonauts/picordata" id="translations/bar">
-                { "root_id": 0, "objects": { "0" : { "or go play in the mixer" : "ou vas jouer dans le mixer" } } }
+                { "root_id": 12, "objects": { "12" : { "or go play in the mixer" : "ou vas jouer dans le mixer" } } }
             </script><!-- END OF ARCHIVE -->
             <!-- lackr:mustache:template name="tmpl" -->
                 {{localize "Tap to set slide title"}} {{localize "or go play in the mixer"}}

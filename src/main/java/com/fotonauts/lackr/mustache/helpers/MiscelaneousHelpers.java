@@ -37,16 +37,17 @@ public class MiscelaneousHelpers {
         if (targetAsObject == null)
             return "";
         MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
-        for(String name : mustacheContext.getAllArchiveNames()) {
+        for (String name : mustacheContext.getAllArchiveNames()) {
             Archive archive = mustacheContext.getArchive(name);
-            Map<String,Object> table = archive.getObject(0);
-            if(table.containsKey(targetAsObject.toString())) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> table = (Map<String, Object>) archive.getRootObject();
+            if (table != null && table.containsKey(targetAsObject.toString())) {
                 return table.get(targetAsObject.toString()).toString();
             }
         }
         return targetAsObject.toString();
     }
-    
+
     public static CharSequence tag_subview(Object targetAsObject, Options options) {
         if (targetAsObject == null)
             return "";
@@ -84,7 +85,7 @@ public class MiscelaneousHelpers {
                 return "";
             }
         };
-        
+
         if (partialsAsObject != null && partialsAsObject instanceof Map) {
             handlebars = handlebars.with(templateLoader, handlebars.getLoader());
         }

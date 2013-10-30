@@ -62,4 +62,18 @@ public class Archive {
         return data;
     }
 
+    public Object getRootObject() {
+        Integer i = getRootId();
+        if(i == null)
+            return null;
+        return getObject(i);
+    }
+
+    public Integer getRootId() {
+        Object r = data.get("root_id");
+        if(r instanceof Integer)
+            return (Integer) r;
+        return null;
+    }
+
 }
