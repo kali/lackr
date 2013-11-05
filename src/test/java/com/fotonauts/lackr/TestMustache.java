@@ -323,13 +323,6 @@ public class TestMustache extends BaseTestSubstitution {
     protected void assertNearlyEquals(String expected, String got) {
         assertNotNull(got);
         if(!expected.trim().replaceAll("[ \n]+"," ").equals(got.trim().replaceAll("[ \n]+"," "))) {
-            /*
-            System.err.println();
-            System.err.println(expected.replaceAll("[ \n]",""));
-            System.err.println();
-            System.err.println();
-            System.err.println(got.replaceAll("[ \n]",""));
-            */
             assertEquals(expected, got);
         }
     }
@@ -396,8 +389,8 @@ public class TestMustache extends BaseTestSubstitution {
             <!-- /lackr:mustache:template -->
             <!-- lackr:mustache:eval name="t" -->
                 { "ints" : [ { "i": 12}, { "i": 9999 }, { "i": 10000}, {"i": 10001},
-                             {"i": 9999999}, {"i": 9999999}, {"i": 10000000}, {"i": 10000001 } ] } 
-            <!-- /lackr:mustache:eval -->"*/);
+                             {"i": 9999999}, {"i": 10000000}, {"i": 10000001 } ] } 
+            <!-- /lackr:mustache:eval -->*/);
         String result = expand(page);
         assertNearlyEquals("12 9999 10k 10k 9999k 10M 10M", result);
     }
