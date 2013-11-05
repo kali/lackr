@@ -53,13 +53,26 @@ public class Archive {
         }.walk(data);
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> getObject(int objectId) {
-        return (Map<String, Object>) straightIndex.get(objectId);
+    public Object getObject(int objectId) {
+        return straightIndex.get(objectId);
     }
 
     public Object getData() {
         return data;
+    }
+
+    public Object getRootObject() {
+        Integer i = getRootId();
+        if(i == null)
+            return null;
+        return getObject(i);
+    }
+
+    public Integer getRootId() {
+        Object r = data.get("root_id");
+        if(r instanceof Integer)
+            return (Integer) r;
+        return null;
     }
 
 }
