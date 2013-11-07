@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.ChunkUtils;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
 
@@ -37,6 +38,11 @@ public class DumpArchiveRule extends MarkupDetectingRule {
             result.writeTo(stream);
         }
 
+        @Override
+        public byte at(int cursor) {
+            return result.at(cursor);
+        }
+        
         @Override
         public String toDebugString() {
             return "[DUMP " + name + " ]";
@@ -69,10 +75,10 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 	}
 
 	@Override
-	public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
+	public Chunk substitute(Chunk buffer, int start, int[] boundPairs, int stop, Object context) {
         String archiveId = null;
         try {
-            archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
+            archiveId = new String(ChunkUtils.extractBytes(buffer, boundPairs[0], boundPairs[1]), "UTF-8");
         } catch (UnsupportedEncodingException e) {
             /* no thanks */
         }

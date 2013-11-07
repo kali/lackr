@@ -23,10 +23,10 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 		return exchange.getResponse().getResponseHeaderValue(HttpHeader.CONTENT_TYPE.asString());
 	}
 
-	protected String makeUrl(byte[] buffer, int start, int stop) {
+	protected String makeUrl(Chunk buffer, int start, int stop) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = start; i < stop; i++) {
-			byte b = buffer[i];
+			byte b = buffer.at(i);
 			if (b < 0) {
 				builder.append('%');
 				builder.append(Integer.toHexString(b + 256).toUpperCase());
@@ -41,7 +41,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 	}
 
 	@Override
-	public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
+	public Chunk substitute(Chunk buffer, int start, int[] boundPairs, int stop, Object context) {
 		LackrBackendRequest request = (LackrBackendRequest) context;
 		String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
 		LackrBackendRequest sub;

@@ -28,12 +28,12 @@ public class SimpleSubstitutionRule extends PrefixDetectingRule {
 	}
 
     @Override
-    public int lookaheadForEnd(byte[] buffer, int start, int stop) {
+    public int lookaheadForEnd(Chunk buffer, int start, int stop) {
         return start + trigger.length();
     }
 
     @Override
-    public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
+    public Chunk substitute(Chunk buffer, int start, int stop, Object context) {
         return replacement;
     }
 	

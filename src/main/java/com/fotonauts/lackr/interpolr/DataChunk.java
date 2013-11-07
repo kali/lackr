@@ -57,4 +57,11 @@ public class DataChunk implements Chunk {
     @Override
     public void check() {
     }
+
+    @Override
+    public byte at(int cursor) {
+        if(cursor + start >= stop)
+            throw new ArrayIndexOutOfBoundsException();
+        return buffer[cursor + start];
+    }
 }

@@ -31,27 +31,30 @@ public abstract class SimpleTriggerRule implements Rule {
 
 
     @Override
-    public List<Chunk> parse(DataChunk chunk, Object context) {
+    public Chunk parse(Chunk chunk, Object context) {
         List<Chunk> result = new ArrayList<Chunk>();
         if(trigger == null) {
-            result.add(chunk);
-            return result;
+            return chunk;
         }
-        int current = chunk.getStart();
-        while (current < chunk.getStop()) {
-            int found = trigger.searchNext(chunk.getBuffer(), current, chunk.getStop());
+        int current = 0;
+        while (current < chunk.length()) {
+            // int found = trigger.searchNext(chunk.getBuffer(), current, chunk.getStop());
+            int found = trigger.searchNext(new ViewChunk(chunk, current, chunk.length()));
             if (found == -1) {
-                result.add(new DataChunk(chunk.getBuffer(), current, chunk.getStop()));
-                current = chunk.getStop();
+                result.add(new ViewChunk(chunk, current, chunk.length()));
+                current = chunk.length();
             } else {
                 if (found > 0) {
-                    result.add(new DataChunk(chunk.getBuffer(), current, found));
+                    result.add(new ViewChunk(chunk, current, found));
                 }
                 current = found + onFound(result, chunk, found, context);
             }
         }
-        return result;
+        if(result.size() == 1)
+            return chunk;
+        else
+            return new Document(result);
     }
 
-    abstract protected int onFound(List<Chunk> result, DataChunk chunk, int index, Object context);
+    abstract protected int onFound(List<Chunk> result, Chunk chunk, int index, Object context);
 }

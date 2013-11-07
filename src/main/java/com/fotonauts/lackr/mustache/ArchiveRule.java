@@ -4,9 +4,10 @@ import java.io.UnsupportedEncodingException;
 
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.DataChunk;
+import com.fotonauts.lackr.interpolr.ChunkUtils;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.ViewChunk;
 
 public class ArchiveRule extends MarkupDetectingRule {
 
@@ -15,17 +16,17 @@ public class ArchiveRule extends MarkupDetectingRule {
     }
 
     @Override
-    public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
+    public Chunk substitute(Chunk buffer, int start, int[] boundPairs, int stop, Object context) {
         LackrBackendRequest request = (LackrBackendRequest) context;
         try {
-            String archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
-            Document inner = request.getFrontendRequest().getService().getInterpolr()
-                    .parse(buffer, boundPairs[2], boundPairs[3], request);
+            String archiveId = new String(ChunkUtils.extractBytes(buffer, boundPairs[0], boundPairs[1]), "UTF-8");
+            Chunk inner = request.getFrontendRequest().getService().getInterpolr()
+                    .parse(new ViewChunk(buffer, boundPairs[2], boundPairs[3]), request);
 
             request.getFrontendRequest().getMustacheContext().registerArchive(archiveId, inner);
 
-            return new Document(new Chunk[] { new DataChunk(buffer, start, boundPairs[2]), inner,
-                    new DataChunk(buffer, boundPairs[3], stop) });
+            return new Document(new Chunk[] { new ViewChunk(buffer, start, boundPairs[2]), inner,
+                    new ViewChunk(buffer, boundPairs[3], stop) });
         } catch (UnsupportedEncodingException e) {
             /* nope */
             throw new RuntimeException(e);

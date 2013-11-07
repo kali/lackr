@@ -18,11 +18,10 @@ import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.Document;
 
 public abstract class ParsedJsonChunk implements Chunk {
 
-    protected Document inner;
+    protected Chunk inner;
     protected LackrBackendRequest request;
 
     @SuppressWarnings("unchecked")
@@ -56,10 +55,10 @@ public abstract class ParsedJsonChunk implements Chunk {
         }
     }
 
-    public ParsedJsonChunk(byte[] buffer, int start, int stop, LackrBackendRequest request) {
+    public ParsedJsonChunk(Chunk chunk, LackrBackendRequest request) {
         super();
         this.request = request;
-        inner = request.getFrontendRequest().getService().getInterpolr().parse(buffer, start, stop, request);
+        inner = request.getFrontendRequest().getService().getInterpolr().parse(chunk, request);
     }
 
     protected static String contentAsDebugString(Chunk inner, int lineNumber, int columnNumber) {

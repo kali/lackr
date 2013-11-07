@@ -18,8 +18,8 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     Chunk result = EMPTY;
     String name;
 
-    public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, LackrBackendRequest request) {
-        super(buffer, start, stop, request);
+    public MustacheEvalChunk(String name, Chunk chunk, LackrBackendRequest request) {
+        super(chunk, request);
         this.name = name;
     }
 
@@ -100,6 +100,11 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     @Override
     public int length() {
         return result.length();
+    }
+    
+    @Override
+    public byte at(int cursor) {
+        return result.at(cursor);
     }
 
     @Override

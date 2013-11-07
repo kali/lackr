@@ -14,16 +14,16 @@ public abstract class MarkupDetectingRule extends SimpleTriggerRule {
         setTrigger(patterns[0]);
     }
 
-    public abstract Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context);
+    public abstract Chunk substitute(Chunk chunk, int start, int[] boundPairs, int stop, Object context);
 
     @Override
-    protected int onFound(List<Chunk> result, DataChunk chunk, int startFound, Object context) {
+    protected int onFound(List<Chunk> result, Chunk chunk, int startFound, Object context) {
         int boundPairs[] = new int[2 * (patterns.length - 1)];
         boolean broken = false;
         int lookahead = startFound + patterns[0].length();
         for (int i = 1; !broken && i < patterns.length; i++) {
             boundPairs[2 * (i - 1)] = lookahead;
-            lookahead = patterns[i].searchNext(chunk.getBuffer(), lookahead, chunk.getStop());
+            lookahead = patterns[i].searchNext(chunk, lookahead, chunk.length());
             if (lookahead == -1) {
                 // unclosed tag, bail out
                 broken = true;
@@ -34,10 +34,10 @@ public abstract class MarkupDetectingRule extends SimpleTriggerRule {
         }
         if (broken) {
             // unclosed tag, bail out
-            result.add(new DataChunk(chunk.getBuffer(), startFound, chunk.getStop()));
-            return chunk.getStop() - startFound;
+            result.add(new ViewChunk(chunk, startFound, chunk.length()));
+            return chunk.length() - startFound;
         } else {
-            result.add(substitute(chunk.getBuffer(), startFound, boundPairs, lookahead, context));
+            result.add(substitute(chunk, startFound, boundPairs, lookahead, context));
             return lookahead - startFound;
         }
     }

@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.interpolr.Chunk;
 
 public class ArchiveChunk extends ParsedJsonChunk {
 
     private String id;
 
-    public ArchiveChunk(String id, byte[] buffer, int start, int stop, LackrBackendRequest request) {
-        super(buffer, start, stop, request);
+    public ArchiveChunk(String id, Chunk chunk, LackrBackendRequest request) {
+        super(chunk, request);
         this.request = request;
         this.id = id;
     }
@@ -18,6 +19,11 @@ public class ArchiveChunk extends ParsedJsonChunk {
     @Override
     public int length() {
         return inner.length();
+    }
+    
+    @Override
+    public byte at(int cursor) {
+        return inner.at(cursor);
     }
 
     @Override
@@ -34,5 +40,5 @@ public class ArchiveChunk extends ParsedJsonChunk {
     public void check() {
         // check is handled by mustache context
     }
-    
+
 }

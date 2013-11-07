@@ -57,22 +57,57 @@ public class BoyerMooreScanner {
 		this.secondTable = computeSecondTable(needle);
 	}
 
-	public int searchNext(byte[] buffer, int start, int stop) {
+	public int searchNext(byte[] haystack, int start, int stop) {
 		while (start + needle.length <= stop) {
 			int cursor = start + needle.length - 1;
 			while (cursor > start
-			        && buffer[cursor] == needle[cursor - start])
+			        && haystack[cursor] == needle[cursor - start])
 				cursor--;
-			if (cursor == start && buffer[start] == needle[0]) {
+			if (cursor == start && haystack[start] == needle[0]) {
 				return start;
 			}
 			if (cursor == start + needle.length - 1) {
-				start += firstTable[unsign(buffer[cursor])];
+				start += firstTable[unsign(haystack[cursor])];
 			} else
 				start += secondTable[start + needle.length - 1 - cursor];
 		}
 		return -1;
 	}
+
+    public int searchNext(Chunk haystack, int start, int stop) {
+        while (start + needle.length <= stop) {
+            int cursor = start + needle.length - 1;
+            while (cursor > start
+                    && haystack.at(cursor) == needle[cursor - start])
+                cursor--;
+            if (cursor == start && haystack.at(start) == needle[0]) {
+                return start;
+            }
+            if (cursor == start + needle.length - 1) {
+                start += firstTable[unsign(haystack.at(cursor))];
+            } else
+                start += secondTable[start + needle.length - 1 - cursor];
+        }
+        return -1;
+    }
+
+    public int searchNext(Chunk chunk) {
+	    int start = 0;
+        while (start + needle.length <= chunk.length()) {
+            int cursor = start + needle.length - 1;
+            while (cursor > start
+                    && chunk.at(cursor) == needle[cursor - start])
+                cursor--;
+            if (cursor == start && chunk.at(start) == needle[0]) {
+                return start;
+            }
+            if (cursor == start + needle.length - 1) {
+                start += firstTable[unsign(chunk.at(cursor))];
+            } else
+                start += secondTable[start + needle.length - 1 - cursor];
+        }
+        return -1;
+    }
 
 	public int length() {
 		return needle.length;

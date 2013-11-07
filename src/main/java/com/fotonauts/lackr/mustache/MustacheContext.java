@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
 import com.fotonauts.lackr.mustache.helpers.MediaDerivativesUrlHelper;
@@ -24,9 +25,9 @@ import com.github.jknack.handlebars.io.TemplateSource;
 public class MustacheContext {
 
     private Handlebars handlebars;
-    private Map<String, Document> registeredTemplatesDocument;
+    private Map<String, Chunk> registeredTemplatesDocument;
     private Map<String, Template> compiledTemplates;
-    private Map<String, Document> registeredArchiveDocuments;
+    private Map<String, Chunk> registeredArchiveDocuments;
     private Map<String, Archive> expandedArchives;
 
     private LackrFrontendRequest lackrFrontendRequest;
@@ -37,9 +38,9 @@ public class MustacheContext {
 
     public MustacheContext(LackrFrontendRequest lackrFrontendRequest) {
         this.lackrFrontendRequest = lackrFrontendRequest;
-        registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());
+        registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Chunk>());
         compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>()); // not sure this one has to be synced
-        registeredArchiveDocuments = Collections.synchronizedMap(new HashMap<String, Document>());
+        registeredArchiveDocuments = Collections.synchronizedMap(new HashMap<String, Chunk>());
         expandedArchives = Collections.synchronizedMap(new HashMap<String, Archive>()); // not sure this one has to be synced
         TemplateLoader loader = new TemplateLoader() {
 
@@ -70,14 +71,14 @@ public class MustacheContext {
     }
 
     public void checkAndCompileAll() {
-        for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
+        for (Entry<String, Chunk> registered : registeredArchiveDocuments.entrySet()) {
             registered.getValue().check();
             Map<String, Object> parsedData = ParsedJsonChunk
                     .parse(registered.getValue(), lackrFrontendRequest, registered.getKey());
             if (parsedData != null)
                 expandedArchives.put(registered.getKey(), new Archive(parsedData));
         }
-        for (Entry<String, Document> registered : registeredTemplatesDocument.entrySet()) {
+        for (Entry<String, Chunk> registered : registeredTemplatesDocument.entrySet()) {
             registered.getValue().check();
             String expanded = getExpandedTemplate(registered.getKey());
             try {
@@ -107,12 +108,12 @@ public class MustacheContext {
         }
     }
 
-    public void registerTemplate(String name, Document template) {
+    public void registerTemplate(String name, Chunk template) {
         registeredTemplatesDocument.put(name, template);
     }
 
-    public void registerArchive(String name, Document archive) {
-        registeredArchiveDocuments.put(name, archive);
+    public void registerArchive(String name, Chunk inner) {
+        registeredArchiveDocuments.put(name, inner);
     }
 
     public Template get(String templateName) {
@@ -129,7 +130,7 @@ public class MustacheContext {
         }
     }
 
-    public Document getTemplate(String name) {
+    public Chunk getTemplate(String name) {
         System.err.println("REQUIRE: " + name);
         return registeredTemplatesDocument.get(name);
     }

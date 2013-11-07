@@ -48,4 +48,9 @@ public class RequestChunk implements Chunk {
 		isChecked = true;
 	}
 
+    @Override
+    public byte at(int cursor) {
+        return rule.filterDocumentAsChunk(sub).at(cursor);
+    }
+
 }

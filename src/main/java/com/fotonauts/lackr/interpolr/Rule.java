@@ -1,9 +1,7 @@
 package com.fotonauts.lackr.interpolr;
 
-import java.util.List;
 
 public interface Rule {
-	
-	List<Chunk> parse(DataChunk chunk, Object context);
+	   Chunk parse(Chunk current, Object context);
 	
 }

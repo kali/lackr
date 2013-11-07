@@ -35,4 +35,9 @@ public class ConstantChunk implements Chunk {
     @Override
     public void check() {
     }
+
+    @Override
+    public byte at(int cursor) {
+        return constant[cursor];
+    }
 }

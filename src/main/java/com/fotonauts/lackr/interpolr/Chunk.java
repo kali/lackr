@@ -11,5 +11,7 @@ public interface Chunk {
 	String toDebugString();
 
 	void check();
+
+    byte at(int cursor);
 }
 
