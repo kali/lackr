@@ -181,7 +181,7 @@ public class TestMustache extends BaseTestSubstitution {
             <!-- lackr:mustache:eval name="template_name" -->
                 { }
             <!-- /lackr:mustache:eval -->*/));
-        assertNearlyEquals(result, "inline:en");
+        assertContains(result, "inline:en");
     }
 
     @Test
