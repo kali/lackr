@@ -61,7 +61,7 @@ public abstract class LackrBackendExchange {
         /*
         for (Enumeration<?> e = lackrBackendRequest.getFrontendRequest().getRequest().getHeaderNames(); e.hasMoreElements();) {
             String header = (String) e.nextElement();
-            if (!LackrFrontendRequest.skipHeader(header)) {
+            if (!BaseFrontendRequest.skipHeader(header)) {
                 addRequestHeader(header, lackrBackendRequest.getFrontendRequest().getRequest().getHeader(header));
             }
             // content type is skipped, but we MUST copy it for the root request, or else...
@@ -128,8 +128,8 @@ public abstract class LackrBackendExchange {
             listener.run();
         } else
         */
-            log.debug("Enqueue post-processing {}", this);
-            lackrBackendRequest.getFrontendRequest().getService().getExecutor().execute(new Runnable() {
+            log.debug("Enqueue post-processing {} (status: {})", this, getResponse().getStatus());
+            lackrBackendRequest.getFrontendRequest().getProxy().getExecutor().execute(new Runnable() {
 
                 @Override
                 public void run() {

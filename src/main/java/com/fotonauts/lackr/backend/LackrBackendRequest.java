@@ -3,13 +3,11 @@ package com.fotonauts.lackr.backend;
 import java.io.IOException;
 
 import org.eclipse.jetty.http.HttpFields;
-import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.LackrFrontendRequest;
+import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.DataChunk;
 import com.fotonauts.lackr.interpolr.Document;
@@ -36,12 +34,12 @@ public class LackrBackendRequest {
     private final String parentQuery;
     private final int parentId;
     private final String query;
-    private final LackrFrontendRequest frontendRequest;
+    private final BaseFrontendRequest frontendRequest;
     private LackrBackendExchange exchange;
     private final String syntax;
     private final HttpFields fields;
 
-    public LackrBackendRequest(LackrFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
+    public LackrBackendRequest(BaseFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
             String syntax, byte[] body, HttpFields fields) {
         super();
         this.frontendRequest = frontendRequest;
@@ -94,7 +92,7 @@ public class LackrBackendRequest {
         return query;
     }
 
-    public LackrFrontendRequest getFrontendRequest() {
+    public BaseFrontendRequest getFrontendRequest() {
         return frontendRequest;
     }
 
@@ -164,10 +162,13 @@ public class LackrBackendRequest {
                 getFrontendRequest().addBackendExceptions(
                         new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponse().getStatus()));
             if (exchange.getResponse().getBodyBytes() != null && exchange.getResponse().getBodyBytes().length > 0) {
+                // FIXME kick interpolr
+                /*
                 String mimeType = exchange.getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString());
                 if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-                    parsedDocument = getFrontendRequest().getService().getInterpolr().parse(exchange.getResponse().getBodyBytes(), this);
+                    parsedDocument = getFrontendRequest().getProxy().getInterpolr().parse(exchange.getResponse().getBodyBytes(), this);
                 else
+                */
                     parsedDocument = new Document(new DataChunk(exchange.getResponse().getBodyBytes()));
             } else
                 parsedDocument = new Document(new DataChunk(new byte[0]));
@@ -184,7 +185,7 @@ public class LackrBackendRequest {
 
     public void start() throws NotAvailableException, IOException {
         log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
-        exchange = getFrontendRequest().getService().getBackend().createExchange(this);
+        exchange = getFrontendRequest().getProxy().getBackend().createExchange(this);
         log.debug("Created exchange {}", exchange);
         exchange.setCompletionListener(new Listener() {
             
@@ -200,6 +201,7 @@ public class LackrBackendRequest {
             @Override
             public void fail(Throwable t) {
                 getFrontendRequest().addBackendExceptions(t instanceof LackrPresentableError ? t : LackrPresentableError.fromThrowableAndExchange(t, exchange));
+                System.err.println(t);
                 getFrontendRequest().notifySubRequestDone();
             }
         });

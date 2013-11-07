@@ -3,15 +3,16 @@ package com.fotonauts.lackr.backend.client;
 import java.io.PrintStream;
 
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
-import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.BaseGatewayMetrics;
+import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.backend.Backend;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
-public class ClientBackend implements Backend {
+public class ClientBackend extends AbstractLifeCycle implements Backend {
 
     private HttpClient actualClient;
 
@@ -28,11 +29,6 @@ public class ClientBackend implements Backend {
 
     public void setDirector(HttpDirectorInterface director) {
         this.director = director;
-    }
-
-    @Override
-    public void stop() throws Exception {
-        director.stop();
     }
 
     @Override
@@ -55,5 +51,15 @@ public class ClientBackend implements Backend {
     @Override
     public String toString() {
         return String.format("%s:%s", getClass().getSimpleName(), getName());
+    }
+
+    @Override
+    public void doStart() throws Exception {
+        actualClient.start();
+    }
+
+    @Override
+    public void doStop() throws Exception {
+        actualClient.stop();
     }
 }

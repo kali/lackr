@@ -58,7 +58,7 @@ import com.fotonauts.lackr.mustache.MustacheContext;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 
-public class LackrFrontendRequest {
+public class CopyOfLackrFrontendRequest {
     static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
             "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since",
             "if-none-match", "range", "accept-ranges" };
@@ -73,7 +73,7 @@ public class LackrFrontendRequest {
 
     AtomicInteger pendingCount;
 
-    static Logger log = LoggerFactory.getLogger(LackrFrontendRequest.class);
+    static Logger log = LoggerFactory.getLogger(CopyOfLackrFrontendRequest.class);
 
     protected HttpServletRequest request;
 
@@ -105,17 +105,17 @@ public class LackrFrontendRequest {
 
     private ConcurrentHashMap<String, AtomicInteger> backendRequestEndpointsCounters = new ConcurrentHashMap<String, AtomicInteger>();
 
-    LackrFrontendRequest(final Service service, HttpServletRequest request) throws IOException {
-        this.service = service;
-        service.getGateway().getRunningRequestsHolder().inc();
+    CopyOfLackrFrontendRequest(final BaseProxy baseProxy, HttpServletRequest request) throws IOException {
+        this.service = baseProxy;
+        baseProxy.getGateway().getRunningRequestsHolder().inc();
         opid = request.getHeader("X-Ftn-OperationId");
         if (opid == null)
             opid = "<noopid:" + UUID.randomUUID().toString() + ">";
         this.request = request;
         this.mustacheContext = new MustacheContext(this);
         /*
-        this.backendRequestCounts = new AtomicInteger[service.getBackends().length];
-        for (int i = 0; i < service.getBackends().length; i++)
+        this.backendRequestCounts = new AtomicInteger[proxy.getBackends().length];
+        for (int i = 0; i < proxy.getBackends().length; i++)
             this.backendRequestCounts[i] = new AtomicInteger();
             */
         this.continuation = request.startAsync();
@@ -124,7 +124,7 @@ public class LackrFrontendRequest {
 
             @Override
             public void onComplete(AsyncEvent event) throws IOException {
-                service.getGateway().getRunningRequestsHolder().dec();
+                baseProxy.getGateway().getRunningRequestsHolder().dec();
             }
 
             @Override
@@ -225,10 +225,10 @@ public class LackrFrontendRequest {
 
         /*
         BasicDBObject backendRequestCounters = new BasicDBObject();
-        for (int i = 0; i < service.getBackends().length; i++) {
+        for (int i = 0; i < proxy.getBackends().length; i++) {
             int value = this.backendRequestCounts[i].get();
             if (value > 0)
-                backendRequestCounters.put(service.getBackends()[i].getClass().getSimpleName() + "-" + i, value);
+                backendRequestCounters.put(proxy.getBackends()[i].getClass().getSimpleName() + "-" + i, value);
         }
         logLine.put("counters", backendRequestCounters);
         */
@@ -274,11 +274,11 @@ public class LackrFrontendRequest {
                             .getValue().intValue());
                 }
                 /*
-                for (int i = 0; i < service.getBackends().length; i++) {
+                for (int i = 0; i < proxy.getBackends().length; i++) {
                     int value = this.backendRequestCounts[i].get();
                     if (value > 0) {
-                        String nicerName = service.getBackends()[i].getClass() == InProcessFemtor.class ? "femtor" : "http-" + i;
-                        service.countBePerEP(endpoint, nicerName, value);
+                        String nicerName = proxy.getBackends()[i].getClass() == InProcessFemtor.class ? "femtor" : "http-" + i;
+                        proxy.countBePerEP(endpoint, nicerName, value);
                     }
                 }
                 */
@@ -462,7 +462,7 @@ public class LackrFrontendRequest {
         HttpFields fields = new HttpFields();
         for (Enumeration<?> e = getRequest().getHeaderNames(); e.hasMoreElements();) {
             String header = (String) e.nextElement();
-            if (!LackrFrontendRequest.skipHeader(header)) {
+            if (!CopyOfLackrFrontendRequest.skipHeader(header)) {
                 fields.add(header, getRequest().getHeader(header));
             }
         }

@@ -17,7 +17,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustache() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}}
             <!-- /lackr:mustache:template -->
@@ -30,7 +30,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheReversed() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:eval name="template_name" -->
                 { "name": "the name", "value": "the value" }
             <!-- /lackr:mustache:eval -->
@@ -43,7 +43,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheWithEsi() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} some:{{esi.some}}
             <!-- /lackr:mustache:template -->
@@ -55,7 +55,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheTemplateWithEsi() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 <!--# include virtual="/esi.must" -->
             <!-- /lackr:mustache:template -->
@@ -68,7 +68,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     @Ignore
     public void testMustacheLenientParsing() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name} value:{{value}}
             <!-- /lackr:mustache:template -->
@@ -80,7 +80,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheJsonParseException() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}}
             <!-- /lackr:mustache:template -->
@@ -98,7 +98,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Ignore
     @Test
     public void testMustacheException() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} blah:{{esi.blih}}
             <!-- /lackr:mustache:template -->
@@ -111,7 +111,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheAbsentKeyInHybridKeys() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 {{ absent.stuff }}
             <!-- /lackr:mustache:template -->
@@ -123,7 +123,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheNoTemplates() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:eval name="bogus_template_name" -->
                 { "name": "the name", "value": "the value", "esi":"ssi:include:virtual:/esi.json" }
             <!-- /lackr:mustache:eval -->*/), true);
@@ -133,7 +133,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testMustacheTemplateNotFound() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} blah:{{esi.blih}}
             <!-- /lackr:mustache:template -->
@@ -146,7 +146,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testInlineImageFlagSupport() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} inline:{{_ftn_inline_images}}
             <!-- /lackr:mustache:template -->
@@ -158,7 +158,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testInlineLocaleSupport() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 inline:{{_ftn_locale}}
             <!-- /lackr:mustache:template -->
@@ -166,7 +166,7 @@ public class TestMustache extends BaseTestSubstitution {
                 { }
             <!-- /lackr:mustache:eval -->*/), false, "es.localhost");
         assertNearlyEquals(result, "inline:es");
-        result = expand(S(/*
+        result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 inline:{{_ftn_locale}}
             <!-- /lackr:mustache:template -->
@@ -174,7 +174,7 @@ public class TestMustache extends BaseTestSubstitution {
                 { }
             <!-- /lackr:mustache:eval -->*/), false, "fr.localhost");
         assertNearlyEquals(result, "inline:fr");
-        result = expand(S(/*
+        result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->
                 inline:{{_ftn_locale}}
             <!-- /lackr:mustache:template -->
@@ -186,7 +186,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testPartial() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="partial" -->
                 some text from the template name:{{name}} value:{{value}}
             <!-- /lackr:mustache:template -->
@@ -201,7 +201,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testEach() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{#each ints}}{{a}}{{/each}}
             <!-- /lackr:mustache:template -->
@@ -213,7 +213,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testReverseEach() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="t" -->
                     {{#reverse_each ints}}{{a}}{{/reverse_each}}
                 <!-- /lackr:mustache:template -->
@@ -221,7 +221,7 @@ public class TestMustache extends BaseTestSubstitution {
                     { "ints": [ ] }
                 <!-- /lackr:mustache:eval -->*/));
         assertEquals("", result.trim());
-        result = expand(S(/*
+        result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{#reverse_each ints}}{{a}}{{/reverse_each}}
             <!-- /lackr:mustache:template -->
@@ -233,7 +233,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testAbsoluteDateTime() throws Exception {
-        String template = S(/*
+        String template = TextUtils.S(/*
                 <!-- lackr:mustache:template name="t" -->
                 {{absolute_datetime nowhere format="date_time" type="short"}}
                 {{absolute_datetime landed_at format="date_time" type="short"}}
@@ -250,13 +250,13 @@ public class TestMustache extends BaseTestSubstitution {
                 {{absolute_datetime landed_at format="time" type="full"}}
             <!-- /lackr:mustache:template -->*/);
 
-        String dateAsInt = S(/*
+        String dateAsInt = TextUtils.S(/*
                 <!-- lackr:mustache:eval name="t" -->
                     { "landed_at": -14186520 }
                 <!-- /lackr:mustache:eval -->
         */);
 
-        String dateAsHash = S(/*
+        String dateAsHash = TextUtils.S(/*
             <!-- lackr:mustache:eval name="t" -->
                 { "landed_at": { "$DATE" : -14186520000 } }
             <!-- /lackr:mustache:eval -->
@@ -284,7 +284,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testRelativeDateTime() throws Exception {
 
-        String template = S(/*
+        String template = TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{relative_datetime at}}{{relative_datetime nowhere}}
             <!-- /lackr:mustache:template -->
@@ -329,7 +329,7 @@ public class TestMustache extends BaseTestSubstitution {
     
     @Test
     public void testDerivatives() throws Exception {
-        String page = S(/*
+        String page = TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{#items}}{{derivative item kind="image"}} {{/items}}
             <!-- /lackr:mustache:template -->
@@ -344,7 +344,7 @@ public class TestMustache extends BaseTestSubstitution {
                 ] }
             <!-- /lackr:mustache:eval -->*/);
         String result = expand(page).trim();
-        assertNearlyEquals(S(/*
+        assertNearlyEquals(TextUtils.S(/*
                 http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.jpg
                 http://images.cdn.fotopedia.com/kali-12-image.jpg
                 http://images.cdn.fotopedia.com/kali-hNvjiyDiSOA-image.png
@@ -355,7 +355,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testDerivativesEmptyContext() throws Exception {
-        String page = S(/*
+        String page = TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{#item}}{{derivative cover kind="image"}} {{/item}}
             <!-- /lackr:mustache:template -->
@@ -369,7 +369,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testInlineWrapperSubstitution() throws Exception {
         // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
-        String page = S(/*
+        String page = TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{blu}} {{glou}} {{glap}}
             <!-- /lackr:mustache:template -->
@@ -383,7 +383,7 @@ public class TestMustache extends BaseTestSubstitution {
     @Test
     public void testHumanizeInteger() throws Exception {
         // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
-        String page = S(/*
+        String page = TextUtils.S(/*
             <!-- lackr:mustache:template name="t" -->
                 {{#ints}}{{humanize_integer i}} {{/ints}}
             <!-- /lackr:mustache:template -->
@@ -397,7 +397,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testLocalize() throws Exception {
-        String page = S(/*
+        String page = TextUtils.S(/*
             <script type="vnd.fotonauts/picordata" id="leave-me-alone">
                 { "root_id": 0, "objects": { "0" : [] } }
             </script><!-- END OF ARCHIVE -->
@@ -423,7 +423,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testSubviewWithInlineTemplate() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv12}}
@@ -446,7 +446,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testSubviewRecursive() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv12}}
@@ -473,7 +473,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testSubviewRecursiveWithPartial() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv12}}
@@ -505,7 +505,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testIdTopLevelSubviewWithDash() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv12-}}
@@ -528,7 +528,7 @@ public class TestMustache extends BaseTestSubstitution {
     
     @Test
     public void testIdNestedSubviewWithDash() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv12}}
@@ -555,7 +555,7 @@ public class TestMustache extends BaseTestSubstitution {
 
     @Test
     public void testIdTopLevelSubviewNotFound() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv13}}
@@ -579,7 +579,7 @@ public class TestMustache extends BaseTestSubstitution {
     
     @Test
     public void testSubviewRecursiveNotFound() throws Exception {
-        String result = expand(S(/*
+        String result = expand(TextUtils.S(/*
                 <!-- lackr:mustache:template name="tmpl" -->
                     <div class="toplevel">
                         {{tag_subview top.subviews_by_id.sv12}}
@@ -609,7 +609,7 @@ public class TestMustache extends BaseTestSubstitution {
     // SYNC_WITH_PICOR
     @Test
     public void testDomCompatibleId() throws Exception {
-        String page = S(/*
+        String page = TextUtils.S(/*
                 <!-- lackr:mustache:template name="t" -->
                     {{#strings}}
                         {{{s}}} -> {{dom_compatible_id s}}

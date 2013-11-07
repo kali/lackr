@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.fotonauts.lackr.LackrFrontendRequest;
+import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
@@ -29,14 +29,14 @@ public class MustacheContext {
     private Map<String, Document> registeredArchiveDocuments;
     private Map<String, Archive> expandedArchives;
 
-    private LackrFrontendRequest lackrFrontendRequest;
+    private BaseFrontendRequest baseFrontendRequest;
 
-    public LackrFrontendRequest getLackrFrontendRequest() {
-        return lackrFrontendRequest;
+    public BaseFrontendRequest getLackrFrontendRequest() {
+        return baseFrontendRequest;
     }
 
-    public MustacheContext(LackrFrontendRequest lackrFrontendRequest) {
-        this.lackrFrontendRequest = lackrFrontendRequest;
+    public MustacheContext(BaseFrontendRequest baseFrontendRequest) {
+        this.baseFrontendRequest = baseFrontendRequest;
         registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());
         compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>()); // not sure this one has to be synced
         registeredArchiveDocuments = Collections.synchronizedMap(new HashMap<String, Document>());
@@ -73,7 +73,7 @@ public class MustacheContext {
         for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
             registered.getValue().check();
             Map<String, Object> parsedData = ParsedJsonChunk
-                    .parse(registered.getValue(), lackrFrontendRequest, registered.getKey());
+                    .parse(registered.getValue(), baseFrontendRequest, registered.getKey());
             if (parsedData != null)
                 expandedArchives.put(registered.getKey(), new Archive(parsedData));
         }
@@ -91,7 +91,7 @@ public class MustacheContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                lackrFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
+                baseFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
             } catch (IOException e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Handlebars: IOException\n");
@@ -101,7 +101,7 @@ public class MustacheContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                lackrFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
+                baseFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
             }
 
         }
@@ -151,8 +151,8 @@ public class MustacheContext {
     }
 
     public String eval(Template template, Map<String, Object> data) throws IOException {
-        data.put("_ftn_inline_images", lackrFrontendRequest.getUserAgent().supportsInlineImages());
-        data.put("_ftn_locale", lackrFrontendRequest.getPreferredLocale());
+        data.put("_ftn_inline_images", baseFrontendRequest.getUserAgent().supportsInlineImages());
+        data.put("_ftn_locale", baseFrontendRequest.getPreferredLocale());
         data.put("_ftn_mustache_context", this);
         return template.apply(data);
     }

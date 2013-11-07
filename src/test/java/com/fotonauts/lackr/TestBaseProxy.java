@@ -17,107 +17,137 @@ import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.IO;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-public class TestPropagation extends BaseTestLackrFullStack {
+import com.fotonauts.lackr.components.Factory;
+import com.fotonauts.lackr.components.RemoteControlledStub;
+import com.fotonauts.lackr.components.TestClient;
 
-    public TestPropagation() throws Exception {
-        super();
+public class TestBaseProxy {
+
+    RemoteControlledStub remoteControlledStub;
+    Server proxyServer;
+    TestClient client;
+    
+    public TestBaseProxy() throws Exception {
+    }
+
+    @Before
+    public void setup() throws Exception {
+        remoteControlledStub = new RemoteControlledStub();        
+        remoteControlledStub.start();
+        proxyServer = Factory.buildSimpleProxyServer(remoteControlledStub.getPort());
+        proxyServer.start();
+        
+        client = new TestClient(((ServerConnector) proxyServer.getConnectors()[0]).getLocalPort());
+        client.start();
+    }
+    
+    @After
+    public void tearDown() throws Exception {
+        LifeCycle[] zombies = new LifeCycle[] { client, proxyServer, remoteControlledStub };
+        for(LifeCycle z: zombies)
+            z.stop();
     }
 
     @Test
     public void hostProp() throws Exception {
 
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, request.getHeader("Host").getBytes(), MimeType.TEXT_HTML);
+                RemoteControlledStub.writeResponse(response, request.getHeader("Host").getBytes(), MimeType.TEXT_HTML);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         e.header("Host", "something");
-        runRequest(e, "something");
+        client.runRequest(e, "something");
     }
 
     @Test
     public void userAgentProp() throws Exception {
 
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, request.getHeader("User-Agent").getBytes(), MimeType.TEXT_HTML);
+                RemoteControlledStub.writeResponse(response, request.getHeader("User-Agent").getBytes(), MimeType.TEXT_HTML);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         e.header("User-Agent", "something");
-        runRequest(e, "something");
+        client.runRequest(e, "something");
     }
 
     @Test
     public void reqBodyProp() throws Exception {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, IO.readBytes(request.getInputStream()), MimeType.TEXT_HTML);
+                RemoteControlledStub.writeResponse(response, IO.readBytes(request.getInputStream()), MimeType.TEXT_HTML);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         System.err.println();
         e.method(HttpMethod.POST);
         e.content(new StringContentProvider("coin"));
         e.header("Content-Length", "4");
-        runRequest(e, "coin");
+        client.runRequest(e, "coin");
     }
 
     @Test
     public void accept() throws Exception {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response,
+                RemoteControlledStub.writeResponse(response,
                         request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
                         MimeType.TEXT_PLAIN);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         e.header("Accept", "test/accept");
-        runRequest(e, "test/accept");
+        client.runRequest(e, "test/accept");
     }
 
     @Test
     public void noAccept() throws Exception {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response,
+                RemoteControlledStub.writeResponse(response,
                         request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
                         MimeType.TEXT_PLAIN);
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        runRequest(e, "null");
+        Request e = client.createExchange("/");
+        client.runRequest(e, "null");
     }
 
     @Test
     public void redirect() throws InterruptedException, TimeoutException, ExecutionException {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
@@ -128,7 +158,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         ContentResponse r = e.send();
 
         assertEquals(301, r.getStatus());
@@ -137,7 +167,7 @@ public class TestPropagation extends BaseTestLackrFullStack {
 
     @Test
     public void timeout() throws InterruptedException, TimeoutException, ExecutionException {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
@@ -150,93 +180,93 @@ public class TestPropagation extends BaseTestLackrFullStack {
             }
         });
 
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         e.send();
     }
 
     @Test
     public void parameters() throws Exception {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, (request.getParameter("par") != null ? request.getParameter("par") : "#null").getBytes(),
+                RemoteControlledStub.writeResponse(response, (request.getParameter("par") != null ? request.getParameter("par") : "#null").getBytes(),
                         MimeType.TEXT_PLAIN);
             }
         });
-        Request e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
-        runRequest(e, "toto");
+        Request e = client.createExchange("/?par=toto");
+        client.runRequest(e, "toto");
 
-        e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
+        e = client.createExchange("/?par=toto");
         e.method(HttpMethod.POST);
-        runRequest(e, "toto");
+        client.runRequest(e, "toto");
 
-        e = createExchange("http://localhost:" + lackrPort + "/?par=toto");
+        e = client.createExchange("/?par=toto");
         e.method(HttpMethod.PUT);
-        runRequest(e, "toto");
+        client.runRequest(e, "toto");
     }
 
     @Test
     public void queryStringParameterNotMovedToBody() throws Exception {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, (request.getQueryString() != null ? request.getQueryString().getBytes() : "".getBytes()),
+                RemoteControlledStub.writeResponse(response, (request.getQueryString() != null ? request.getQueryString().getBytes() : "".getBytes()),
                         MimeType.TEXT_PLAIN);
             }
         });
-        Request e = createExchange("http://localhost:" + lackrPort + "/queryString?par=toto");
-        runRequest(e, "par=toto");
+        Request e = client.createExchange("/queryString?par=toto");
+        client.runRequest(e, "par=toto");
 
-        e = createExchange("http://localhost:" + lackrPort + "/queryString?par=toto");
+        e = client.createExchange("/queryString?par=toto");
         e.method(HttpMethod.POST);
-        runRequest(e, "par=toto");
+        client.runRequest(e, "par=toto");
     }
 
     @Test
     public void cookiesIsolation() throws Exception {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
                 if (target.indexOf("SETIT") > 0)
                     response.addHeader(HttpHeader.SET_COOKIE.asString(), "c=1; Expires=Wed, 09-Jun-2021 10:18:14 GMT");
-                writeResponse(response,
+                RemoteControlledStub.writeResponse(response,
                         request.getHeader("Cookie") != null ? request.getHeader("Cookie").getBytes() : "null".getBytes(),
                         MimeType.TEXT_PLAIN);
             }
         });
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
-        runRequest(e, "null");
-        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        Request e = client.createExchange("/");
+        client. runRequest(e, "null");
+        assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
 
-        e = createExchange("http://localhost:" + lackrPort + "/SETIT");
-        ContentResponse r = runRequest(e, "null");
+        e = client.createExchange("/SETIT");
+        ContentResponse r = client.runRequest(e, "null");
         System.err.println(r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
-        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
         assertTrue("response has set-cookie", r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
 
-        e = createExchange("http://localhost:" + lackrPort + "/");
-        runRequest(e, "null");
-        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        e = client.createExchange("/");
+        client.runRequest(e, "null");
+        assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
 
-        e = createExchange("http://localhost:" + lackrPort + "/");
+        e = client.createExchange("/");
         e.getHeaders().add(HttpHeader.COOKIE.asString(), "c=2");
-        runRequest(e, "c=2");
-        assertTrue("cookie store empty", client.getCookieStore().getCookies().size() == 0);
+        client.runRequest(e, "c=2");
+        assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
     }
 
     @Test
     public void hugeCookie() {
-        currentHandler.set(new AbstractHandler() {
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                writeResponse(response, "yop!".getBytes(), MimeType.TEXT_PLAIN);
+                RemoteControlledStub.writeResponse(response, "yop!".getBytes(), MimeType.TEXT_PLAIN);
             }
         });
-        Request e = createExchange("http://localhost:" + lackrPort + "/");
+        Request e = client.createExchange("/");
         StringBuilder sb = new StringBuilder(10000);
         for (int i = 0; i < 10000; i++)
             sb.append("c");

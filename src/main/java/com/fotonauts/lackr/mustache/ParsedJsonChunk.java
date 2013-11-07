@@ -14,7 +14,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.LackrFrontendRequest;
+import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
@@ -110,7 +110,7 @@ public abstract class ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    protected static Map<String, Object> parse(Chunk inner, LackrFrontendRequest feRequest, String context) {
+    protected static Map<String, Object> parse(Chunk inner, BaseFrontendRequest feRequest, String context) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectMapper mapper = feRequest.getService().getJacksonObjectMapper();
         try {

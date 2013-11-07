@@ -119,6 +119,10 @@ public class Service extends AbstractHandler {
         backend.dumpStatus(System.err);
     }
 
+    protected BaseFrontendRequest createLackrFrontendRequest(HttpServletRequest request) {
+        return new BaseFrontendRequest(this, request);        
+    }
+    
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
@@ -133,10 +137,10 @@ public class Service extends AbstractHandler {
             response.flushBuffer();
             return;
         }
-        LackrFrontendRequest state = (LackrFrontendRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
+        BaseFrontendRequest state = (BaseFrontendRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
         if (state == null) {
             log.debug("starting processing for: " + request.getRequestURL());
-            state = new LackrFrontendRequest(this, request);
+            state = createLackrFrontendRequest(request);
             upstreamService.getRequestCountHolder().inc();
             request.setAttribute(LACKR_STATE_ATTRIBUTE, state);
             state.kick();

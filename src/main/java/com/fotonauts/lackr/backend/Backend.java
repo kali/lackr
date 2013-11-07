@@ -2,6 +2,8 @@ package com.fotonauts.lackr.backend;
 
 import java.io.PrintStream;
 
+import org.eclipse.jetty.util.component.LifeCycle;
+
 import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.Service;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
@@ -12,7 +14,7 @@ import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
  * @author kali
  *
  */
-public interface Backend {
+public interface Backend extends LifeCycle {
 
     /**
      * The "interesting" method of the backend.
