@@ -3,7 +3,6 @@ package com.fotonauts.lackr;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import org.junit.Test;
 
@@ -23,8 +22,6 @@ public class TestInterpolrESI {
             @Override
             public InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope) {
                 InterpolrScope result = app.getInterpolrScope(this, syntaxIdentifier, url);
-                System.err.println(url + " -> " + result);
-                System.err.println();
                 interpolr.processResult(result);
                 return result;
             }

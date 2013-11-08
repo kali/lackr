@@ -8,5 +8,6 @@
     <appender-ref ref="rootLogger"/>
   </root>
   <logger name="com.fotonauts" level="DEBUG"/>
+  <logger name="com.fotonauts.lackr.backend" level="INFO"/>
   <logger name="org.eclipse.jetty.server.HttpChannel" level="ERROR"/>
 </configuration>

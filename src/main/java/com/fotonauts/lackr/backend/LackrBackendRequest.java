@@ -28,7 +28,6 @@ public class LackrBackendRequest {
     static Logger log = LoggerFactory.getLogger(LackrBackendRequest.class);
 
     private final byte[] body;
-    private Document parsedDocument;
 
     private final String method;
     private final String parentQuery;
@@ -38,9 +37,10 @@ public class LackrBackendRequest {
     private LackrBackendExchange exchange;
     private final String syntax;
     private final HttpFields fields;
+    private final Listener listener;
 
     public LackrBackendRequest(BaseFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
-            String syntax, byte[] body, HttpFields fields) {
+            String syntax, byte[] body, HttpFields fields, Listener listener) {
         super();
         this.frontendRequest = frontendRequest;
         this.method = method;
@@ -50,6 +50,7 @@ public class LackrBackendRequest {
         this.syntax = syntax;
         this.body = body;
         this.fields = fields;
+        this.listener = listener;
     }
 
     /**
@@ -129,9 +130,11 @@ public class LackrBackendRequest {
     }
 
     // TODO: "parsedDocument": that is interpolr crap
-    public void postProcess() {
+//    public void postProcess() {
+        /*
         LackrBackendExchange exchange = getExchange();
         try {
+        */
             /*
             if (log.isDebugEnabled()) {
                 log.debug(String.format("%s %s backend %s returned %d (?)", getMethod(), getQuery(), getFrontendRequest()
@@ -155,7 +158,7 @@ public class LackrBackendRequest {
                 getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("X-Ftn-Picor-Endpoint")).incrementAndGet();
             }
             */
-
+/*
             if (this != getFrontendRequest().getRootRequest()
                     && (exchange.getResponse().getStatus() / 100 == 4 || exchange.getResponse().getStatus() / 100 == 5)
                     && exchange.getResponse().getHeader("X-SSI-AWARE") == null)
@@ -165,39 +168,20 @@ public class LackrBackendRequest {
                 parsedDocument = getFrontendRequest().postProcessBodyToDocument(exchange);
             } else
                 parsedDocument = new Document(new DataChunk(new byte[0]));
-
+*/
+        /*
         } catch (Throwable e) {
             e.printStackTrace();
             getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
         }
-    }
-
-    public Document getParsedDocument() {
-        return parsedDocument;
-    }
+        */
+//    }
 
     public void start() throws NotAvailableException, IOException {
         log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
         exchange = getFrontendRequest().getProxy().getBackend().createExchange(this);
         log.debug("Created exchange {}", exchange);
-        exchange.setCompletionListener(new Listener() {
-            
-            @Override
-            public void complete() {
-                try {
-                    postProcess();
-                } finally {
-                    getFrontendRequest().notifySubRequestDone();
-                }
-            }
-
-            @Override
-            public void fail(Throwable t) {
-                getFrontendRequest().addBackendExceptions(t instanceof LackrPresentableError ? t : LackrPresentableError.fromThrowableAndExchange(t, exchange));
-                System.err.println(t);
-                getFrontendRequest().notifySubRequestDone();
-            }
-        });
+        exchange.setCompletionListener(listener);
         exchange.start();
     }
 

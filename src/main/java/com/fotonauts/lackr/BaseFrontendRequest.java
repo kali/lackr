@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
@@ -85,7 +86,7 @@ public class BaseFrontendRequest {
         });
     }
 
-    protected void scheduleUpstreamRequest(final LackrBackendRequest request) throws NotAvailableException {
+    protected void scheduleUpstreamRequest(final LackrBackendRequest request) {
         proxy.getExecutor().execute(new Runnable() {
 
             @Override
@@ -113,7 +114,7 @@ public class BaseFrontendRequest {
                     rootRequest.getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()));
     }
 
-    private void preflightCheck() {
+    protected void preflightCheck() {
     }
 
     public void writeResponse(HttpServletResponse response) throws IOException {
@@ -160,20 +161,23 @@ public class BaseFrontendRequest {
         }
     }
 
-    public void writeSuccessResponse(HttpServletResponse response) throws IOException {
+    protected void writeSuccessResponse(HttpServletResponse response) throws IOException {
         LackrBackendExchange rootExchange = rootRequest.getExchange();
 
         response.setStatus(rootExchange.getResponse().getStatus());
         copyResponseHeaders(response);
 
         log.debug("writing success response for " + rootRequest.getQuery());
-        if (rootRequest.getParsedDocument().length() > 0) {
-            response.setContentLength(rootRequest.getParsedDocument().length());
+        writeContentLengthHeaderAndBody(response);
+        response.flushBuffer(); // force commiting
+    }
+    
+    protected void writeContentLengthHeaderAndBody(HttpServletResponse response) throws IOException {
+        LackrBackendExchange rootExchange = rootRequest.getExchange();
+        if (rootExchange.getResponse().getBodyBytes().length > 0) {
+            response.setContentLength(rootExchange.getResponse().getBodyBytes().length);
             if (request.getMethod() != "HEAD")
-                rootRequest.getParsedDocument().writeTo(response.getOutputStream());
-            response.flushBuffer();
-        } else {
-            response.flushBuffer(); // force commiting
+                response.getOutputStream().write(rootExchange.getResponse().getBodyBytes());
         }
     }
 
@@ -191,7 +195,18 @@ public class BaseFrontendRequest {
                 body = IO.readBytes(request.getInputStream());
 
             rootRequest = new LackrBackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(),
-                    getPathAndQuery(request), null, 0, null, body, buildHttpFields());
+                    getPathAndQuery(request), null, 0, null, body, buildHttpFields(), new Listener() {
+                        
+                        @Override
+                        public void fail(Throwable t) {
+                            addBackendExceptions(t);
+                        }
+                        
+                        @Override
+                        public void complete() {
+                            onBackendRequestComplete();
+                        }
+                    });
             scheduleUpstreamRequest(rootRequest);
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);
@@ -200,6 +215,11 @@ public class BaseFrontendRequest {
         }
     }
 
+    public void onBackendRequestComplete() {
+        log.debug("Processing done, re-dispatching http thread.");
+        continuation.dispatch();           
+    }
+    
     private HttpFields buildHttpFields() {
         HttpFields fields = new HttpFields();
         for (Enumeration<?> e = getRequest().getHeaderNames(); e.hasMoreElements();) {
@@ -225,20 +245,11 @@ public class BaseFrontendRequest {
         return request;
     }
 
-    public void notifySubRequestDone() {
-        log.debug("Sub request done, dispatching.");
-        continuation.dispatch();
-    }
-
     public LackrBackendRequest getRootRequest() {
         return rootRequest;
     }
 
     public BaseProxy getProxy() {
         return proxy;
-    }
-
-    public Document postProcessBodyToDocument(LackrBackendExchange exchange) {
-        return new Document(new Chunk[] { new ConstantChunk(exchange.getResponse().getBodyBytes()) } );
     }
 }
