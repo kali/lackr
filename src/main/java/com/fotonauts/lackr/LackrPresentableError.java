@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import com.fotonauts.lackr.backend.LackrBackendExchange;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 @SuppressWarnings("serial")
 public class LackrPresentableError extends RuntimeException {
@@ -15,6 +16,10 @@ public class LackrPresentableError extends RuntimeException {
 
     public LackrPresentableError(String string, LackrBackendExchange exchange) {
         super(string + " for fragment: " + exchange.getBackendRequest().getQuery());
+    }
+
+    public LackrPresentableError(String string, InterpolrScope sub) {
+        super(string + " for fragment: " + sub.toString());
     }
 
     public static LackrPresentableError fromThrowable(Throwable e) {

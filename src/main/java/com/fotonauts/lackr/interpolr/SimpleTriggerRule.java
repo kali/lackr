@@ -31,7 +31,7 @@ public abstract class SimpleTriggerRule implements Rule {
 
 
     @Override
-    public List<Chunk> parse(DataChunk chunk, Object context) {
+    public List<Chunk> parse(DataChunk chunk, InterpolrScope scope) {
         List<Chunk> result = new ArrayList<Chunk>();
         if(trigger == null) {
             result.add(chunk);
@@ -47,11 +47,11 @@ public abstract class SimpleTriggerRule implements Rule {
                 if (found > 0) {
                     result.add(new DataChunk(chunk.getBuffer(), current, found));
                 }
-                current = found + onFound(result, chunk, found, context);
+                current = found + onFound(result, chunk, found, scope);
             }
         }
         return result;
     }
 
-    abstract protected int onFound(List<Chunk> result, DataChunk chunk, int index, Object context);
+    abstract protected int onFound(List<Chunk> result, DataChunk chunk, int index, InterpolrScope scope);
 }

@@ -6,6 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.mustache.Archive;
 import com.fotonauts.lackr.mustache.MustacheContext;
 import com.github.jknack.handlebars.Handlebars;
@@ -101,7 +102,7 @@ public class MiscelaneousHelpers {
                 template = handlebars.compile(new StringTemplateSource("inner view", templateString));
             } catch (Throwable e) {
                 log.debug("error in mustache partial compile:", e);
-                mustacheContext.getLackrFrontendRequest().addBackendExceptions(e);
+                mustacheContext.getLackrFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 return "";
             }
             try {

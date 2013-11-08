@@ -14,10 +14,10 @@ public abstract class MarkupDetectingRule extends SimpleTriggerRule {
         setTrigger(patterns[0]);
     }
 
-    public abstract Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context);
+    public abstract Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, InterpolrScope scope);
 
     @Override
-    protected int onFound(List<Chunk> result, DataChunk chunk, int startFound, Object context) {
+    protected int onFound(List<Chunk> result, DataChunk chunk, int startFound, InterpolrScope scope) {
         int boundPairs[] = new int[2 * (patterns.length - 1)];
         boolean broken = false;
         int lookahead = startFound + patterns[0].length();
@@ -37,7 +37,7 @@ public abstract class MarkupDetectingRule extends SimpleTriggerRule {
             result.add(new DataChunk(chunk.getBuffer(), startFound, chunk.getStop()));
             return chunk.getStop() - startFound;
         } else {
-            result.add(substitute(chunk.getBuffer(), startFound, boundPairs, lookahead, context));
+            result.add(substitute(chunk.getBuffer(), startFound, boundPairs, lookahead, scope));
             return lookahead - startFound;
         }
     }

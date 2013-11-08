@@ -13,12 +13,12 @@ public abstract class PrefixDetectingRule extends SimpleTriggerRule {
 
     public abstract int lookaheadForEnd(byte[] buffer, int start, int stop);
 
-    public abstract Chunk substitute(byte[] buffer, int start, int stop, Object context);
+    public abstract Chunk substitute(byte[] buffer, int start, int stop, InterpolrScope scope);
 
     @Override
-    protected int onFound(List<Chunk> result, DataChunk chunk, int startFound, Object context) {
+    protected int onFound(List<Chunk> result, DataChunk chunk, int startFound, InterpolrScope scope) {
         int lookahead = lookaheadForEnd(chunk.getBuffer(), startFound, chunk.getStop());
-        result.add(substitute(chunk.getBuffer(), startFound, lookahead, context));
+        result.add(substitute(chunk.getBuffer(), startFound, lookahead, scope));
         return lookahead - startFound;
     }
 }

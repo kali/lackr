@@ -7,6 +7,8 @@ import java.util.List;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
+import com.fotonauts.lackr.MimeType;
+
 public class Interpolr extends AbstractLifeCycle {
 
     private ObjectMapper jacksonObjectMapper;
@@ -18,25 +20,33 @@ public class Interpolr extends AbstractLifeCycle {
 	    jacksonObjectMapper = new ObjectMapper();
 	}
 	
-	public Document parse(byte[] buffer, int start, int stop, Object context) {
+	public void processResult(InterpolrScope scope) {
+        String mimeType = scope.getResultMimeType();
+        if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
+            scope.setParsedDocument(parse(scope.getBodyBytes(), scope));
+        else
+            scope.setParsedDocument(new Document(new DataChunk(scope.getBodyBytes())));
+	}
+
+	public Document parse(byte[] buffer, int start, int stop, InterpolrScope scope) {
 		Document chunks = new Document();
 		chunks.add(new DataChunk(buffer, start, stop));
 		for (Rule rule : getRules()) {
-			chunks = parse(rule, chunks, context);
+			chunks = parse(rule, chunks, scope);
 		}
 		return chunks;
     }
 
 	
-	public Document parse(byte[] data, Object context) {
-		return parse(data, 0, data.length, context);
+	public Document parse(byte[] data, InterpolrScope scope) {
+		return parse(data, 0, data.length, scope);
 	}
 
-	public Document parse(Rule rule, Document input, Object context) {
+	public Document parse(Rule rule, Document input, InterpolrScope scope) {
 		Document result = new Document();
 		for (Chunk chunk : input.getChunks()) {
 			if (chunk instanceof DataChunk) {
-				List<Chunk> replacements = rule.parse((DataChunk) chunk, context);
+				List<Chunk> replacements = rule.parse((DataChunk) chunk, scope);
 				result.addAll(replacements);
 			} else
 				result.add(chunk);
@@ -61,7 +71,6 @@ public class Interpolr extends AbstractLifeCycle {
     public void setRules(Rule[] rules2) {
         rules = Arrays.asList(rules2);
     }
-
 
     public ObjectMapper getJacksonObjectMapper() {
         return jacksonObjectMapper;

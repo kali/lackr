@@ -3,15 +3,14 @@ package com.fotonauts.lackr.mustache;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class ArchiveChunk extends ParsedJsonChunk {
 
     private String id;
 
-    public ArchiveChunk(String id, byte[] buffer, int start, int stop, LackrBackendRequest request) {
-        super(buffer, start, stop, request);
-        this.request = request;
+    public ArchiveChunk(String id, byte[] buffer, int start, int stop, InterpolrScope scope) {
+        super(buffer, start, stop, scope);
         this.id = id;
     }
 

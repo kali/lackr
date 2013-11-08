@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
 import com.fotonauts.lackr.mustache.helpers.MediaDerivativesUrlHelper;
 import com.fotonauts.lackr.mustache.helpers.MiscelaneousHelpers;
@@ -29,14 +29,14 @@ public class MustacheContext {
     private Map<String, Document> registeredArchiveDocuments;
     private Map<String, Archive> expandedArchives;
 
-    private BaseFrontendRequest baseFrontendRequest;
+    private InterpolrContext interpolrContext;
 
-    public BaseFrontendRequest getLackrFrontendRequest() {
-        return baseFrontendRequest;
+    public InterpolrContext getLackrFrontendRequest() {
+        return interpolrContext;
     }
 
-    public MustacheContext(BaseFrontendRequest baseFrontendRequest) {
-        this.baseFrontendRequest = baseFrontendRequest;
+    public MustacheContext(InterpolrContext interpolrContext) {
+        this.interpolrContext = interpolrContext;
         registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());
         compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>()); // not sure this one has to be synced
         registeredArchiveDocuments = Collections.synchronizedMap(new HashMap<String, Document>());
@@ -73,7 +73,7 @@ public class MustacheContext {
         for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
             registered.getValue().check();
             Map<String, Object> parsedData = ParsedJsonChunk
-                    .parse(registered.getValue(), baseFrontendRequest, registered.getKey());
+                    .parse(registered.getValue(), interpolrContext, registered.getKey());
             if (parsedData != null)
                 expandedArchives.put(registered.getKey(), new Archive(parsedData));
         }
@@ -91,7 +91,7 @@ public class MustacheContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                baseFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
+                interpolrContext.addBackendExceptions(new LackrPresentableError(builder.toString()));
             } catch (IOException e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Handlebars: IOException\n");
@@ -101,7 +101,7 @@ public class MustacheContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                baseFrontendRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
+                interpolrContext.addBackendExceptions(new LackrPresentableError(builder.toString()));
             }
 
         }

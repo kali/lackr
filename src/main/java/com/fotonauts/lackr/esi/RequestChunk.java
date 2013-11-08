@@ -4,18 +4,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class RequestChunk implements Chunk {
 
 	private boolean isChecked = false;
 	
-	private LackrBackendRequest sub;
+	private InterpolrScope sub;
 	
 	private ESIIncludeRule rule;
 	
-	public RequestChunk(LackrBackendRequest sub, ESIIncludeRule rule) {
+	public RequestChunk(InterpolrScope sub, ESIIncludeRule rule) {
 		this.sub = sub;
 		this.rule = rule;
     }
@@ -27,7 +27,7 @@ public class RequestChunk implements Chunk {
 
 	@Override
     public String toDebugString() {
-	    return "{{{" + rule.getClass().getSimpleName() + ":" + sub.getQuery() + "}}}";
+	    return "{{{" + rule.getClass().getSimpleName() + ":" + sub.toString() + "}}}";
     }
 
 	@Override
@@ -40,7 +40,7 @@ public class RequestChunk implements Chunk {
 		if(isChecked)
 			return;
 		if(sub.getParsedDocument() == null)
-		    sub.getFrontendRequest().addBackendExceptions(new LackrPresentableError("expected a parsed document here, found nothing", sub.getExchange()));
+		    sub.getInterpolrContext().addBackendExceptions(new LackrPresentableError("expected a parsed document here, found nothing", sub));
 		else {
 		    sub.getParsedDocument().check();
 		    rule.check(sub);

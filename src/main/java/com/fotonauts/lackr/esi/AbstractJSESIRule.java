@@ -8,13 +8,11 @@ import java.util.Map;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.InterpolrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class AbstractJSESIRule extends ESIIncludeRule {
 
@@ -23,17 +21,17 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(LackrBackendRequest exchange) {
-		String mimeType = getMimeType(exchange.getExchange());
+	public Chunk filterDocumentAsChunk(InterpolrScope scope) {
+	    String mimeType = scope.getResultMimeType();
 		if (MimeType.isJS(mimeType))
-			return exchange.getParsedDocument();
+			return scope.getParsedDocument();
 		else if (MimeType.isML(mimeType)) {
-			if (exchange.getParsedDocument() == null || exchange.getParsedDocument().length() == 0)
+			if (scope.getParsedDocument() == null || scope.getParsedDocument().length() == 0)
 				return NULL_CHUNK;
 			else
-				return new JsonQuotingChunk(exchange.getParsedDocument(), true);
+				return new JsonQuotingChunk(scope.getParsedDocument(), true);
 		} else if (MimeType.isTextPlain(mimeType)) {
-			return new JsonQuotingChunk(exchange.getParsedDocument(), true);
+			return new JsonQuotingChunk(scope.getParsedDocument(), true);
 		}
 		return NULL_CHUNK;
 	}
@@ -44,24 +42,27 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public void check(LackrBackendRequest request) {
-		LackrBackendExchange exchange = request.getExchange();
+	public void check(InterpolrScope scope) {
+		//LackrBackendExchange exchange = request.getExchange();
 		// FIXME this is here to find a bug. it is probably unecessary as it
 		// will be parsed later
+	    /*
 		if(!MimeType.isJS(exchange.getResponse().getResponseHeaderValue("Content-Type")))
 			return;
 		InterpolrFrontendRequest front = (InterpolrFrontendRequest) exchange.getBackendRequest().getFrontendRequest();
 		ObjectMapper mapper = front.getInterpolr().getJacksonObjectMapper();
+		*/
+        ObjectMapper mapper = scope.getInterpolr().getJacksonObjectMapper();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			baos.write("{ \"placeholder\" : ".getBytes());
-			request.getParsedDocument().writeTo(baos);
+			scope.getParsedDocument().writeTo(baos);
 			baos.write("}".getBytes());
 			mapper.readValue(baos.toByteArray(), Map.class);
 		} catch (JsonParseException e) {
 			StringBuilder builder = new StringBuilder();
 			builder.append("JsonParseException: a fragment supposed to be a json value does not parse:\n");
-			builder.append("url: " + exchange.getBackendRequest().getQuery() + "\n");
+			builder.append("url: " + scope.toString() + "\n");
 			builder.append(e.getMessage() + "\n");
 			builder.append("\n");
 			try {
@@ -70,9 +71,9 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 				// no way
 			} 
 			builder.append("\n\n");
-			exchange.getBackendRequest().getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
+			scope.getInterpolrContext().addBackendExceptions(new LackrPresentableError(builder.toString()));
 		} catch (IOException e) {
-			exchange.getBackendRequest().getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
+		    scope.getInterpolrContext().addBackendExceptions(LackrPresentableError.fromThrowable(e));
 		}
 	}
 

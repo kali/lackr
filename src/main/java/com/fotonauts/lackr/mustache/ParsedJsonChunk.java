@@ -14,16 +14,16 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.interpolr.InterpolrContext;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public abstract class ParsedJsonChunk implements Chunk {
 
     protected Document inner;
-    protected LackrBackendRequest request;
+    protected InterpolrScope scope;
 
     @SuppressWarnings("unchecked")
     public static void inlineWrapperJsonEvaluation(Object data) {
@@ -56,10 +56,10 @@ public abstract class ParsedJsonChunk implements Chunk {
         }
     }
 
-    public ParsedJsonChunk(byte[] buffer, int start, int stop, LackrBackendRequest request) {
+    public ParsedJsonChunk(byte[] buffer, int start, int stop, InterpolrScope scope) {
         super();
-        this.request = request;
-        inner = request.getFrontendRequest().getService().getInterpolr().parse(buffer, start, stop, request);
+        this.scope = scope;
+        inner = scope.getInterpolr().parse(buffer, start, stop, scope);
     }
 
     protected static String contentAsDebugString(Chunk inner, int lineNumber, int columnNumber) {
@@ -84,13 +84,13 @@ public abstract class ParsedJsonChunk implements Chunk {
     }
 
     public String prettyPrint(Map<String, Object> data) {
-        return prettyPrint(data, request);
+        return prettyPrint(data, scope);
     }
 
-    public static String prettyPrint(Map<String, Object> data, LackrBackendRequest request) {
+    public static String prettyPrint(Map<String, Object> data, InterpolrScope scope) {
         ObjectMapper mapper = null;
-        if (request != null)
-            mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
+        if (scope != null)
+            mapper = scope.getInterpolr().getJacksonObjectMapper();
         else
             mapper = new ObjectMapper();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -110,9 +110,9 @@ public abstract class ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    protected static Map<String, Object> parse(Chunk inner, BaseFrontendRequest feRequest, String context) {
+    protected static Map<String, Object> parse(Chunk inner, InterpolrContext context, String contextString) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectMapper mapper = feRequest.getService().getJacksonObjectMapper();
+        ObjectMapper mapper = context.getInterpolr().getJacksonObjectMapper();
         try {
             Map<String, Object> data = null;
             inner.writeTo(baos);
@@ -134,12 +134,12 @@ public abstract class ParsedJsonChunk implements Chunk {
             builder.append(e.getMessage() + "\n");
             builder.append(contentAsDebugString(inner, e.getLocation().getLineNr(), e.getLocation().getColumnNr()));
             builder.append("\n");
-            feRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
+            context.addBackendExceptions(new LackrPresentableError(builder.toString()));
         } catch (IOException e) {
             StringBuilder builder = new StringBuilder();
             builder.append("While parsing json for " + context + ": IOException\n");
             builder.append(e.getMessage() + "\n");
-            feRequest.addBackendExceptions(new LackrPresentableError(builder.toString()));
+            context.addBackendExceptions(new LackrPresentableError(builder.toString()));
         }
         return null;
     }

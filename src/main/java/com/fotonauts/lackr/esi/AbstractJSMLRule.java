@@ -2,9 +2,9 @@ package com.fotonauts.lackr.esi;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class AbstractJSMLRule extends ESIIncludeRule {
 
@@ -18,18 +18,18 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 	}
 
 	@Override
-	public Chunk filterDocumentAsChunk(LackrBackendRequest request) {
-		if (request.getParsedDocument() == null || request.getParsedDocument().length() == 0)
+	public Chunk filterDocumentAsChunk(InterpolrScope scope) {
+		if (scope.getParsedDocument() == null || scope.getParsedDocument().length() == 0)
 			return NULL_CHUNK;
-		return new JsonQuotingChunk(request.getParsedDocument(), false);
+		return new JsonQuotingChunk(scope.getParsedDocument(), false);
 	}
 
 	@Override
-	public void check(LackrBackendRequest request) {
-		String mimeType = getMimeType(request.getExchange());
+	public void check(InterpolrScope scope) {
+		String mimeType = scope.getResultMimeType();
 		if (MimeType.isJS(mimeType)) {
-			request.getFrontendRequest().addBackendExceptions(
-			        new LackrPresentableError("unsupported ESI type (js* in js(*ML) context", request.getExchange()));
+			scope.getInterpolrContext().addBackendExceptions(
+			        new LackrPresentableError("unsupported ESI type (js* in js(*ML) context", scope));
 		}
 	}
 }

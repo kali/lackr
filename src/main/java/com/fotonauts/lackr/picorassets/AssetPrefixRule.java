@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.PrefixDetectingRule;
 
 public class AssetPrefixRule extends PrefixDetectingRule {
@@ -18,7 +19,7 @@ public class AssetPrefixRule extends PrefixDetectingRule {
     }
 
     @Override
-    public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
+    public Chunk substitute(byte[] buffer, int start, int stop, InterpolrScope scope) {
         try {
             return new ConstantChunk(resolver.resolve(new String(buffer, start, stop - start, "UTF-8")).getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {

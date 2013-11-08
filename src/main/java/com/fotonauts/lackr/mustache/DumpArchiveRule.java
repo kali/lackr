@@ -9,10 +9,9 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.fotonauts.lackr.InterpolrFrontendRequest;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
 
 public class DumpArchiveRule extends MarkupDetectingRule {
@@ -20,12 +19,12 @@ public class DumpArchiveRule extends MarkupDetectingRule {
     public static class DumpArchiveChunk implements Chunk {
 
         private String name;
-        private LackrBackendRequest request;
+        private InterpolrScope scope;
         private Chunk result;
         
-        public DumpArchiveChunk(String archiveName, LackrBackendRequest request) {
+        public DumpArchiveChunk(String archiveName, InterpolrScope scope) {
             this.name = archiveName;
-            this.request = request;
+            this.scope = scope;
         }
         
         @Override
@@ -45,9 +44,8 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 
         @Override
         public void check() {
-            InterpolrFrontendRequest front = (InterpolrFrontendRequest) request.getFrontendRequest();
-            Archive archive = front.getMustacheContext().getArchive(name);
-            ObjectMapper mapper = front.getInterpolr().getJacksonObjectMapper();
+            Archive archive = scope.getInterpolrContext().getMustacheContext().getArchive(name);
+            ObjectMapper mapper = scope.getInterpolr().getJacksonObjectMapper();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {
                 mapper.defaultPrettyPrintingWriter().writeValue(baos, archive.getData());
@@ -71,13 +69,13 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 	}
 
 	@Override
-	public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, Object context) {
+	public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, InterpolrScope scope) {
         String archiveId = null;
         try {
             archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
         } catch (UnsupportedEncodingException e) {
             /* no thanks */
         }
-	    return new DumpArchiveChunk(archiveId, (LackrBackendRequest) context);
+	    return new DumpArchiveChunk(archiveId, scope);
 	}
 }

@@ -33,7 +33,7 @@ public class SimpleSubstitutionRule extends PrefixDetectingRule {
     }
 
     @Override
-    public Chunk substitute(byte[] buffer, int start, int stop, Object context) {
+    public Chunk substitute(byte[] buffer, int start, int stop, InterpolrScope scope) {
         return replacement;
     }
 	

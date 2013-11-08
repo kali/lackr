@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.github.jknack.handlebars.Template;
 
 public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
@@ -18,8 +18,8 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     Chunk result = EMPTY;
     String name;
 
-    public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, LackrBackendRequest request) {
-        super(buffer, start, stop, request);
+    public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
+        super(buffer, start, stop, scope);
         this.name = name;
     }
 
@@ -28,8 +28,8 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     public void check() {
         inner.check();
         Map<String, Object> data = null;
-        data = parse(inner, request.getFrontendRequest(), name);
-        MustacheContext context = request.getFrontendRequest().getMustacheContext();
+        data = parse(inner, scope.getInterpolrContext(), name);
+        MustacheContext context = scope.getInterpolrContext().getMustacheContext();
         inlineWrapperJsonEvaluation(data);
 
         Map<String, Object> wrapper = new HashMap<>();
@@ -41,7 +41,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
         if (template == null) {
             StringBuilder builder = new StringBuilder();
             builder.append("Mustache template not found\n");
-            builder.append("url: " + request.getQuery() + "\n");
+            builder.append("url: " + scope.toString() + "\n");
             builder.append("template name: " + name + "\n");
             builder.append("\nexpanded data:\n");
             builder.append(contentAsDebugString(inner, -1, -1));
@@ -52,21 +52,21 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
                 builder.append(" ");
             }
             builder.append("\n");
-            request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
+            scope.getInterpolrContext().addBackendExceptions(new LackrPresentableError(builder.toString()));
         } else
             try {
                 result = new ConstantChunk(context.eval(template, data).getBytes("UTF-8"));
             } catch (Throwable e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("MustacheException\n");
-                builder.append("url: " + request.getQuery() + "\n");
+                builder.append("url: " + scope + "\n");
                 builder.append(e.getMessage() + "\n");
                 if (e.getCause() != null && e.getCause() != e)
                     builder.append("caused by: " + e.getCause().getMessage() + "\n");
                 builder.append("template name: " + name + "\n");
                 String[] lines;
                 try {
-                    lines = request.getFrontendRequest().getMustacheContext().getExpandedTemplate(name).split("\n");
+                    lines = scope.getInterpolrContext().getMustacheContext().getExpandedTemplate(name).split("\n");
                     for (int i = 0; i < lines.length; i++) {
                         builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                     }
@@ -75,7 +75,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
                 }
                 builder.append("\nexpanded data:\n");
                 builder.append(contentAsDebugString(inner, -1, -1));
-                request.getFrontendRequest().addBackendExceptions(new LackrPresentableError(builder.toString()));
+                scope.getInterpolrContext().addBackendExceptions(new LackrPresentableError(builder.toString()));
             }
     }
 

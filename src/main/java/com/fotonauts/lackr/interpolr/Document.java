@@ -23,6 +23,8 @@ public class Document implements Chunk {
     }
 
     public String toDebugString() {
+        if(chunks == null)
+            return "{EMPTY DOC}";
 		StringBuilder builder = new StringBuilder();
 		for(Chunk chunk: chunks) {
 			builder.append(chunk.toDebugString());
@@ -31,6 +33,8 @@ public class Document implements Chunk {
     }
 
 	public int length() {
+        if(chunks == null)
+            return 0;
 		int l = 0;
 		for (Chunk chunk : chunks)
 			l += chunk.length();
@@ -38,12 +42,16 @@ public class Document implements Chunk {
 	}
 
 	public  void writeTo(OutputStream stream) throws IOException {
+        if(chunks == null)
+            return;
 		for (Chunk chunk : chunks) {
 			chunk.writeTo(stream);
 		}
 	}
 	
 	public void check() {
+	    if(chunks == null)
+	        return;
 		for (Chunk chunk : chunks) {
 			chunk.check();
 		}		
