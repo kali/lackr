@@ -8,33 +8,19 @@ import java.net.URLClassLoader;
 import javax.servlet.Filter;
 
 import org.eclipse.jetty.util.StringUtil;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.backend.Backend;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 
-public class InProcessFemtor implements Backend {
+public class InProcessFemtor extends AbstractLifeCycle implements Backend {
 
 	Filter filter;
 	private String femtorHandlerClass;
 	private String femtorJar;
 	private URLClassLoader loader;
-    private BaseGatewayMetrics[] upstreamServices;
 	
-
-	public InProcessFemtor() throws Exception {
-	    this.upstreamServices = new BaseGatewayMetrics[] { new BaseGatewayMetrics() {
-
-            @Override
-            public String getMBeanName() {
-                return "InProcessFemtor";
-            }
-	        
-	    } };
-	    this.upstreamServices[0].start();
-	}
-
 	@SuppressWarnings("deprecation")
 	public void init() throws Exception {
 		Class<?> c = null;
@@ -70,15 +56,6 @@ public class InProcessFemtor implements Backend {
 	}
 
 	@Override
-	public void stop() throws Exception {
-	}
-
-    @Override
-    public BaseGatewayMetrics[] getGateways() {
-        return upstreamServices;
-    }
-
-    @Override
     public String getName() {
         return "in-process-femtor";
     }

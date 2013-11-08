@@ -45,7 +45,7 @@ public class BaseTestLackrFullStack {
     protected int femtorStubPort = 38001;
     protected Server lackrServer;
     protected int lackrPort = 38002;
-    protected Service lackrService;
+    protected InterpolrProxy lackrService;
     protected HttpClient client;
 
     protected RemoteControlledStub remoteControlledStub;

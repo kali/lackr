@@ -2,7 +2,7 @@ package com.fotonauts.lackr.esi;
 
 import org.eclipse.jetty.http.HttpHeader;
 
-import com.fotonauts.lackr.BaseFrontendRequest;
+import com.fotonauts.lackr.InterpolrFrontendRequest;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
@@ -46,7 +46,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
 		String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
 		LackrBackendRequest sub;
 		try {
-			BaseFrontendRequest front = request.getFrontendRequest();
+			InterpolrFrontendRequest front = (InterpolrFrontendRequest) request.getFrontendRequest();
 			sub = front.getSubBackendExchange(url, getSyntaxIdentifier(), request);
 		} catch (NotAvailableException e) {
 			throw new RuntimeException("no backend available for fragment: " + request.getQuery());

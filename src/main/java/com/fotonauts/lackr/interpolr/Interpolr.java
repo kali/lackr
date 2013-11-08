@@ -4,10 +4,20 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Interpolr {
+import org.codehaus.jackson.map.ObjectMapper;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
+public class Interpolr extends AbstractLifeCycle {
+
+    private ObjectMapper jacksonObjectMapper;
+    
 	private List<Rule> rules;
 
+	@Override
+	protected void doStart() throws Exception {
+	    jacksonObjectMapper = new ObjectMapper();
+	}
+	
 	public Document parse(byte[] buffer, int start, int stop, Object context) {
 		Document chunks = new Document();
 		chunks.add(new DataChunk(buffer, start, stop));
@@ -48,9 +58,13 @@ public class Interpolr {
 		getRules().add(rule);
 	}
 
-
     public void setRules(Rule[] rules2) {
         rules = Arrays.asList(rules2);
+    }
+
+
+    public ObjectMapper getJacksonObjectMapper() {
+        return jacksonObjectMapper;
     }
 
 }

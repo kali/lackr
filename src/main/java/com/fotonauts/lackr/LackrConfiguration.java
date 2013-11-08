@@ -38,7 +38,7 @@ public class LackrConfiguration {
     private CompositeConfiguration propertySource;
     private Backend femtorBackend;
     private HttpClient client;
-    private Service service;
+    private InterpolrProxy service;
     private Backend varnishAndPicorBackend;
     private RapportrService rapportrService;
 
@@ -72,14 +72,14 @@ public class LackrConfiguration {
         return rapportrService;
     }
 
-    public final Service getLackrService() throws Exception {
+    public final InterpolrProxy getLackrService() throws Exception {
         if (service == null) {
-            service = new Service();
+            service = new InterpolrProxy();
             service.setTimeout(propertySource.getInt("lackr.timeout"));
             service.setInterpolr(buildInterpolr());
-            service.setGraphiteHostAndPort(propertySource.getString("lackr.graphite"));
-            service.setGrid(propertySource.getString("lackr.grid"));
-            service.setRapportr(getRapportrService());
+//            service.setGraphiteHostAndPort(propertySource.getString("lackr.graphite"));
+//            service.setGrid(propertySource.getString("lackr.grid"));
+//            service.setRapportr(getRapportrService());
             service.setBackend(new TryPassBackend(getFemtorBackend(), getVarnishPicorBackend()));
         }
         return service;

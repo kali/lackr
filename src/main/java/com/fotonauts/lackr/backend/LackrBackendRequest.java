@@ -162,14 +162,7 @@ public class LackrBackendRequest {
                 getFrontendRequest().addBackendExceptions(
                         new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponse().getStatus()));
             if (exchange.getResponse().getBodyBytes() != null && exchange.getResponse().getBodyBytes().length > 0) {
-                // FIXME kick interpolr
-                /*
-                String mimeType = exchange.getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString());
-                if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
-                    parsedDocument = getFrontendRequest().getProxy().getInterpolr().parse(exchange.getResponse().getBodyBytes(), this);
-                else
-                */
-                    parsedDocument = new Document(new DataChunk(exchange.getResponse().getBodyBytes()));
+                parsedDocument = getFrontendRequest().postProcessBodyToDocument(exchange);
             } else
                 parsedDocument = new Document(new DataChunk(new byte[0]));
 

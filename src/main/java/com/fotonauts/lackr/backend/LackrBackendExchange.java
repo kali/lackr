@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.commons.RapportrService;
-import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
@@ -39,8 +38,6 @@ public abstract class LackrBackendExchange {
         this.lackrBackendRequest = spec;
     }
 
-    public abstract BaseGatewayMetrics getUpstream() throws NotAvailableException;
-    
     public void start() throws NotAvailableException {
         log.debug("Starting exchange {}", this);
         /*

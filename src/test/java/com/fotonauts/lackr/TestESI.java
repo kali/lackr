@@ -26,6 +26,7 @@ public class TestESI extends BaseTestSubstitution {
 
     @Test
     public void testJsInHtmlShouldCrash() throws Exception {
+        System.err.println(expand("<!--# include virtual=\"/esi.json\" -->"));
         assertNull(expand("<!--# include virtual=\"/esi.json\" -->"));
     }
 

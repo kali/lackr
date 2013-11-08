@@ -5,7 +5,6 @@ import java.io.PrintStream;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.backend.Backend;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
@@ -36,11 +35,6 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
         ps.format("Jetty HTTP Client\n");
         actualClient.dumpStdErr();
         director.dumpStatus(ps);
-    }
-
-    @Override
-    public BaseGatewayMetrics[] getGateways() {
-        return director.getGateways();
     }
 
     @Override

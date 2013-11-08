@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.ConstantChunk;
+import com.fotonauts.lackr.interpolr.Document;
 
 public class BaseFrontendRequest {
 
@@ -54,7 +57,7 @@ public class BaseFrontendRequest {
         this.proxy = baseProxy;
         this.request = request;
         this.continuation = request.startAsync();
-// FIXME        this.continuation.setTimeout(getService().getTimeout() * 1000);
+        // FIXME        this.continuation.setTimeout(getService().getTimeout() * 1000);
         this.continuation.setTimeout(5 * 1000);
         this.continuation.addListener(new AsyncListener() {
 
@@ -82,7 +85,7 @@ public class BaseFrontendRequest {
         });
     }
 
-    private void scheduleUpstreamRequest(final LackrBackendRequest request) throws NotAvailableException {
+    protected void scheduleUpstreamRequest(final LackrBackendRequest request) throws NotAvailableException {
         proxy.getExecutor().execute(new Runnable() {
 
             @Override
@@ -174,18 +177,21 @@ public class BaseFrontendRequest {
         }
     }
 
+    public static String getPathAndQuery(HttpServletRequest request) {
+        String uri = request.getPathInfo();
+        uri = StringUtil.isNotBlank(request.getQueryString()) ? uri + '?' + request.getQueryString() : uri;
+        uri = uri.replace(" ", "%20");
+        return uri;
+    }
+
     public void kick() {
         try {
             byte[] body = null;
             if (request.getContentLength() > 0)
                 body = IO.readBytes(request.getInputStream());
 
-            String uri = request.getPathInfo();
-            uri = StringUtil.isNotBlank(request.getQueryString()) ? uri + '?' + request.getQueryString() : uri;
-            uri = uri.replace(" ", "%20");
-
-            rootRequest = new LackrBackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(), uri, null, 0,
-                    null, body, buildHttpFields());
+            rootRequest = new LackrBackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(),
+                    getPathAndQuery(request), null, 0, null, body, buildHttpFields());
             scheduleUpstreamRequest(rootRequest);
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);
@@ -230,5 +236,9 @@ public class BaseFrontendRequest {
 
     public BaseProxy getProxy() {
         return proxy;
+    }
+
+    public Document postProcessBodyToDocument(LackrBackendExchange exchange) {
+        return new Document(new Chunk[] { new ConstantChunk(exchange.getResponse().getBodyBytes()) } );
     }
 }

@@ -2,13 +2,14 @@ package com.fotonauts.lackr.backend.trypass;
 
 import java.io.PrintStream;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+
 import com.fotonauts.lackr.backend.Backend;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
-public class TryPassBackend implements Backend {
+public class TryPassBackend extends AbstractLifeCycle implements Backend {
 
     private Backend[] backends;
     
@@ -28,14 +29,15 @@ public class TryPassBackend implements Backend {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void doStart() throws Exception {
         for(Backend b: backends)
-            b.stop();
+            b.start();
     }
 
     @Override
-    public BaseGatewayMetrics[] getGateways() {
-        return new BaseGatewayMetrics[0];
+    public void doStop() throws Exception {
+        for(Backend b: backends)
+            b.stop();
     }
 
     @Override

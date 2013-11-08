@@ -151,8 +151,10 @@ public class MustacheContext {
     }
 
     public String eval(Template template, Map<String, Object> data) throws IOException {
+        /* FIXME
         data.put("_ftn_inline_images", baseFrontendRequest.getUserAgent().supportsInlineImages());
         data.put("_ftn_locale", baseFrontendRequest.getPreferredLocale());
+        */
         data.put("_ftn_mustache_context", this);
         return template.apply(data);
     }

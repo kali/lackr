@@ -14,9 +14,7 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.HttpDirectorInterface;
-import com.fotonauts.lackr.HttpHost;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.LackrBackendResponse;
@@ -26,25 +24,14 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
 
     static Logger log = LoggerFactory.getLogger(ClientLackrBackendExchange.class);
 
-    //	ContentExchange jettyContentExchange;
-    private HttpDirectorInterface director;
-    private HttpHost upstream;
     private Request request;
     protected Result result;
     private LackrBackendResponse response;
     private byte[] responseBody;
 
-    @Override
-    public BaseGatewayMetrics getUpstream() throws NotAvailableException {
-        if (upstream == null)
-            upstream = director.getHostFor(getBackendRequest());
-        return upstream;
-    }
-
     public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, HttpDirectorInterface director,
             LackrBackendRequest spec) throws NotAvailableException {
         super(backend, spec);
-        this.director = director;
         String url = director.getHostFor(spec).getHostname() + getBackendRequest().getQuery();
         request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));

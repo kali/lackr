@@ -30,7 +30,7 @@ public class Test304 extends BaseTestLackrFullStack {
 	}
 
 	protected ContentResponse run(final String testPage, String etag) throws IOException, InterruptedException, TimeoutException, ExecutionException {
-		remoteControlledStub.set(new AbstractHandler() {
+		remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 			
 			@Override
 			public void handle(String target, org.eclipse.jetty.server.Request request, HttpServletRequest baseRequest, HttpServletResponse response)

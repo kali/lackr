@@ -3,10 +3,8 @@ package com.fotonauts.lackr.backend.inprocess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class FemtorExchange extends LackrBackendExchange {
 
@@ -32,10 +30,5 @@ public class FemtorExchange extends LackrBackendExchange {
 	public FemtorResponse getResponse() {
 		return response;
 	}
-
-    @Override
-    public BaseGatewayMetrics getUpstream() throws NotAvailableException {
-        return inProcessFemtor.getGateways()[0];
-    }
 
 }

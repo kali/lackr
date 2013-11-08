@@ -27,7 +27,7 @@ public abstract class BaseTestSubstitution extends BaseTestLackrFullStack {
 	
 	public BaseTestSubstitution() throws Exception {
 		super();
-    	remoteControlledStub.set(new AbstractHandler() {
+    	remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
     
     		public void handle(String target, Request baseRequest, HttpServletRequest request,
     		        HttpServletResponse response) throws IOException, ServletException {

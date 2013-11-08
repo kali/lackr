@@ -1,6 +1,7 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -30,7 +31,7 @@ public class TestArchive extends BaseTestSubstitution {
 
         String page = archive + TextUtils.S(/*DUMP: <!-- lackr:mustache:dump archive="archive_1" -->*/);
         String result = expand(page);
-
+        assertNotNull(result);
         assertContains(result, archive); // archive is not swallowed
         assertContains(result, TextUtils.S(
 /*

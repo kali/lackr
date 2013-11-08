@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.backend.Backend;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
@@ -61,11 +60,6 @@ public class TryPassBackendExchange extends LackrBackendExchange {
 
         });
         subExchange.start();
-    }
-
-    @Override
-    public BaseGatewayMetrics getUpstream() throws NotAvailableException {
-        return null;
     }
 
     @Override

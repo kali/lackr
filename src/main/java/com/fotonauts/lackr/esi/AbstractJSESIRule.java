@@ -8,6 +8,7 @@ import java.util.Map;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.fotonauts.lackr.InterpolrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
@@ -49,7 +50,8 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 		// will be parsed later
 		if(!MimeType.isJS(exchange.getResponse().getResponseHeaderValue("Content-Type")))
 			return;
-		ObjectMapper mapper = exchange.getBackendRequest().getFrontendRequest().getService().getJacksonObjectMapper();
+		InterpolrFrontendRequest front = (InterpolrFrontendRequest) exchange.getBackendRequest().getFrontendRequest();
+		ObjectMapper mapper = front.getInterpolr().getJacksonObjectMapper();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			baos.write("{ \"placeholder\" : ".getBytes());

@@ -9,6 +9,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.fotonauts.lackr.InterpolrFrontendRequest;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
@@ -44,8 +45,9 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 
         @Override
         public void check() {
-            Archive archive = request.getFrontendRequest().getMustacheContext().getArchive(name);
-            ObjectMapper mapper = request.getFrontendRequest().getService().getJacksonObjectMapper();
+            InterpolrFrontendRequest front = (InterpolrFrontendRequest) request.getFrontendRequest();
+            Archive archive = front.getMustacheContext().getArchive(name);
+            ObjectMapper mapper = front.getInterpolr().getJacksonObjectMapper();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {
                 mapper.defaultPrettyPrintingWriter().writeValue(baos, archive.getData());
