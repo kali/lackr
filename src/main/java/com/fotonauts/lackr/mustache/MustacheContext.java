@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
@@ -22,6 +26,8 @@ import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 
 public class MustacheContext {
+
+    static Logger log = LoggerFactory.getLogger(MustacheContext.class);
 
     private Handlebars handlebars;
     private Map<String, Document> registeredTemplatesDocument;
@@ -70,10 +76,10 @@ public class MustacheContext {
     }
 
     public void checkAndCompileAll() {
+        log.debug("checkAndCompileAll");
         for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
             registered.getValue().check();
-            Map<String, Object> parsedData = ParsedJsonChunk
-                    .parse(registered.getValue(), interpolrContext, registered.getKey());
+            Map<String, Object> parsedData = ParsedJsonChunk.parse(registered.getValue(), interpolrContext, registered.getKey());
             if (parsedData != null)
                 expandedArchives.put(registered.getKey(), new Archive(parsedData));
         }
@@ -108,15 +114,26 @@ public class MustacheContext {
     }
 
     public void registerTemplate(String name, Document template) {
+        log.debug("registerTemplate({}, {})", name, template);
         registeredTemplatesDocument.put(name, template);
     }
 
     public void registerArchive(String name, Document archive) {
+        log.debug("registerArchive({}, {})", name, archive);
         registeredArchiveDocuments.put(name, archive);
     }
 
     public Template get(String templateName) {
-        return compiledTemplates.get(templateName);
+        Template t = compiledTemplates.get(templateName);
+        if (log.isDebugEnabled() && t != null) {
+            String templateText = t.text().trim();
+            if (templateText.length() > 30)
+                t.text().trim().substring(0, 30);
+            log.debug("get(\"{}\") = \"{}[...]\"", templateName, StringEscapeUtils.escapeJava(templateText));
+        }
+        if(t == null)
+            log.warn("Template {} not found.", templateName);
+        return t;
     }
 
     public String getExpandedTemplate(String name) {
@@ -130,8 +147,9 @@ public class MustacheContext {
     }
 
     public Document getTemplate(String name) {
-        System.err.println("REQUIRE: " + name);
-        return registeredTemplatesDocument.get(name);
+        Document doc = registeredTemplatesDocument.get(name);
+        log.debug("getTemplate({}) = {}", name, doc);
+        return doc;
     }
 
     public String[] getAllNames() {

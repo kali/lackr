@@ -120,9 +120,11 @@ public class BaseTestLackrFullStack {
         };
 
         lackrServer = new Server();
-        lackrServer.setHandler(configuration.getLackrService());
+        InterpolrProxy proxy = configuration.getLackrService();
+        lackrServer.setHandler(proxy);
         lackrStubConnector = new ServerConnector(lackrServer);
         lackrServer.addConnector(lackrStubConnector);
+        lackrServer.addBean(configuration.getLackrService());
         lackrServer.start();
 
         lackrPort = lackrStubConnector.getLocalPort();

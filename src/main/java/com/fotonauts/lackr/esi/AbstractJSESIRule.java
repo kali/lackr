@@ -43,15 +43,8 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 
 	@Override
 	public void check(InterpolrScope scope) {
-		//LackrBackendExchange exchange = request.getExchange();
-		// FIXME this is here to find a bug. it is probably unecessary as it
-		// will be parsed later
-	    /*
-		if(!MimeType.isJS(exchange.getResponse().getResponseHeaderValue("Content-Type")))
+		if(!MimeType.isJS(scope.getResultMimeType()))
 			return;
-		InterpolrFrontendRequest front = (InterpolrFrontendRequest) exchange.getBackendRequest().getFrontendRequest();
-		ObjectMapper mapper = front.getInterpolr().getJacksonObjectMapper();
-		*/
         ObjectMapper mapper = scope.getInterpolr().getJacksonObjectMapper();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {

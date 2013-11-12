@@ -3,6 +3,7 @@ package com.fotonauts.lackr;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -31,8 +32,10 @@ public class BaseProxy extends AbstractHandler {
 
     @Override
     protected void doStart() throws Exception {
+        log.debug("Starting...");
         backend.start();
         setExecutor(Executors.newFixedThreadPool(64));
+        log.debug("Started.");
     }
 
     protected BaseFrontendRequest createLackrFrontendRequest(HttpServletRequest request) {
@@ -84,6 +87,7 @@ public class BaseProxy extends AbstractHandler {
         log.info("Stopping, thread count: " + Thread.getAllStackTraces().size());
         backend.stop();
         getExecutor().shutdown();
+        getExecutor().awaitTermination(1, TimeUnit.SECONDS);
         log.info("Stopped thread count: " + Thread.getAllStackTraces().size());
     }
 }

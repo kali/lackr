@@ -47,19 +47,24 @@ public class TryPassBackendExchange extends LackrBackendExchange {
                         that.getCompletionListener().complete();
                     }
                 } catch (Throwable e) {
-                    System.err.println("1");
+                    log.debug("Exception in completion handler", e);
                     that.getCompletionListener().fail(e);
                 }
             }
             
             @Override
             public void fail(Throwable t) {
-                System.err.println("2");
+                log.debug("Failure handler for", t);
                 that.getCompletionListener().fail(t);
             }
 
         });
-        subExchange.start();
+        try {
+            subExchange.start();
+        } catch (Throwable e) {
+            log.debug("Exception when starting query", e);
+            that.getCompletionListener().fail(e);
+        }
     }
 
     @Override

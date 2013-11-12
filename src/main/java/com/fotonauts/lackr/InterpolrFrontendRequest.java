@@ -1,33 +1,21 @@
 package com.fotonauts.lackr;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.client.api.Request.HeadersListener;
-import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.SimpleInterpolrScope;
 import com.fotonauts.lackr.mustache.MustacheContext;
-import com.mongodb.BasicDBObject;
 
 public class InterpolrFrontendRequest extends BaseFrontendRequest implements InterpolrContext {
 
@@ -36,8 +24,6 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     private AtomicInteger pendingCount;
 
     protected InterpolrProxy service;
-
-    private List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
 
     private MustacheContext mustacheContext;
 
@@ -94,7 +80,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     protected void yieldRootRequestProcessing() {
         log.debug("Yield root request.");
-        super.onBackendRequestComplete();
+        super.onBackendRequestDone();
     }
 
     @Override
@@ -106,13 +92,13 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                 rootScope.getParsedDocument().check();
             }
         } catch (Throwable e) {
-            backendExceptions.add(LackrPresentableError.fromThrowable(e));
+            getBackendExceptions().add(LackrPresentableError.fromThrowable(e));
         }
     }
 
     public void writeResponse(HttpServletResponse response) throws IOException {
         if (pendingCount.get() > 0)
-            backendExceptions.add(new LackrPresentableError("There is unfinished business with backends..."));
+            getBackendExceptions().add(new LackrPresentableError("There is unfinished business with backends..."));
 
         super.writeResponse(response);
     }
@@ -126,7 +112,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     }
 
     @Override
-    public void onBackendRequestComplete() {
+    public void onBackendRequestDone() {
         log.debug("Request completion for root: {}", getPathAndQuery(request));
         rootScope = new ProxyInterpolrScope(this);
         rootScope.setRequest(rootRequest);

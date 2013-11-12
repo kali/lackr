@@ -89,6 +89,7 @@ public abstract class LackrBackendExchange {
         try {
             doStart();
         } catch (Throwable e) {
+            log.debug("Error starting request", e);
             getCompletionListener().fail(e);
         }
 

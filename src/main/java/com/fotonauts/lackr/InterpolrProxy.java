@@ -29,7 +29,18 @@ public class InterpolrProxy extends BaseProxy {
     }
     
     @Override
+    protected void doStart() throws Exception {
+        log.debug("Starting...");
+        super.doStart();
+        interpolr.start();
+        log.debug("Started.");
+    }
+    
+    @Override
     public void doStop() throws Exception {
+        log.debug("Stopping...");
         interpolr.stop();
+        super.doStop();
+        log.debug("Stopped...");
     }
 }

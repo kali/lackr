@@ -23,10 +23,6 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.backend.LackrBackendExchange;
 import com.fotonauts.lackr.backend.LackrBackendRequest;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
-import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.ConstantChunk;
-import com.fotonauts.lackr.interpolr.Document;
 
 public class BaseFrontendRequest {
 
@@ -194,17 +190,18 @@ public class BaseFrontendRequest {
             if (request.getContentLength() > 0)
                 body = IO.readBytes(request.getInputStream());
 
-            rootRequest = new LackrBackendRequest(this, request.getMethod() == "HEAD" ? "GET" : request.getMethod(),
+            rootRequest = new LackrBackendRequest(this, request.getMethod(),
                     getPathAndQuery(request), null, 0, null, body, buildHttpFields(), new Listener() {
                         
                         @Override
                         public void fail(Throwable t) {
                             addBackendExceptions(t);
+                            onBackendRequestDone();
                         }
                         
                         @Override
                         public void complete() {
-                            onBackendRequestComplete();
+                            onBackendRequestDone();
                         }
                     });
             scheduleUpstreamRequest(rootRequest);
@@ -215,7 +212,7 @@ public class BaseFrontendRequest {
         }
     }
 
-    public void onBackendRequestComplete() {
+    public void onBackendRequestDone() {
         log.debug("Processing done, re-dispatching http thread.");
         continuation.dispatch();           
     }
@@ -234,6 +231,7 @@ public class BaseFrontendRequest {
     }
 
     public void addBackendExceptions(LackrPresentableError x) {
+        log.debug("Registering error:", x);
         backendExceptions.add(x);
     }
 
@@ -251,5 +249,9 @@ public class BaseFrontendRequest {
 
     public BaseProxy getProxy() {
         return proxy;
+    }
+    
+    public List<LackrPresentableError> getBackendExceptions() {
+        return backendExceptions;
     }
 }

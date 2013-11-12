@@ -266,14 +266,17 @@ public class TestMustache extends BaseTestSubstitution {
                 "Sunday, July 20, 1969 at 7:18:00 PM GMT", "7/20/69", "Jul 20, 1969", "July 20, 1969", "Sunday, July 20, 1969",
                 "7:18 PM", "7:18:00 PM", "7:18:00 PM GMT", "7:18:00 PM GMT" };
         String en = expand(template + dateAsInt, false, "localhost");
+        assertNotNull(en);
         String[] got = en.trim().replaceAll(" *\n[ \n]*", "\n").split("\n");
         Assert.assertArrayEquals(expected, got);
 
         en = expand(template + dateAsHash, false, "localhost");
+        assertNotNull(en);
         got = en.trim().replaceAll(" *\n[ \n]*", "\n").split("\n");
         Assert.assertArrayEquals(expected, got);
 
         String fr = expand(template + dateAsInt, false, "fr.localhost");
+        assertNotNull(fr);
         String[] obtenu = fr.trim().replaceAll(" *\n[ \n]*", "\n").split("\n");
         String[] attendu = new String[] { "20/07/1969 19:18", "20 juil. 1969 19:18:00", "20 juillet 1969 19:18:00 UTC",
                 "dimanche 20 juillet 1969 19:18:00 UTC", "20/07/1969", "20 juil. 1969", "20 juillet 1969",

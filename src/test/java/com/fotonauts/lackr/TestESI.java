@@ -1,6 +1,7 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -33,6 +34,7 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testHtmlInJs() throws Exception {
         String result = expand("before\n\"ssi:include:virtual:/esi.html\"\nafter\n");
+        assertNotNull(result);
         assertEquals("before\n\"" + quoteJson(ESI_HTML) + "\"\nafter\n", result);
     }
 
@@ -78,6 +80,7 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testEmptyJS() throws Exception {
         String result = expand("{ something_empty: \"ssi:include:virtual:/empty.html\" }");
+        assertNotNull(result);
         assertEquals("{ something_empty: null }", result);
     }
 
@@ -90,6 +93,7 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testPlainToJS() throws Exception {
         String result = expand("{ something_empty: \"ssi:include:virtual:/some.text\" }");
+        assertNotNull(result);
         assertEquals("{ something_empty: \"" + ESI_TEXT.replace("\"", "\\\"").replace("/", "\\/").replace("\n", "\\n") + "\" }",
                 result);
     }
@@ -97,6 +101,7 @@ public class TestESI extends BaseTestSubstitution {
     @Test
     public void testFemtorJSESI() throws Exception {
         String result = expand("{ something: \"ssi:include:femtor:/femtor\" }");
+        assertNotNull(result);
         assertEquals("{ something: \"Hi from dummy femtor\\n\" }", result);
     }
 
