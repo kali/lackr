@@ -78,28 +78,23 @@ public class Factory {
 
     public static BaseProxy buildSimpleBaseProxy(Backend backend) {
         BaseProxy proxy = new BaseProxy();
+        proxy.setManageIfNoneMatch(true);
         proxy.setBackend(backend);
         return proxy;
     }
     
     public static Server buildSimpleProxyServer(Backend backend) throws Exception {
-        return buildSimpleProxyServer(buildSimpleBaseProxy(backend));
+        return buildProxyServer(buildSimpleBaseProxy(backend));
     }
 
-    public static Server buildSimpleProxyServer(BaseProxy proxy) throws Exception {
+    public static Server buildProxyServer(BaseProxy proxy) throws Exception {
         Server proxyServer = new Server();
         proxyServer.setHandler(proxy);
         proxyServer.addConnector(new ServerConnector(proxyServer));
         return proxyServer;
     }
     public static Server buildInterpolrProxyServer(Interpolr interpolr, Backend backend) throws Exception {
-        Server proxyServer = new Server();
-        InterpolrProxy proxy = new InterpolrProxy();
-        proxy.setInterpolr(interpolr);
-        proxy.setBackend(backend);
-        proxyServer.setHandler(proxy);
-        proxyServer.addConnector(new ServerConnector(proxyServer));
-        return proxyServer;
+        return buildProxyServer(buildInterpolrProxy(interpolr, backend));
     }
 
     public static RemoteControlledStub buildServerForESI(final AppStubForESI app) {
@@ -122,5 +117,13 @@ public class Factory {
             };
         });
         return stub;
+    }
+
+    public static BaseProxy buildInterpolrProxy(Interpolr interpolr, Backend backend) {
+        InterpolrProxy proxy = new InterpolrProxy();
+        proxy.setManageIfNoneMatch(true);
+        proxy.setInterpolr(interpolr);
+        proxy.setBackend(backend);
+        return proxy;
     }
 }

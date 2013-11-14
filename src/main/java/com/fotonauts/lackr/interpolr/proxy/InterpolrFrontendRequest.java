@@ -1,6 +1,7 @@
 package com.fotonauts.lackr.interpolr.proxy;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -123,14 +124,6 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         }
     }
 
-    protected void writeContentLengthHeaderAndBody(HttpServletResponse response) throws IOException {
-        if (getRootScope().getParsedDocument().length() > 0) {
-            response.setContentLength(getRootScope().getParsedDocument().length());
-            if (request.getMethod() != "HEAD")
-                getRootScope().getParsedDocument().writeTo(response.getOutputStream());
-        }
-    }
-
     @Override
     public String toString() {
         return rootRequest.toString();
@@ -140,4 +133,13 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         return rootScope;
     }
 
+    @Override
+    protected void writeContentTo(OutputStream out) throws IOException {
+        getRootScope().getParsedDocument().writeTo(out);
+    }
+    
+    @Override
+    protected int getContentLength() {
+        return getRootScope().getParsedDocument().length();
+    }    
 }

@@ -28,7 +28,9 @@ public class BaseProxy extends AbstractHandler {
     private Backend backend;
 
     private ExecutorService executor;
+    
     private EtagMode etagMode = EtagMode.FORWARD;
+    private boolean manageIfNoneMatch;
 
     public BaseProxy() {
     }
@@ -104,17 +106,22 @@ public class BaseProxy extends AbstractHandler {
 
     static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
             "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since",
-            "if-none-match", "range", "accept-ranges" };
+            "if-none-match", "range", "accept-ranges", "etag" };
 
     public boolean skipHeader(String header) {
-        if(header.toLowerCase().equals("etag")) {
-            return !etagMode.equals(EtagMode.FORWARD);
-        }
         for (String skip : headersToSkip) {
             if (skip.equals(header.toLowerCase()))
                 return true;
         }
         return false;
+    }
+
+    public boolean getManageIfNoneMatch() {
+        return manageIfNoneMatch;
+    }
+
+    public void setManageIfNoneMatch(boolean manageIfNoneMatch) {
+        this.manageIfNoneMatch = manageIfNoneMatch;
     }
 
 }

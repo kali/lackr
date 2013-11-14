@@ -1,11 +1,15 @@
 package com.fotonauts.lackr;
 
+import static com.fotonauts.lackr.TextUtils.S;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,97 +22,123 @@ import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.fotonauts.lackr.BaseProxy.EtagMode;
-import com.fotonauts.lackr.components.AppStubForESI;
 import com.fotonauts.lackr.components.Factory;
 import com.fotonauts.lackr.components.RemoteControlledStub;
 import com.fotonauts.lackr.components.TestClient;
 
+@RunWith(value = Parameterized.class)
 public class Test304 {
 
-    AppStubForESI remoteApp;
-    RemoteControlledStub remoteControlledStub;
-    Server proxyServer;
-    TestClient client;
+    @Parameters
+    public static Collection<Object[]> data() {
+        ArrayList<Object[]> params = new ArrayList<>(6);
+        for (EtagMode mode : EtagMode.values()) {
+            for (String proxy : new String[] { "base", "interpolr" })
+                for (boolean backEtags: new Boolean[] { false, true})
+                    params.add(new Object[] { mode, proxy, backEtags });
+        }
+        return params;
+    }
+
+    private AtomicReference<String> pageData = new AtomicReference<>("coin");
+    private boolean backendSetsEtag;
+    
+    private String proxyType;
+    private EtagMode mode;
+    private RemoteControlledStub remoteControlledStub;
+    private Server server;
+    private TestClient client;
+
+    public Test304(EtagMode mode, String proxyType, boolean backendSetsEtag) {
+        this.mode = mode;
+        this.proxyType = proxyType;
+        this.backendSetsEtag = backendSetsEtag;
+        System.err.println("mode:" + mode + " proxy:" + proxyType + " backendSetsEtag:" + backendSetsEtag);
+    }
 
     @Before
     public void setup() throws Exception {
-        remoteApp = new AppStubForESI();
-        remoteApp.pageContent.set("whatever");
+        remoteControlledStub = new RemoteControlledStub();
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
 
-        remoteControlledStub = Factory.buildServerForESI(remoteApp);
+            @Override
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
+                String content;
+                if(target.equals("/variable.html"))
+                    content = Long.toString(System.currentTimeMillis());
+                else
+                    content = pageData.get();
+                
+                if(backendSetsEtag)
+                    response.setHeader(HttpHeader.ETAG.asString(), "backend-etag-" + content);
+                response.setContentType(MimeType.TEXT_HTML);
+                response.setContentLength(content.getBytes().length);
+                response.getOutputStream().write(content.getBytes());
+                response.flushBuffer();
+            }
+        });
         remoteControlledStub.start();
+        
+        BaseProxy proxy;
+        if ("interpolr".equals(proxyType))
+            proxy = Factory.buildInterpolrProxy(Factory.buildInterpolr("esi"), Factory.buildFullClientBackend(remoteControlledStub.getPort()));
+        else
+            proxy = Factory.buildSimpleBaseProxy(Factory.buildFullClientBackend(remoteControlledStub.getPort()));
 
-        proxyServer = Factory.buildSimpleProxyServer(remoteControlledStub.getPort());
-        proxyServer.start();
+        proxy.setEtagMode(mode);
+        server = Factory.buildProxyServer(proxy);
+        server.start();
 
-        client = new TestClient(((ServerConnector) proxyServer.getConnectors()[0]).getLocalPort());
+        client = new TestClient(((ServerConnector) server.getConnectors()[0]).getLocalPort());
         client.start();
     }
-
+    
     @After
     public void tearDown() throws Exception {
-        LifeCycle[] zombies = new LifeCycle[] { client, proxyServer, remoteControlledStub };
-        for (LifeCycle z : zombies)
-            z.stop();
+        client.stop();
+        server.stop();
+        remoteControlledStub.stop();
         assertTrue(Thread.getAllStackTraces().size() < 10);
     }
-
+    
     @Test
-    public void testEtagMode() throws Exception {
-        for (EtagMode mode : EtagMode.values()) {
-
-            BaseProxy _proxy = Factory.buildSimpleBaseProxy(Factory.buildFullClientBackend(remoteControlledStub.getPort()));
-            _proxy.setEtagMode(mode);
-            Server _server = Factory.buildSimpleProxyServer(_proxy);
-            _server.start();
-
-            TestClient _client = new TestClient(((ServerConnector) _server.getConnectors()[0]).getLocalPort());
-            _client.start();
-
-            remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
-
-                @Override
-                public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
-                        HttpServletResponse response) throws IOException, ServletException {
-                    response.setHeader(HttpHeader.ETAG.asString(), "datag");
-                    response.flushBuffer();
-                }
-            });
-
-            ContentResponse response = _client.createExchange("/").send();
-            switch(mode) {
-                case DISCARD:
-                    assertEquals(response.getHeaders().getStringField(HttpHeader.ETAG), null);
-                    break;
-                case FORWARD:
-                    assertEquals(response.getHeaders().getStringField(HttpHeader.ETAG), "datag");
-                    break;
-                case CONTENT_SUM: // this one is the object of other tests
-                    break;
-            }
-            
-            _server.stop();
-            _client.stop();
+    public void testEtagTrivialModes() throws Exception {
+        pageData.set("blah");
+        ContentResponse response = client.createExchange("/").send();
+        String etag = response.getHeaders().getStringField(HttpHeader.ETAG);
+        switch (mode) {
+        case DISCARD:
+            assertEquals(etag, null);
+            break;
+        case FORWARD:
+            assertEquals(etag, backendSetsEtag ? "backend-etag-blah" : null) ;
+            break;
+        case CONTENT_SUM:
+            assertNotNull(etag);
+            assertFalse(etag.startsWith("backend-etag"));
+            break;
         }
     }
 
     @Test
-    @Ignore
-    //FIXME
     public void testEtagGeneration() throws Exception {
-        remoteApp.pageContent.set("blah");
+        if(mode != EtagMode.CONTENT_SUM)
+            return;
+        pageData.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
         String etag1 = e1.getHeaders().getStringField("etag");
         assertNotNull("e1 has etag", etag1);
 
-        remoteApp.pageContent.set("blih");
+        pageData.set("blih");
         ContentResponse e2 = client.runRequest(client.createExchange("/page.html"), "blih");
         String etag2 = e2.getHeaders().getStringField("etag");
         assertNotNull("e2 has etag", etag2);
@@ -117,10 +147,26 @@ public class Test304 {
     }
 
     @Test
-    @Ignore
-    //FIXME
+    public void testEtagESIGeneration() throws Exception {
+        if(mode != EtagMode.CONTENT_SUM || !proxyType.equals("interpolr"))
+            return;
+        pageData.set(S(/*<!--# include virtual="/variable.html" -->*/));
+        ContentResponse e1 = client.createExchange("/page.html").send();
+        String etag1 = e1.getHeaders().getStringField("etag");
+        assertNotNull("e1 has etag", etag1);
+
+        ContentResponse e2 = client.createExchange("/page.html").send();
+        String etag2 = e2.getHeaders().getStringField("etag");
+        assertNotNull("e2 has etag", etag2);
+
+        assertFalse("etags must be different", etag1.equals(etag2));
+    }
+
+    @Test
     public void testEtagAndIfNoneMatch() throws Exception {
-        remoteApp.pageContent.set("blah");
+        if(mode == EtagMode.DISCARD || (mode==EtagMode.FORWARD && !backendSetsEtag))
+            return;
+        pageData.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
         String etag1 = e1.getHeaders().getStringField("etag");
         assertNotNull("e1 has etag", etag1);
@@ -130,16 +176,16 @@ public class Test304 {
 
         Request req3 = client.createExchange("/page.html");
         req3.header(HttpHeader.IF_NONE_MATCH, etag1);
-        ContentResponse e3 = client.runRequest(req3, "");
-        assertEquals(e3.getStatus(), HttpStatus.NOT_MODIFIED_304);
-        assertFalse(e2.getHeaders().getFieldNamesCollection().contains(HttpHeader.CONTENT_LENGTH));
-        assertFalse(e2.getHeaders().getFieldNamesCollection().contains(HttpHeader.CONTENT_TYPE));
-        assertEquals(e3.getContent(), null);
+        ContentResponse e3 = req3.send();
+        assertEquals(HttpStatus.NOT_MODIFIED_304, e3.getStatus());
+        assertFalse(e3.getHeaders().getFieldNamesCollection().contains(HttpHeader.CONTENT_LENGTH));
+        assertFalse(e3.getHeaders().getFieldNamesCollection().contains(HttpHeader.CONTENT_TYPE));
+        assertTrue(e3.getContent() == null || e3.getContent().length == 0);
 
-        remoteApp.pageContent.set("blih");
+        pageData.set("blih");
         Request req4 = client.createExchange("/page.html");
         req4.header(HttpHeader.IF_NONE_MATCH, etag1);
-        ContentResponse e4 = client.runRequest(req3, "blih");
+        ContentResponse e4 = client.runRequest(req4, "blih");
         assertEquals(e4.getStatus(), HttpStatus.OK_200);
     }
 }
