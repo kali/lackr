@@ -14,13 +14,12 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class BaseProxy extends AbstractHandler {
 
     public static enum EtagMode {
-        DISCARD, COPY, SUM
+        FORWARD, DISCARD, CONTENT_SUM
     }
-    
+
     private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
     static Logger log = LoggerFactory.getLogger(BaseProxy.class);
 
@@ -29,6 +28,7 @@ public class BaseProxy extends AbstractHandler {
     private Backend backend;
 
     private ExecutorService executor;
+    private EtagMode etagMode = EtagMode.FORWARD;
 
     public BaseProxy() {
     }
@@ -93,4 +93,28 @@ public class BaseProxy extends AbstractHandler {
         getExecutor().awaitTermination(1, TimeUnit.SECONDS);
         log.info("Stopped thread count: " + Thread.getAllStackTraces().size());
     }
+
+    public void setEtagMode(EtagMode etagMode) {
+        this.etagMode = etagMode;
+    }
+
+    public EtagMode getEtagMode() {
+        return etagMode;
+    }
+
+    static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
+            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since",
+            "if-none-match", "range", "accept-ranges" };
+
+    public boolean skipHeader(String header) {
+        if(header.toLowerCase().equals("etag")) {
+            return !etagMode.equals(EtagMode.FORWARD);
+        }
+        for (String skip : headersToSkip) {
+            if (skip.equals(header.toLowerCase()))
+                return true;
+        }
+        return false;
+    }
+
 }

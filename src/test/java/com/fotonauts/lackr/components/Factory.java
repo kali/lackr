@@ -76,15 +76,22 @@ public class Factory {
         return interpolr;
     }
 
-    public static Server buildSimpleProxyServer(Backend backend) throws Exception {
-        Server proxyServer = new Server();
+    public static BaseProxy buildSimpleBaseProxy(Backend backend) {
         BaseProxy proxy = new BaseProxy();
         proxy.setBackend(backend);
+        return proxy;
+    }
+    
+    public static Server buildSimpleProxyServer(Backend backend) throws Exception {
+        return buildSimpleProxyServer(buildSimpleBaseProxy(backend));
+    }
+
+    public static Server buildSimpleProxyServer(BaseProxy proxy) throws Exception {
+        Server proxyServer = new Server();
         proxyServer.setHandler(proxy);
         proxyServer.addConnector(new ServerConnector(proxyServer));
         return proxyServer;
     }
-
     public static Server buildInterpolrProxyServer(Interpolr interpolr, Backend backend) throws Exception {
         Server proxyServer = new Server();
         InterpolrProxy proxy = new InterpolrProxy();

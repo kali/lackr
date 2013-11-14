@@ -24,18 +24,6 @@ import com.fotonauts.lackr.LackrBackendRequest.Listener;
 
 public class BaseFrontendRequest {
 
-    static String[] headersToSkip = { "proxy-connection", "connection", "keep-alive", "transfer-encoding", "te", "trailer",
-            "proxy-authorization", "proxy-authenticate", "upgrade", "content-length", "content-type", "if-modified-since",
-            "if-none-match", "range", "accept-ranges" };
-
-    public static boolean skipHeader(String header) {
-        for (String skip : headersToSkip) {
-            if (skip.equals(header.toLowerCase()))
-                return true;
-        }
-        return false;
-    }
-
     static Logger log = LoggerFactory.getLogger(BaseFrontendRequest.class);
 
     protected HttpServletRequest request;
@@ -98,7 +86,8 @@ public class BaseFrontendRequest {
 
     public void copyResponseHeaders(HttpServletResponse response) {
         for (String name : rootRequest.getExchange().getResponse().getHeaderNames()) {
-            if (!skipHeader(name)) {
+            System.err.println("considering " + name + " " + rootRequest.getExchange().getResponse().getHeader(name) + " skip:" + getProxy().skipHeader(name));
+            if (!getProxy().skipHeader(name)) {
                 for (String value : rootRequest.getExchange().getResponse().getHeaderValues(name))
                     response.addHeader(name, value);
             }
@@ -219,7 +208,7 @@ public class BaseFrontendRequest {
         HttpFields fields = new HttpFields();
         for (Enumeration<?> e = getRequest().getHeaderNames(); e.hasMoreElements();) {
             String header = (String) e.nextElement();
-            if (!BaseFrontendRequest.skipHeader(header)) {
+            if (!getProxy().skipHeader(header)) {
                 fields.add(header, getRequest().getHeader(header));
             }
         }

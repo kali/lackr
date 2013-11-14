@@ -5,18 +5,26 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fotonauts.lackr.BaseProxy.EtagMode;
 import com.fotonauts.lackr.components.AppStubForESI;
 import com.fotonauts.lackr.components.Factory;
 import com.fotonauts.lackr.components.RemoteControlledStub;
@@ -52,29 +60,48 @@ public class Test304 {
         assertTrue(Thread.getAllStackTraces().size() < 10);
     }
 
-    /*
-    protected ContentResponse run(String testPage) throws IOException, InterruptedException, TimeoutException, ExecutionException {
-    	return run(testPage, null);
-    }
+    @Test
+    public void testEtagMode() throws Exception {
+        for (EtagMode mode : EtagMode.values()) {
 
-    protected ContentResponse run(final String testPage, String etag) throws IOException, InterruptedException, TimeoutException, ExecutionException {
-    	remoteControlledStub1.getCurrentHandler().set(new AbstractHandler() {
-    		
-    		@Override
-    		public void handle(String target, org.eclipse.jetty.server.Request request, HttpServletRequest baseRequest, HttpServletResponse response)
-    		        throws IOException, ServletException {
-    			writeResponse(response, testPage.getBytes(), MimeType.TEXT_HTML);
-    		}
-    	});
-    	Request e = client.newRequest("http://localhost:" + lackrPort + "/page.html");
-    	if(etag != null)
-    		e.header(HttpHeader.IF_NONE_MATCH.asString(), etag);
-    	return e.send();
+            BaseProxy _proxy = Factory.buildSimpleBaseProxy(Factory.buildFullClientBackend(remoteControlledStub.getPort()));
+            _proxy.setEtagMode(mode);
+            Server _server = Factory.buildSimpleProxyServer(_proxy);
+            _server.start();
+
+            TestClient _client = new TestClient(((ServerConnector) _server.getConnectors()[0]).getLocalPort());
+            _client.start();
+
+            remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
+
+                @Override
+                public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                        HttpServletResponse response) throws IOException, ServletException {
+                    response.setHeader(HttpHeader.ETAG.asString(), "datag");
+                    response.flushBuffer();
+                }
+            });
+
+            ContentResponse response = _client.createExchange("/").send();
+            switch(mode) {
+                case DISCARD:
+                    assertEquals(response.getHeaders().getStringField(HttpHeader.ETAG), null);
+                    break;
+                case FORWARD:
+                    assertEquals(response.getHeaders().getStringField(HttpHeader.ETAG), "datag");
+                    break;
+                case CONTENT_SUM: // this one is the object of other tests
+                    break;
+            }
+            
+            _server.stop();
+            _client.stop();
+        }
     }
-    */
 
     @Test
-    @Ignore //FIXME
+    @Ignore
+    //FIXME
     public void testEtagGeneration() throws Exception {
         remoteApp.pageContent.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
@@ -90,7 +117,8 @@ public class Test304 {
     }
 
     @Test
-    @Ignore //FIXME
+    @Ignore
+    //FIXME
     public void testEtagAndIfNoneMatch() throws Exception {
         remoteApp.pageContent.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
