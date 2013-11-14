@@ -42,7 +42,7 @@ public class Test304 {
         ArrayList<Object[]> params = new ArrayList<>(6);
         for (EtagMode mode : EtagMode.values()) {
             for (String proxy : new String[] { "base", "interpolr" })
-                for (boolean backEtags: new Boolean[] { false, true})
+                for (boolean backEtags : new Boolean[] { false, true })
                     params.add(new Object[] { mode, proxy, backEtags });
         }
         return params;
@@ -50,7 +50,7 @@ public class Test304 {
 
     private AtomicReference<String> pageData = new AtomicReference<>("coin");
     private boolean backendSetsEtag;
-    
+
     private String proxyType;
     private EtagMode mode;
     private RemoteControlledStub remoteControlledStub;
@@ -73,12 +73,12 @@ public class Test304 {
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
                 String content;
-                if(target.equals("/variable.html"))
+                if (target.equals("/variable.html"))
                     content = Long.toString(System.currentTimeMillis());
                 else
                     content = pageData.get();
-                
-                if(backendSetsEtag)
+
+                if (backendSetsEtag)
                     response.setHeader(HttpHeader.ETAG.asString(), "backend-etag-" + content);
                 response.setContentType(MimeType.TEXT_HTML);
                 response.setContentLength(content.getBytes().length);
@@ -87,10 +87,11 @@ public class Test304 {
             }
         });
         remoteControlledStub.start();
-        
+
         BaseProxy proxy;
         if ("interpolr".equals(proxyType))
-            proxy = Factory.buildInterpolrProxy(Factory.buildInterpolr("esi"), Factory.buildFullClientBackend(remoteControlledStub.getPort()));
+            proxy = Factory.buildInterpolrProxy(Factory.buildInterpolr("esi"),
+                    Factory.buildFullClientBackend(remoteControlledStub.getPort()));
         else
             proxy = Factory.buildSimpleBaseProxy(Factory.buildFullClientBackend(remoteControlledStub.getPort()));
 
@@ -101,7 +102,7 @@ public class Test304 {
         client = new TestClient(((ServerConnector) server.getConnectors()[0]).getLocalPort());
         client.start();
     }
-    
+
     @After
     public void tearDown() throws Exception {
         client.stop();
@@ -109,7 +110,7 @@ public class Test304 {
         remoteControlledStub.stop();
         assertTrue(Thread.getAllStackTraces().size() < 10);
     }
-    
+
     @Test
     public void testEtagTrivialModes() throws Exception {
         pageData.set("blah");
@@ -120,7 +121,7 @@ public class Test304 {
             assertEquals(etag, null);
             break;
         case FORWARD:
-            assertEquals(etag, backendSetsEtag ? "backend-etag-blah" : null) ;
+            assertEquals(etag, backendSetsEtag ? "backend-etag-blah" : null);
             break;
         case CONTENT_SUM:
             assertNotNull(etag);
@@ -131,7 +132,7 @@ public class Test304 {
 
     @Test
     public void testEtagGeneration() throws Exception {
-        if(mode != EtagMode.CONTENT_SUM)
+        if (mode != EtagMode.CONTENT_SUM)
             return;
         pageData.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
@@ -148,7 +149,7 @@ public class Test304 {
 
     @Test
     public void testEtagESIGeneration() throws Exception {
-        if(mode != EtagMode.CONTENT_SUM || !proxyType.equals("interpolr"))
+        if (mode != EtagMode.CONTENT_SUM || !proxyType.equals("interpolr"))
             return;
         pageData.set(S(/*<!--# include virtual="/variable.html" -->*/));
         ContentResponse e1 = client.createExchange("/page.html").send();
@@ -164,7 +165,7 @@ public class Test304 {
 
     @Test
     public void testEtagAndIfNoneMatch() throws Exception {
-        if(mode == EtagMode.DISCARD || (mode==EtagMode.FORWARD && !backendSetsEtag))
+        if (mode == EtagMode.DISCARD || (mode == EtagMode.FORWARD && !backendSetsEtag))
             return;
         pageData.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
