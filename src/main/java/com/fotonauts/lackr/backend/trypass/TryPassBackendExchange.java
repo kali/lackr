@@ -6,11 +6,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.Backend;
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
-import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
-import com.fotonauts.lackr.backend.LackrBackendResponse;
+import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendResponse;
+import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class TryPassBackendExchange extends LackrBackendExchange {

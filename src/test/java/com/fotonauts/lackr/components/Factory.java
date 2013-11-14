@@ -16,20 +16,20 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.HttpCookieStore;
 
+import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BaseProxy;
-import com.fotonauts.lackr.ConstantHttpDirector;
-import com.fotonauts.lackr.InterpolrProxy;
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.backend.Backend;
+import com.fotonauts.lackr.backend.ConstantHttpDirector;
 import com.fotonauts.lackr.backend.client.ClientBackend;
-import com.fotonauts.lackr.esi.HttpESIRule;
-import com.fotonauts.lackr.esi.JSESIRule;
-import com.fotonauts.lackr.esi.JSEscapedMLESIRule;
-import com.fotonauts.lackr.esi.JSMLESIRule;
-import com.fotonauts.lackr.esi.MLESIRule;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Rule;
+import com.fotonauts.lackr.interpolr.esi.HttpESIRule;
+import com.fotonauts.lackr.interpolr.esi.JSESIRule;
+import com.fotonauts.lackr.interpolr.esi.JSEscapedMLESIRule;
+import com.fotonauts.lackr.interpolr.esi.JSMLESIRule;
+import com.fotonauts.lackr.interpolr.esi.MLESIRule;
+import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
 import com.fotonauts.lackr.mustache.ArchiveRule;
 import com.fotonauts.lackr.mustache.DumpArchiveRule;
 import com.fotonauts.lackr.mustache.EvalRule;
@@ -37,7 +37,7 @@ import com.fotonauts.lackr.mustache.TemplateRule;
 
 public class Factory {
 
-    public static ClientBackend buildFullClientBackend(int port) {
+    public static ClientBackend buildFullClientBackend(int port) throws Exception {
         ClientBackend backend = new ClientBackend();
         backend.setDirector(new ConstantHttpDirector("http://localhost:" + port));
         backend.setActualClient(buildFullClient());

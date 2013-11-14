@@ -1,6 +1,7 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -73,7 +74,7 @@ public class Test304 {
     */
 
     @Test
-    @Ignore //FIXME 304
+    @Ignore //FIXME
     public void testEtagGeneration() throws Exception {
         remoteApp.pageContent.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
@@ -89,7 +90,7 @@ public class Test304 {
     }
 
     @Test
-    @Ignore //FIXME 304
+    @Ignore //FIXME
     public void testEtagAndIfNoneMatch() throws Exception {
         remoteApp.pageContent.set("blah");
         ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
@@ -103,6 +104,8 @@ public class Test304 {
         req3.header(HttpHeader.IF_NONE_MATCH, etag1);
         ContentResponse e3 = client.runRequest(req3, "");
         assertEquals(e3.getStatus(), HttpStatus.NOT_MODIFIED_304);
+        assertFalse(e2.getHeaders().getFieldNamesCollection().contains(HttpHeader.CONTENT_LENGTH));
+        assertFalse(e2.getHeaders().getFieldNamesCollection().contains(HttpHeader.CONTENT_TYPE));
         assertEquals(e3.getContent(), null);
 
         remoteApp.pageContent.set("blih");

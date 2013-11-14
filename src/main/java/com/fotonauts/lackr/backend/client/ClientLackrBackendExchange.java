@@ -14,10 +14,10 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.HttpDirectorInterface;
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
-import com.fotonauts.lackr.backend.LackrBackendResponse;
+import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendResponse;
+import com.fotonauts.lackr.backend.HttpDirectorInterface;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ClientLackrBackendExchange extends LackrBackendExchange {

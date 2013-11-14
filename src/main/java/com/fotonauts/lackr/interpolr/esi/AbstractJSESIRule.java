@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.esi;
+package com.fotonauts.lackr.interpolr.esi;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,9 +10,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.esi.filters.JsonQuotingChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.esi.codec.JsonQuotingChunk;
 
 public class AbstractJSESIRule extends ESIIncludeRule {
 

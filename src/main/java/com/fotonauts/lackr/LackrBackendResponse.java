@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.backend;
+package com.fotonauts.lackr;
 
 import java.util.List;
 

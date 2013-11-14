@@ -14,10 +14,13 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.Backend;
 
 public class BaseProxy extends AbstractHandler {
 
+    public static enum EtagMode {
+        DISCARD, COPY, SUM
+    }
+    
     private String LACKR_STATE_ATTRIBUTE = "lackr.state.attribute";
     static Logger log = LoggerFactory.getLogger(BaseProxy.class);
 

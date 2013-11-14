@@ -1,10 +1,12 @@
-package com.fotonauts.lackr;
+package com.fotonauts.lackr.interpolr.proxy;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fotonauts.lackr.BaseFrontendRequest;
+import com.fotonauts.lackr.BaseProxy;
 import com.fotonauts.lackr.interpolr.Interpolr;
 
 public class InterpolrProxy extends BaseProxy {
@@ -41,6 +43,6 @@ public class InterpolrProxy extends BaseProxy {
         log.debug("Stopping...");
         interpolr.stop();
         super.doStop();
-        log.debug("Stopped...");
+        log.debug("Stopped.");
     }
 }

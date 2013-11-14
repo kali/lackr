@@ -4,9 +4,9 @@ import java.io.PrintStream;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
-import com.fotonauts.lackr.backend.Backend;
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class TryPassBackend extends AbstractLifeCycle implements Backend {

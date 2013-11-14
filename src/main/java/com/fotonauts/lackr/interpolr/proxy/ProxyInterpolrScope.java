@@ -1,8 +1,8 @@
-package com.fotonauts.lackr;
+package com.fotonauts.lackr.interpolr.proxy;
 
 import org.eclipse.jetty.http.HttpHeader;
 
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;

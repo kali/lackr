@@ -1,10 +1,10 @@
-package com.fotonauts.lackr.esi;
+package com.fotonauts.lackr.interpolr.esi;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.esi.filters.AmpersandEscapeChunk;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.esi.codec.AmpersandEscapeChunk;
 
 public abstract class AbstractMLESIRule extends ESIIncludeRule {
 

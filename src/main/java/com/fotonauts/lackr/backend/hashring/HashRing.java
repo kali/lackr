@@ -17,10 +17,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BaseGatewayMetrics;
-import com.fotonauts.lackr.HttpDirectorInterface;
-import com.fotonauts.lackr.HttpHost;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.backend.HttpDirectorInterface;
+import com.fotonauts.lackr.backend.HttpHost;
 
 public class HashRing implements HttpDirectorInterface {
 
@@ -63,15 +62,13 @@ public class HashRing implements HttpDirectorInterface {
 
 	public HashRing(String... backends) {
 		hostnames = backends;
-		init();
 	}
 
 	public HashRing(RingHost... backends) {
 		hosts = backends;
-		init();
 	}
 
-	public void init() {
+	public void init() throws Exception {
 		if (hosts == null && hostnames != null) {
 			hosts = new RingHost[hostnames.length];
 			for (int i = 0; i < hostnames.length; i++) {
@@ -161,10 +158,6 @@ public class HashRing implements HttpDirectorInterface {
 	public NavigableMap<Integer, RingHost> getRing() {
 		return ring;
 
-	}
-
-	public BaseGatewayMetrics[] getGateways() {
-		return hosts;
 	}
 
 	public RingHost[] getHosts() {

@@ -1,17 +1,19 @@
-package com.fotonauts.lackr.esi.filters;
+package com.fotonauts.lackr.interpolr.esi.codec;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 import com.fotonauts.lackr.interpolr.Chunk;
 
-public class AmpersandEscapeChunk implements Chunk {
+public class JsonQuotingChunk implements Chunk {
 	
 	private Chunk inner;
 	private int length = -1;
+	private boolean addSurrondingQuotes;
 
-	public AmpersandEscapeChunk(Chunk inner) {
+	public JsonQuotingChunk(Chunk inner, boolean addSurrondingQuotes) {
 		this.inner = inner;
+		this.addSurrondingQuotes = addSurrondingQuotes;
     }
 
 	private static class SizingOutputStream extends OutputStream {
@@ -40,12 +42,16 @@ public class AmpersandEscapeChunk implements Chunk {
 
 	@Override
     public String toDebugString() {
-	    return "AMPERSANDESCAPE";
+	    return "JSONIZER";
     }
 
 	@Override
     public void writeTo(OutputStream stream) throws IOException{
-		inner.writeTo(new AmpersandEscapeFilterOutputStream(stream));
+		if(addSurrondingQuotes)
+			stream.write('\"');
+		inner.writeTo(new JsonQuoteFilterOutputStream(stream));
+		if(addSurrondingQuotes)
+			stream.write('\"');
     }
 
 	@Override

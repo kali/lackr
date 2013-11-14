@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.backend;
+package com.fotonauts.lackr;
 
 import java.io.IOException;
 
@@ -6,7 +6,6 @@ import org.eclipse.jetty.http.HttpFields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 /**

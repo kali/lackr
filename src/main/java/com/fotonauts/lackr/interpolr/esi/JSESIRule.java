@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.esi;
+package com.fotonauts.lackr.interpolr.esi;
 
 
 public class JSESIRule extends AbstractJSESIRule {

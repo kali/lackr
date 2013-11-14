@@ -20,9 +20,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
-import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
+import com.fotonauts.lackr.LackrBackendRequest.Listener;
 
 public class BaseFrontendRequest {
 
@@ -50,7 +48,7 @@ public class BaseFrontendRequest {
 
     private List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
 
-    BaseFrontendRequest(final BaseProxy baseProxy, HttpServletRequest request) {
+    protected BaseFrontendRequest(final BaseProxy baseProxy, HttpServletRequest request) {
         this.proxy = baseProxy;
         this.request = request;
         this.continuation = request.startAsync();

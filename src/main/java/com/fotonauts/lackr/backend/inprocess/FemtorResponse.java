@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 
-import com.fotonauts.lackr.backend.LackrBackendResponse;
+import com.fotonauts.lackr.LackrBackendResponse;
 
 public class FemtorResponse extends LackrBackendResponse implements HttpServletResponse {
 

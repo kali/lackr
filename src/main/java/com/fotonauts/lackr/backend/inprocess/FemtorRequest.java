@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import org.eclipse.jetty.util.MultiMap;
 import org.eclipse.jetty.util.UrlEncoded;
 
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendRequest;
 
 public class FemtorRequest extends HttpServletRequestWrapper {
 

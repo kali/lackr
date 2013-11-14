@@ -1,31 +1,25 @@
-package com.fotonauts.lackr;
+package com.fotonauts.lackr.backend;
 
 import java.io.PrintStream;
 
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ConstantHttpDirector implements HttpDirectorInterface {
 
 	final private String direction;
-	private BaseGatewayMetrics[] gateways;
 	private HttpHost host;
 	
-	public ConstantHttpDirector(final String direction) {
+	public ConstantHttpDirector(final String direction) throws Exception {
 		this.direction = direction;
 		host = new HttpHost() {
 
-            @Override
-            public String getMBeanName() {
-                return "constantDirector";
-            }
             @Override
             public String getHostname() {
                 return direction;
             }
         };
         host.start();
-		this.gateways = new BaseGatewayMetrics[] { host };
     }
 	
 	@Override
@@ -36,11 +30,6 @@ public class ConstantHttpDirector implements HttpDirectorInterface {
 	@Override
     public void dumpStatus(PrintStream ps) {
 		ps.format("ConstantHttpDirector %s\n", direction);
-    }
-
-    @Override
-    public BaseGatewayMetrics[] getGateways() {
-        return gateways;
     }
 
     @Override

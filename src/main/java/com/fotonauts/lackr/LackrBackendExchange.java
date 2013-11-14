@@ -1,9 +1,9 @@
-package com.fotonauts.lackr.backend;
+package com.fotonauts.lackr;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
+import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
 

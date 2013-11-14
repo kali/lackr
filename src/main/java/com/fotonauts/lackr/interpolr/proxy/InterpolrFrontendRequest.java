@@ -1,4 +1,4 @@
-package com.fotonauts.lackr;
+package com.fotonauts.lackr.interpolr.proxy;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,8 +10,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.LackrBackendRequest;
-import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
+import com.fotonauts.lackr.BaseFrontendRequest;
+import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
@@ -31,7 +33,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     private ProxyInterpolrScope rootScope;
 
-    InterpolrFrontendRequest(final InterpolrProxy baseProxy, HttpServletRequest request) {
+    protected InterpolrFrontendRequest(final InterpolrProxy baseProxy, HttpServletRequest request) {
         super(baseProxy, request);
         this.service = baseProxy;
         this.pendingCount = new AtomicInteger(0);

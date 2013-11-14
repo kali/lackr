@@ -3,8 +3,8 @@ package com.fotonauts.lackr.backend.inprocess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.LackrBackendRequest;
 
 public class FemtorExchange extends LackrBackendExchange {
 

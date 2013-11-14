@@ -12,9 +12,9 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.Backend;
-import com.fotonauts.lackr.backend.LackrBackendExchange;
-import com.fotonauts.lackr.backend.LackrBackendRequest;
+import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.LackrBackendExchange;
+import com.fotonauts.lackr.LackrBackendRequest;
 
 // FIXME rename me (InProcessBackend)
 // FIXME reference to Femtor all around

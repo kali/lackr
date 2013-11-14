@@ -15,7 +15,7 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.HttpHost;
+import com.fotonauts.lackr.backend.HttpHost;
 
 public class RingHost extends HttpHost {
 
@@ -124,11 +124,6 @@ public class RingHost extends HttpHost {
 
     private void buildURL() throws MalformedURLException {
         probeURL.set(new URL((hostname.startsWith("http://") ? hostname : ("http://" + hostname)) + probeString));
-    }
-
-    @Override
-    public String getMBeanName() {
-        return getMBeanNameFromUrlPrefix(hostname);
     }
     
 }

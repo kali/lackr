@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.esi;
+package com.fotonauts.lackr.interpolr.esi;
 
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
