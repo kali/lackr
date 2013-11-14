@@ -15,7 +15,6 @@ import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.HttpHost;
 
 public class RingHost extends HttpHost {
@@ -24,7 +23,6 @@ public class RingHost extends HttpHost {
 
     protected String hostname;
     private HashRing ring;
-    protected RapportrInterface rapportr;
 
     private String probeString;
     private AtomicReference<URL> probeURL = new AtomicReference<URL>();
@@ -49,8 +47,7 @@ public class RingHost extends HttpHost {
         this.hostname = backend;
     }
 
-    public RingHost(RapportrInterface rapportr, String hostname, String probeUrl) {
-        this.rapportr = rapportr;
+    public RingHost(String hostname, String probeUrl) {
         this.hostname = hostname;
         this.probeString = probeUrl;
     }
@@ -120,8 +117,6 @@ public class RingHost extends HttpHost {
         boolean before = up.getAndSet(after);
         if (before != after) {
             log.warn("Status change: " + toString());
-            if (rapportr != null)
-                rapportr.warnMessage("Backend status change: " + toString(), null);
             if (ring != null)
                 ring.refreshStatus();
         }

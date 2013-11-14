@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.codehaus.jackson.JsonParseException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;

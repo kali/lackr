@@ -1,16 +1,8 @@
 package com.fotonauts.lackr.backend;
 
-import static com.fotonauts.commons.RapportrLoggingKeys.FRAGMENT_ID;
-import static com.fotonauts.commons.RapportrLoggingKeys.METHOD;
-import static com.fotonauts.commons.RapportrLoggingKeys.PARENT;
-import static com.fotonauts.commons.RapportrLoggingKeys.PARENT_ID;
-import static com.fotonauts.commons.RapportrLoggingKeys.PATH;
-import static com.fotonauts.commons.RapportrLoggingKeys.QUERY_PARMS;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.commons.RapportrService;
 import com.fotonauts.lackr.backend.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 import com.mongodb.BasicDBObject;
@@ -68,6 +60,7 @@ public abstract class LackrBackendExchange {
         }
         */
         startTimestamp = System.currentTimeMillis();
+        /*
         logLine = RapportrService.accessLogLineTemplate(lackrBackendRequest.getFrontendRequest().getRequest(), "lackr-back");
 
         // ESI logline overides
@@ -81,7 +74,7 @@ public abstract class LackrBackendExchange {
         if (lackrBackendRequest.getParentQuery() != null) {
             logLine.put(PARENT.getPrettyName(), lackrBackendRequest.getParentQuery());
         }
-
+*/
         /*
         getUpstream().getRequestCountHolder().inc();
         getUpstream().getRunningRequestsHolder().inc();

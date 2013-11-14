@@ -1,7 +1,5 @@
 package com.fotonauts.lackr;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.concurrent.atomic.AtomicBoolean;

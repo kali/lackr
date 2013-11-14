@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.BaseFrontendRequest;
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
-import com.fotonauts.lackr.interpolr.DataChunk;
-import com.fotonauts.lackr.interpolr.Document;
 
 /**
  * Represents the specification and current state of a request to be tried against one or more {@link Backend}.

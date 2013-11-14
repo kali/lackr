@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.commons.RapportrInterface;
 import com.fotonauts.lackr.BaseGatewayMetrics;
 import com.fotonauts.lackr.HttpDirectorInterface;
 import com.fotonauts.lackr.HttpHost;
@@ -38,7 +37,6 @@ public class HashRing implements HttpDirectorInterface {
 
 	private NavigableMap<Integer, RingHost> ring;
 
-	private RapportrInterface rapportrInterface;
 	private String[] hostnames;
 	private String probeUrl;
     private AtomicBoolean mustStop = new AtomicBoolean(false);
@@ -77,7 +75,7 @@ public class HashRing implements HttpDirectorInterface {
 		if (hosts == null && hostnames != null) {
 			hosts = new RingHost[hostnames.length];
 			for (int i = 0; i < hostnames.length; i++) {
-				hosts[i] = new RingHost(rapportrInterface, hostnames[i], probeUrl);
+				hosts[i] = new RingHost(hostnames[i], probeUrl);
 			}
 		}
 		ring = new TreeMap<Integer, RingHost>();
@@ -154,8 +152,10 @@ public class HashRing implements HttpDirectorInterface {
 		up.set(ups);
 		String message = "Ring has " + up.get() + " backend up among " + hosts.length + ".";
 		log.warn(message);
+		/*
 		if (rapportrInterface != null)
 			rapportrInterface.warnMessage(message, null);
+			*/
 	}
 
 	public NavigableMap<Integer, RingHost> getRing() {
@@ -174,14 +174,6 @@ public class HashRing implements HttpDirectorInterface {
 	@Override
 	public HttpHost getHostFor(LackrBackendRequest request) throws NotAvailableException {
 		return getHostFor(request.getQuery());
-	}
-
-	public RapportrInterface getRapportrInterface() {
-		return rapportrInterface;
-	}
-
-	public void setRapportrInterface(RapportrInterface rapportrInterface) {
-		this.rapportrInterface = rapportrInterface;
 	}
 
 	@Override
