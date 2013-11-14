@@ -1,6 +1,7 @@
 package com.fotonauts.lackr.components;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +32,7 @@ public class TestClient extends AbstractLifeCycle {
         client.stop();
     }
 
+    // FIXME rename me (createRequest)
     public Request createExchange(String path) {
         return client.newRequest("http://localhost:" + port + path);
     }
@@ -45,6 +47,24 @@ public class TestClient extends AbstractLifeCycle {
 
     public HttpClient getClient() {
         return client;
+    }
+
+    public void loadPageAndExpects(String expects) throws InterruptedException, TimeoutException, ExecutionException {
+        Request exchange = createExchange("/page.html");
+        runRequest(exchange, expects);
+    }
+
+    public void loadPageAndExpectsCrash() throws InterruptedException, TimeoutException, ExecutionException {
+        Request req = createExchange("/page.html");
+        ContentResponse resp = req.send();
+        assertTrue("returns an error", resp.getStatus() >= 400);
+    }
+
+    public void loadPageAndExpectsContains(String expect) throws InterruptedException, TimeoutException, ExecutionException {
+        ContentResponse response = createExchange("/page.html").timeout(600, TimeUnit.SECONDS).send();
+        //System.err.println(response.getContentAsString());
+        assertEquals(200, response.getStatus());
+        assertTrue("response contains `" + expect+ "'", response.getContentAsString().contains(expect));
     }
 
 }

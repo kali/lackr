@@ -76,4 +76,11 @@ public class Interpolr extends AbstractLifeCycle {
         return jacksonObjectMapper;
     }
 
+    public void preflightCheck(InterpolrContext context) {
+        context.getMustacheContext().checkAndCompileAll();
+        if (context.getRootScope().getParsedDocument() != null) {
+            context.getRootScope().getParsedDocument().check();
+        }
+    }
+
 }

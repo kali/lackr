@@ -1,39 +1,37 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayOutputStream;
-
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.fotonauts.lackr.components.AppStubForESI;
 import com.fotonauts.lackr.components.Factory;
-import com.fotonauts.lackr.components.InterpolrContextStub;
-import com.fotonauts.lackr.components.InterpolrScopeStub;
 import com.fotonauts.lackr.interpolr.Interpolr;
-import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.InterpolrTestUtils;
 
 public class TestInterpolrESI {
 
-    private String expand(String string, String mimeType) throws Exception {
-        final AppStubForESI app = new AppStubForESI();
-        Interpolr interpolr = Factory.buildInterpolr(true);
-        InterpolrContextStub context = new InterpolrContextStub(interpolr) {
-            @Override
-            public InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope) {
-                InterpolrScope result = app.getInterpolrScope(this, syntaxIdentifier, url);
-                interpolr.processResult(result);
-                return result;
-            }
-        };
-        InterpolrScopeStub scope = new InterpolrScopeStub(context, string.getBytes(), mimeType);
-        interpolr.processResult(scope);
-        scope.getParsedDocument().check();
-        System.err.println(scope.getParsedDocument().toDebugString());
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        scope.getParsedDocument().writeTo(baos);
+    AppStubForESI app;
+    Interpolr interpolr;
+
+    @Before
+    public void setup() throws Exception {
+        app = new AppStubForESI();
+        interpolr = Factory.buildInterpolr("esi");
+        interpolr.start();
+    }
+
+    @After
+    public void teardown() throws Exception {
         interpolr.stop();
-        return new String(baos.toString());
+        assertTrue(Thread.getAllStackTraces().size() < 10);
+    }
+
+    private String expand(String string, String mime) {
+        return InterpolrTestUtils.expand(interpolr, string, mime);
     }
 
     public String quoteJson(String text) {
@@ -49,19 +47,19 @@ public class TestInterpolrESI {
     @Test
     public void testHtmlInJs() throws Exception {
         String result = expand("before\n\"ssi:include:virtual:/esi.html\"\nafter\n", MimeType.APPLICATION_JAVASCRIPT);
-        assertEquals("before\n\"" + quoteJson( AppStubForESI.ESI_HTML) + "\"\nafter\n", result);
+        assertEquals("before\n\"" + quoteJson(AppStubForESI.ESI_HTML) + "\"\nafter\n", result);
     }
 
     @Test
     public void testJsInJs() throws Exception {
         String result = expand("before\n\"ssi:include:virtual:/esi.json\"\nafter\n", MimeType.APPLICATION_JAVASCRIPT);
-        assertEquals("before\n" +  AppStubForESI.ESI_JSON + "\nafter\n", result);
+        assertEquals("before\n" + AppStubForESI.ESI_JSON + "\nafter\n", result);
     }
 
     @Test
     public void testHtmlInMlJs() throws Exception {
         String result = expand("before\n<!--# include virtual=\\\"/esi.html\\\" -->\nafter\n", MimeType.TEXT_HTML);
-        String json = quoteJson( AppStubForESI.ESI_HTML);
+        String json = quoteJson(AppStubForESI.ESI_HTML);
         assertEquals("before\n" + json + "\nafter\n", result);
     }
 
@@ -93,8 +91,8 @@ public class TestInterpolrESI {
     @Test
     public void testPlainToJS() throws Exception {
         String result = expand("{ something_empty: \"ssi:include:virtual:/some.text\" }", MimeType.TEXT_JAVASCRIPT);
-        assertEquals("{ something_empty: \"" + AppStubForESI.ESI_TEXT.replace("\"", "\\\"").replace("/", "\\/").replace("\n", "\\n") + "\" }",
-                result);
+        assertEquals("{ something_empty: \""
+                + AppStubForESI.ESI_TEXT.replace("\"", "\\\"").replace("/", "\\/").replace("\n", "\\n") + "\" }", result);
     }
 
     @Test
@@ -109,7 +107,7 @@ public class TestInterpolrESI {
         String result = expand("before\nhttp://esi.include.virtual/500.html#\nafter\n", MimeType.TEXT_HTML);
         assertEquals("before\n<!-- ignore me -->\nafter\n", result);
     }
-*/
+    */
     /* FIXME
     @Test
     public void testMethodsMainRequest() throws Exception {
@@ -133,5 +131,5 @@ public class TestInterpolrESI {
             assertContains(e.getContentAsString(), "ESI does:GET");
         }
     }
-*/
+    */
 }

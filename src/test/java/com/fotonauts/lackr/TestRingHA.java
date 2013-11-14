@@ -1,5 +1,7 @@
 package com.fotonauts.lackr;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -124,6 +126,7 @@ public class TestRingHA extends TestCase {
 
     @After
     public void tearDown() throws Exception {
+        assertTrue(Thread.getAllStackTraces().size() < 10);
         /*
         if (Thread.getAllStackTraces().size() > 5) {
             throw new RuntimeException("thread leak detected !");

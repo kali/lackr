@@ -1,5 +1,7 @@
 package com.fotonauts.lackr;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -53,5 +55,9 @@ public class TextUtils {
         return sb.toString();
     }
 
+    public static void assertContains(String haystack, String needle) {
+        assertTrue(haystack + "\n\nexpected to contain\n\n" + needle, haystack.contains(needle));
+    }
     
+
 }

@@ -1,6 +1,7 @@
 package com.fotonauts.lackr;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -87,10 +88,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     protected void preflightCheck() {
         log.debug("Entering preflight check for {}", this);
         try {
-            getMustacheContext().checkAndCompileAll();
-            if (rootScope.getParsedDocument() != null) {
-                rootScope.getParsedDocument().check();
-            }
+            getInterpolr().preflightCheck(this);
         } catch (Throwable e) {
             getBackendExceptions().add(LackrPresentableError.fromThrowable(e));
         }
@@ -116,7 +114,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         log.debug("Request completion for root: {}", getPathAndQuery(request));
         rootScope = new ProxyInterpolrScope(this);
         rootScope.setRequest(rootRequest);
-        getInterpolr().processResult(rootScope);
+        getInterpolr().processResult(getRootScope());
         log.debug("Interpolation done for root: {}", getPathAndQuery(request));
         if (pendingCount.get() == 0) {
             log.debug("No ESI found for {}.", getPathAndQuery(request));
@@ -125,10 +123,10 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     }
 
     protected void writeContentLengthHeaderAndBody(HttpServletResponse response) throws IOException {
-        if (rootScope.getParsedDocument().length() > 0) {
-            response.setContentLength(rootScope.getParsedDocument().length());
+        if (getRootScope().getParsedDocument().length() > 0) {
+            response.setContentLength(getRootScope().getParsedDocument().length());
             if (request.getMethod() != "HEAD")
-                rootScope.getParsedDocument().writeTo(response.getOutputStream());
+                getRootScope().getParsedDocument().writeTo(response.getOutputStream());
         }
     }
 
@@ -136,4 +134,9 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     public String toString() {
         return rootRequest.toString();
     }
+
+    public InterpolrScope getRootScope() {
+        return rootScope;
+    }
+
 }

@@ -114,7 +114,8 @@ public class MustacheContext {
     }
 
     public void registerTemplate(String name, Document template) {
-        log.debug("registerTemplate({}, {})", name, template);
+        if(log.isDebugEnabled())
+            log.debug("registerTemplate({}, {})", name, template.toDebugString());
         registeredTemplatesDocument.put(name, template);
     }
 

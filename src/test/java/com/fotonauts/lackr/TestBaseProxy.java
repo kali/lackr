@@ -36,16 +36,12 @@ public class TestBaseProxy {
     Server proxyServer;
     TestClient client;
     
-    public TestBaseProxy() throws Exception {
-    }
-
     @Before
     public void setup() throws Exception {
         remoteControlledStub = new RemoteControlledStub();        
         remoteControlledStub.start();
         proxyServer = Factory.buildSimpleProxyServer(remoteControlledStub.getPort());
         proxyServer.start();
-        
         client = new TestClient(((ServerConnector) proxyServer.getConnectors()[0]).getLocalPort());
         client.start();
     }
@@ -55,6 +51,7 @@ public class TestBaseProxy {
         LifeCycle[] zombies = new LifeCycle[] { client, proxyServer, remoteControlledStub };
         for(LifeCycle z: zombies)
             z.stop();
+        assertTrue(Thread.getAllStackTraces().size() < 10);
     }
 
     @Test

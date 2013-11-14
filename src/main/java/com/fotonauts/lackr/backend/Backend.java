@@ -4,7 +4,6 @@ import java.io.PrintStream;
 
 import org.eclipse.jetty.util.component.LifeCycle;
 
-import com.fotonauts.lackr.Service;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 /**
