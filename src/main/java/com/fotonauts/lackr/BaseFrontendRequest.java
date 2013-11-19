@@ -47,8 +47,7 @@ public class BaseFrontendRequest {
         this.proxy = baseProxy;
         this.request = request;
         this.continuation = request.startAsync();
-        // FIXME        this.continuation.setTimeout(getService().getTimeout() * 1000);
-        this.continuation.setTimeout(5 * 1000);
+        this.continuation.setTimeout(getProxy().getTimeout() * 1000);
         this.continuation.addListener(new AsyncListener() {
 
             @Override
