@@ -1,10 +1,8 @@
 package com.fotonauts.lackr;
 
-import java.io.PrintStream;
-
 import org.eclipse.jetty.util.component.LifeCycle;
 
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 /**
  * Represents a backend server or any other upstream system lackr will try to delegate a {@link LackrBackendRequest} too. 
@@ -24,29 +22,9 @@ public interface Backend extends LifeCycle {
 	public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException;
 
 	/**
-	 * Dumps current state in a {@link PrintStream} or monitoring and/or debugging.
-	 * @param ps the {@link PrintStream} to dump to.
-	 */
-	public void dumpStatus(PrintStream ps);
-	
-	/**
-	 * Will be called by {@link Service} at its end of life.
-	 * 
-	 * @throws Exception
-	 */
-	public void stop() throws Exception;
-	
-	/**
-	 * One or several statistics accumulator representing one or several upstream servers.
-	 * 
-	 * @return the gateways
-	 */
-	// public BaseGatewayMetrics[] getGateways();
-	
-	/**
-	 * For debugging purposes.
-	 * 
-	 * @return
+	 * For debugging and logging purposes.
 	 */
 	public String getName();
+	
+	public boolean probe();
 }

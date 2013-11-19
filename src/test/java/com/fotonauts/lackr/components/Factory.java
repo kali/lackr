@@ -20,7 +20,6 @@ import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BaseProxy;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.client.ClientBackend;
-import com.fotonauts.lackr.backend.client.ConstantHttpDirector;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Rule;
@@ -37,10 +36,19 @@ import com.fotonauts.lackr.mustache.TemplateRule;
 
 public class Factory {
 
-    public static ClientBackend buildFullClientBackend(int port) throws Exception {
+    public static Backend buildFullClientBackend(int port) throws Exception {
+        return buildFullClientBackend(port, null);
+    }
+
+    public static Backend buildFullClientBackend(int port, String probe) throws Exception {
+        return buildFullClientBackend("http://localhost:" + port, probe);
+    }
+
+    public static Backend buildFullClientBackend(String prefix, String probe) throws Exception {
         ClientBackend backend = new ClientBackend();
-        backend.setDirector(new ConstantHttpDirector("http://localhost:" + port));
+        backend.setPrefix(prefix);
         backend.setActualClient(buildFullClient());
+        backend.setProbeUrl(probe);
         return backend;
     }
 
@@ -82,7 +90,7 @@ public class Factory {
         proxy.setBackend(backend);
         return proxy;
     }
-    
+
     public static Server buildSimpleProxyServer(Backend backend) throws Exception {
         return buildProxyServer(buildSimpleBaseProxy(backend));
     }
@@ -93,6 +101,7 @@ public class Factory {
         proxyServer.addConnector(new ServerConnector(proxyServer));
         return proxyServer;
     }
+
     public static Server buildInterpolrProxyServer(Interpolr interpolr, Backend backend) throws Exception {
         return buildProxyServer(buildInterpolrProxy(interpolr, backend));
     }
@@ -126,4 +135,5 @@ public class Factory {
         proxy.setBackend(backend);
         return proxy;
     }
+
 }

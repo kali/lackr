@@ -1,7 +1,6 @@
 package com.fotonauts.lackr;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,15 +15,15 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.junit.After;
 
-import com.fotonauts.lackr.backend.hashring.HashRing;
-import com.fotonauts.lackr.backend.hashring.RingHost;
+import com.fotonauts.lackr.backend.hashring.HashRingBackend;
+import com.fotonauts.lackr.backend.hashring.RingMember;
+import com.fotonauts.lackr.components.Factory;
 
 public class TestRingHA extends TestCase {
 
     class StubServer extends Server {
         public AtomicInteger requestCount = new AtomicInteger(0);
         public AtomicBoolean up = new AtomicBoolean(true);
-        public RingHost host;
 
         @Override
         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
@@ -44,8 +43,10 @@ public class TestRingHA extends TestCase {
             ServerConnector sc = new ServerConnector(this);
             addConnector(sc);
             start();
-            host = new RingHost("localhost:" + sc.getLocalPort());
-            host.setProbe("/");
+        }
+
+        public int getPort() {
+            return ((ServerConnector) getConnectors()[0]).getLocalPort();
         }
 
         @Override
@@ -59,16 +60,16 @@ public class TestRingHA extends TestCase {
         System.setProperty("logback.configurationFile", "logback.debug.xml");
     }
 
-    public void testHostProbeNoConnection() throws MalformedURLException {
-        RingHost h = new RingHost("localhost:29843");
-        h.setProbe("/");
+    public void testHostProbeNoConnection() throws Exception {
+        RingMember h = new RingMember(Factory.buildFullClientBackend(54321, "/"));
+        h.start();
         h.probe();
         assertFalse("h is down", h.isUp());
+        h.stop();
     }
 
     public void testHostProbeWrongHostname() throws Exception {
-        RingHost h = new RingHost("something.that.does.not.exists");
-        h.setProbe("/");
+        RingMember h = new RingMember(Factory.buildFullClientBackend("something.that.does.not.exists:1212", "/"));
         h.probe();
         assertFalse("h is down", h.isUp());
     }
@@ -76,55 +77,59 @@ public class TestRingHA extends TestCase {
     public void testHostProbe500() throws Exception {
         StubServer backend = new StubServer();
         backend.up.set(false);
-        RingHost h = backend.host;
-        h.probe();
+        RingMember h = new RingMember(Factory.buildFullClientBackend(backend.getPort(), "/"));
+        h.start();
+        assertFalse(h.probe());
         assertEquals("server has been probed", 1, backend.requestCount.get());
         assertFalse("h is down", h.isUp());
+        h.stop();
         backend.stop();
     }
 
     public void testHostProbe200() throws Exception {
         StubServer backend = new StubServer();
-        RingHost h = backend.host;
-        h.probe();
+        RingMember h = new RingMember(Factory.buildFullClientBackend(backend.getPort(), "/"));
+        h.start();
+        assertTrue(h.probe());
         assertEquals("server has been probed", 1, backend.requestCount.get());
         assertTrue("h is up", h.isUp());
+        h.stop();
         backend.stop();
     }
 
     public void testRingStatusDiscovery() throws Exception {
-        StubServer backend1 = new StubServer();
-        StubServer backend2 = new StubServer();
-        HashRing ring = new HashRing(backend1.host, backend2.host);
-        ring.init();
-        Thread.sleep(200);
-        assertTrue("server has been probed", backend1.requestCount.get() > 0);
-        assertTrue("server has been probed", backend2.requestCount.get() > 0);
+        StubServer server1 = new StubServer();
+        StubServer server2 = new StubServer();
+        HashRingBackend ring = new HashRingBackend(Factory.buildFullClientBackend(server1.getPort(), "/"), Factory.buildFullClientBackend(server2
+                .getPort(), "/"));
+        ring.start();
+        Thread.sleep(500);
+        assertTrue("server has been probed", server1.requestCount.get() > 0);
+        assertTrue("server has been probed", server2.requestCount.get() > 0);
         assertTrue("ring is up", ring.up());
-        backend1.up.set(false);
+        server1.up.set(false);
         Thread.sleep(1500);
         assertTrue("ring is still up", ring.up());
-        assertTrue("backend1 is down", !backend1.host.isUp());
-        assertTrue("backend2 is up", backend2.host.isUp());
-        backend2.up.set(false);
+        assertTrue("backend1 is down", !ring.getMember(0).isUp());
+        assertTrue("backend2 is up", ring.getMember(1).isUp());
+        server2.up.set(false);
         Thread.sleep(1500);
         assertTrue("ring is now down", !ring.up());
-        assertTrue("backend1 is down", !backend1.host.isUp());
-        assertTrue("backend2 is down", !backend2.host.isUp());
-        backend1.up.set(true);
+        assertTrue("backend1 is down", !ring.getMember(0).isUp());
+        assertTrue("backend2 is down", !ring.getMember(1).isUp());
+        server1.up.set(true);
         Thread.sleep(1500);
         assertTrue("ring is back up", ring.up());
-        assertTrue("backend1 is up", backend1.host.isUp());
-        assertTrue("backend2 is down", !backend2.host.isUp());
-        ring.stop();
-        backend1.stop();
-        backend2.stop();
+        assertTrue("backend1 is up", ring.getMember(0).isUp());
+        assertTrue("backend2 is down", !ring.getMember(1).isUp());
+        server1.stop();
+        server2.stop();
         ring.stop();
     }
 
     @After
     public void tearDown() throws Exception {
-        assertTrue(Thread.getAllStackTraces().size() < 10);
+        assertTrue("Thread leak!", Thread.getAllStackTraces().size() < 10);
         /*
         if (Thread.getAllStackTraces().size() > 5) {
             throw new RuntimeException("thread leak detected !");

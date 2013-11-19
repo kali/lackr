@@ -5,15 +5,50 @@ import java.util.Map.Entry;
 
 import junit.framework.TestCase;
 
-import com.fotonauts.lackr.backend.hashring.HashRing;
-import com.fotonauts.lackr.backend.hashring.RingHost;
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+
+import com.fotonauts.lackr.backend.hashring.HashRingBackend;
+import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.RingMember;
 
 public class TestRing extends TestCase {
 
+    static class Stub extends AbstractLifeCycle implements Backend {
+
+        private String name;
+
+        public Stub(String name) {
+            this.name = name;
+        }
+        
+        @Override
+        public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
+            throw new RuntimeException("Bouh!");
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean probe() {
+            return true;
+        }
+        
+    }
+    
+    public static HashRingBackend buildHashRing(String... names) {
+        Backend[] backends = new Backend[names.length];
+        for(int i = 0; i<names.length; i++)
+            backends[i] = new Stub(names[i]);
+        HashRingBackend ring = new HashRingBackend(backends);
+        return ring;
+    }
+    
 	public void testEmptyRing() throws Exception {
-		HashRing ring = new HashRing(new String[0]);
-		ring.init();
+		HashRingBackend ring = new HashRingBackend(new Backend[0]);
+		ring.start();
 		try {
 			ring.getHostFor("titi");
 			assertTrue("should raise NAE here", false);
@@ -23,16 +58,16 @@ public class TestRing extends TestCase {
 	}
 
 	public void testTrivialRing() throws Exception {
-		HashRing ring = new HashRing("localhost");
-		ring.init();
-		assertEquals("localhost", ring.getHostFor("titi").getHostname());
+		HashRingBackend ring = buildHashRing("localhost");
+		ring.start();
+		assertEquals("localhost", ring.getHostFor("titi").getName());
         ring.stop();
 	}
 
 	public void testSingleBackendDown() throws Exception {
-		HashRing ring = new HashRing("titi");
-		ring.init();
-		ring.getHostFor("toto").setDown();
+		HashRingBackend ring = buildHashRing("titi");
+		ring.start();
+		ring.getMemberFor("toto").setDown();
 		try {
 			ring.getHostFor("titi");
 			assertTrue("should raise NAE here", false);
@@ -42,52 +77,52 @@ public class TestRing extends TestCase {
 	}
 
 	public void testConsistency() throws Exception {
-		HashRing ring1 = new HashRing("host1", "host2");
-		ring1.init();
-		HashRing ring2 = new HashRing("host2", "host1");
-		ring2.init();
+		HashRingBackend ring1 = buildHashRing("host1", "host2");
+		ring1.start();
+		HashRingBackend ring2 = buildHashRing("host2", "host1");
+		ring2.start();
 		for (int i = 0; i < 10; i++) {
-			assertEquals("ring 1 and 2 should give same host", ring1.getHostFor("url" + i).getHostname(), ring2
-			        .getHostFor("url" + i).getHostname());
+			assertEquals("ring 1 and 2 should give same host", ring1.getHostFor("url" + i).getName(), ring2
+			        .getHostFor("url" + i).getName());
 		}
         ring1.stop();
         ring2.stop();
 	}
 	
 	public void testSpread() throws Exception {
-		HashRing ring = new HashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
-		ring.init();
-		HashMap<RingHost, Integer> result = new HashMap<RingHost, Integer>();
+		HashRingBackend ring = buildHashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
+		ring.start();
+		HashMap<RingMember, Integer> result = new HashMap<RingMember, Integer>();
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			RingHost h = ring.getHostFor(url);
+			RingMember h = ring.getMemberFor(url);
 			if(!result.containsKey(h))
 				result.put(h, 1);
 			else
 				result.put(h, result.get(h) + 1);
 		}
 		assertEquals("queried backends", 8, result.size());
-		for(Entry<RingHost, Integer> entry : result.entrySet()) {
-			assertTrue(entry.getKey().getHostname() + " got its share", entry.getValue() > 500);
+		for(Entry<RingMember, Integer> entry : result.entrySet()) {
+			assertTrue(entry.getKey().getBackend() + " got its share", entry.getValue() > 500);
 		}
 		ring.stop();
 	}
 
 	public void testAvoidDead() throws Exception {
-		HashRing ring = new HashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
-		ring.init();
-		RingHost[] result1 = new RingHost[10000];
+		HashRingBackend ring = buildHashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
+		ring.start();
+		RingMember[] result1 = new RingMember[10000];
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			RingHost h = ring.getHostFor(url);
+			RingMember h = ring.getMemberFor(url);
 			result1[i] = h;
 		}
-		RingHost dead = ring.getHostFor("dead");
+		RingMember dead = ring.getMemberFor("dead");
 		dead.setDown();
-		RingHost[] result2 = new RingHost[10000];
+		RingMember[] result2 = new RingMember[10000];
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			RingHost h = ring.getHostFor(url);
+			RingMember h = ring.getMemberFor(url);
 			result2[i] = h;
 		}
 		for(int i = 0; i < 10000; i++) {

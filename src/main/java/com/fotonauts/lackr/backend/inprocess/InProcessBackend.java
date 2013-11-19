@@ -1,7 +1,5 @@
 package com.fotonauts.lackr.backend.inprocess;
 
-import java.io.PrintStream;
-
 import javax.servlet.Filter;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
@@ -32,16 +30,6 @@ public class InProcessBackend extends AbstractLifeCycle implements Backend {
 		return new InProcessExchange(this, request);
 	}
 
-	@Override
-	public void dumpStatus(PrintStream ps) {
-		ps.format("Femtor HTTP Client\n\n");
-	}
-
-	@Override
-    public String getName() {
-        return "in-process-femtor";
-    }
-    
     @Override
     public String toString() {
         return String.format("%s:%s", getClass().getSimpleName(), getName());
@@ -55,4 +43,13 @@ public class InProcessBackend extends AbstractLifeCycle implements Backend {
         return filter;
     }
 
+    @Override
+    public String getName() {
+        return filter.getClass().getName();
+    }
+    
+    @Override
+    public boolean probe() {
+        return filter != null;
+    }
 }

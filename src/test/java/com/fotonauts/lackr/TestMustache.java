@@ -179,7 +179,7 @@ public class TestMustache {
     }
 
     @Test
-    @Ignore // FIXME this one is specific and needs http awareness (hostname)
+    @Ignore // FIXME this one is specific and needs http awareness (backend)
     public void testInlineLocaleSupport() throws Exception {
 //        String result = expand(TextUtils.S(/*
 //            <!-- lackr:mustache:template name="template_name" -->
@@ -255,7 +255,7 @@ public class TestMustache {
     }
 
     @Test
-    @Ignore // FIXME specific, and http/hostname needed
+    @Ignore // FIXME specific, and http/backend needed
     public void testAbsoluteDateTime() throws Exception {
 //        String template = TextUtils.S(/*
 //                <!-- lackr:mustache:template name="t" -->
@@ -309,7 +309,7 @@ public class TestMustache {
     }
 
     @Test
-    @Ignore // FIXME specific, and http/hostname needed
+    @Ignore // FIXME specific, and http/backend needed
     public void testRelativeDateTime() throws Exception {
 //
 //        String template = TextUtils.S(/*

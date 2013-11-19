@@ -1,13 +1,11 @@
 package com.fotonauts.lackr.backend.trypass;
 
-import java.io.PrintStream;
-
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class TryPassBackend extends AbstractLifeCycle implements Backend {
 
@@ -20,12 +18,6 @@ public class TryPassBackend extends AbstractLifeCycle implements Backend {
     @Override
     public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
         return new TryPassBackendExchange(this, request);
-    }
-
-    @Override
-    public void dumpStatus(PrintStream ps) {
-        for(Backend b: backends)
-            b.dumpStatus(ps);
     }
 
     @Override
@@ -58,5 +50,13 @@ public class TryPassBackend extends AbstractLifeCycle implements Backend {
     @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public boolean probe() {
+        for(Backend b: backends)
+            if(!b.probe())
+                return false;
+        return true;
     }
 }

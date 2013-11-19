@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.LackrBackendResponse;
-import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
+import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class ClientLackrBackendExchange extends LackrBackendExchange {
 
@@ -28,10 +28,10 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     private LackrBackendResponse response;
     private byte[] responseBody;
 
-    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, HttpDirectorInterface director,
+    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, String prefix,
             LackrBackendRequest spec) throws NotAvailableException {
         super(backend, spec);
-        String url = director.getHostFor(spec).getHostname() + getBackendRequest().getQuery();
+        String url = prefix + getBackendRequest().getQuery();
         request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));
         request.getHeaders().add(spec.getFields());
