@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.LackrBackendResponse;
-import com.fotonauts.lackr.backend.HttpDirectorInterface;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public class ClientLackrBackendExchange extends LackrBackendExchange {

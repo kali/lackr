@@ -27,7 +27,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.fotonauts.lackr.backend.inprocess.InProcessFemtor;
+import com.fotonauts.lackr.backend.inprocess.InProcessBackend;
+import com.fotonauts.lackr.components.DummyInProcessStub;
 import com.fotonauts.lackr.components.Factory;
 import com.fotonauts.lackr.components.TestClient;
 
@@ -52,8 +53,7 @@ public class TestBackends {
     @Before
     public void setup() throws Exception {
         if (inProcess) {
-            InProcessFemtor inprocess = new InProcessFemtor();
-            inprocess.setFemtorHandlerClass("com.fotonauts.lackr.components.DummyInProcessStub");
+            InProcessBackend inprocess = new InProcessBackend(new DummyInProcessStub());
             proxyServer = Factory.buildSimpleProxyServer(inprocess);
         } else {
             remote = new Server();

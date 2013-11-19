@@ -1,8 +1,9 @@
-package com.fotonauts.lackr.backend;
+package com.fotonauts.lackr.backend.client;
 
 import java.io.PrintStream;
 
 import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.backend.HttpHost;
 import com.fotonauts.lackr.backend.hashring.HashRing.NotAvailableException;
 
 public interface HttpDirectorInterface {

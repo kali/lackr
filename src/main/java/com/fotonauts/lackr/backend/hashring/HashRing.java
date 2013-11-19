@@ -18,8 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.backend.HttpDirectorInterface;
 import com.fotonauts.lackr.backend.HttpHost;
+import com.fotonauts.lackr.backend.client.HttpDirectorInterface;
 
 public class HashRing implements HttpDirectorInterface {
 

@@ -17,14 +17,14 @@ import org.eclipse.jetty.util.UrlEncoded;
 
 import com.fotonauts.lackr.LackrBackendRequest;
 
-public class FemtorRequest extends HttpServletRequestWrapper {
+public class InProcessRequest extends HttpServletRequestWrapper {
 
     LackrBackendRequest request;
     private MultiMap<String> params;
     private BufferedReader reader;
     private ServletInputStream inputStream;
 
-    public FemtorRequest(HttpServletRequest httpServletRequest, LackrBackendRequest request) {
+    public InProcessRequest(HttpServletRequest httpServletRequest, LackrBackendRequest request) {
         super(httpServletRequest);
         this.request = request;
     }

@@ -21,7 +21,7 @@ import org.eclipse.jetty.http.HttpStatus;
 
 import com.fotonauts.lackr.LackrBackendResponse;
 
-public class FemtorResponse extends LackrBackendResponse implements HttpServletResponse {
+public class InProcessResponse extends LackrBackendResponse implements HttpServletResponse {
 
 	public static final int NONE = 0, STREAM = 1, WRITER = 2;
 
@@ -32,7 +32,7 @@ public class FemtorResponse extends LackrBackendResponse implements HttpServletR
 	private Map<String, List<String>> headers = new HashMap<String, List<String>>();
 	private int _outputState;
 
-	public FemtorResponse(FemtorExchange exchange) {
+	public InProcessResponse(InProcessExchange exchange) {
 	    super(exchange);
 		_outputState = NONE;
 	}
