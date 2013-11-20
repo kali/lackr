@@ -10,12 +10,12 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.mustache.MustacheContext;
+import com.fotonauts.lackr.mustache.HandlebarsContext;
 
 public class InterpolrContextStub implements InterpolrContext {
     static Logger log = LoggerFactory.getLogger(InterpolrContextStub.class);
 
-    protected MustacheContext mustache = new MustacheContext(this);
+    protected HandlebarsContext mustache = new HandlebarsContext(this);
     protected List<LackrPresentableError> errors = new LinkedList<>();
     protected Interpolr interpolr;
     protected InterpolrScope rootScope;
@@ -36,7 +36,7 @@ public class InterpolrContextStub implements InterpolrContext {
     }
 
     @Override
-    public MustacheContext getMustacheContext() {
+    public HandlebarsContext getMustacheContext() {
         return mustache;
     }
 

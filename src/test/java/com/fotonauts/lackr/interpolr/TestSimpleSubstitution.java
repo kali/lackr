@@ -17,7 +17,7 @@ public class TestSimpleSubstitution {
     @Test
     public void testNoMatch() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")) });
         Document r = InterpolrTestUtils.parse(inter, "foobar");
         assertEquals("(foobar)", r.toDebugString());
         assertEquals("foobar", InterpolrTestUtils.expand(r));
@@ -26,7 +26,7 @@ public class TestSimpleSubstitution {
     @Test
     public void testFull() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")) });
         Document r = InterpolrTestUtils.parse(inter, "titi");
         assertEquals("<toto>", r.toDebugString());
         assertEquals("toto", InterpolrTestUtils.expand(r));
@@ -35,7 +35,7 @@ public class TestSimpleSubstitution {
     @Test
     public void testBegin() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")) });
         Document r = InterpolrTestUtils.parse(inter, "tatatiti");
         assertEquals("(tata)<toto>", r.toDebugString());
         assertEquals("tatatoto", InterpolrTestUtils.expand(r));
@@ -44,7 +44,7 @@ public class TestSimpleSubstitution {
     @Test
     public void testEnd() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")) });
         Document r = InterpolrTestUtils.parse(inter, "tititata");
         assertEquals("<toto>(tata)", r.toDebugString());
         assertEquals("tototata", InterpolrTestUtils.expand(r));
@@ -53,7 +53,7 @@ public class TestSimpleSubstitution {
     @Test
     public void testMiddle() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")) });
         Document r = InterpolrTestUtils.parse(inter, "tatatititata");
         assertEquals("(tata)<toto>(tata)", r.toDebugString());
         assertEquals("tatatototata", InterpolrTestUtils.expand(r));
@@ -62,7 +62,7 @@ public class TestSimpleSubstitution {
     @Test
     public void testSeveral() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")) });
         Document r = InterpolrTestUtils.parse(inter, "tatatititututititete");
         assertEquals("(tata)<toto>(tutu)<toto>(tete)", r.toDebugString());
         assertEquals("tatatototututototete", InterpolrTestUtils.expand(r));
@@ -71,8 +71,8 @@ public class TestSimpleSubstitution {
     @Test
     public void testMultiple() throws Exception {
         Interpolr inter = new Interpolr();
-        inter.addRule(new SimpleSubstitutionRule("titi", "toto"));
-        inter.addRule(new SimpleSubstitutionRule("lili", "lolo"));
+        inter.setPlugins(new Plugin[] { new SingleRulePlugin(new SimpleSubstitutionRule("titi", "toto")),
+                new SingleRulePlugin(new SimpleSubstitutionRule("lili", "lolo")) });
         Document r = InterpolrTestUtils.parse(inter, "tatalilitatatititata");
         assertEquals("(tata)<lolo>(tata)<toto>(tata)", r.toDebugString());
         assertEquals("tatalolotatatototata", InterpolrTestUtils.expand(r));

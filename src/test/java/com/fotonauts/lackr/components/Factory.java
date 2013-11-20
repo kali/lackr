@@ -1,9 +1,6 @@
 package com.fotonauts.lackr.components;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,17 +19,10 @@ import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.client.ClientBackend;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.Rule;
-import com.fotonauts.lackr.interpolr.esi.HttpESIRule;
-import com.fotonauts.lackr.interpolr.esi.JSESIRule;
-import com.fotonauts.lackr.interpolr.esi.JSEscapedMLESIRule;
-import com.fotonauts.lackr.interpolr.esi.JSMLESIRule;
-import com.fotonauts.lackr.interpolr.esi.MLESIRule;
+import com.fotonauts.lackr.interpolr.Plugin;
+import com.fotonauts.lackr.interpolr.esi.ESIPlugin;
 import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
-import com.fotonauts.lackr.mustache.ArchiveRule;
-import com.fotonauts.lackr.mustache.DumpArchiveRule;
-import com.fotonauts.lackr.mustache.EvalRule;
-import com.fotonauts.lackr.mustache.TemplateRule;
+import com.fotonauts.lackr.mustache.HandlebarsPlugin;
 
 public class Factory {
 
@@ -67,19 +57,9 @@ public class Factory {
 
     public static Interpolr buildInterpolr(String capabilities) throws Exception {
         Interpolr interpolr = new Interpolr();
-        List<String> caps = Arrays.asList(capabilities.split(" "));
+//        List<String> caps = Arrays.asList(capabilities.split(" "));
 
-        ArrayList<Rule> rules = new ArrayList<>();
-
-        if (caps.indexOf("archive") >= 0)
-            rules.addAll(Arrays.asList(new Rule[] { new DumpArchiveRule(), new ArchiveRule() }));
-        if (caps.indexOf("mustache") >= 0)
-            rules.addAll(Arrays.asList(new Rule[] { new TemplateRule(), new EvalRule() }));
-        if (caps.indexOf("esi") >= 0)
-            rules.addAll(Arrays.asList(new Rule[] { new HttpESIRule(), new JSESIRule(), new JSEscapedMLESIRule(),
-                    new JSMLESIRule(), new MLESIRule() }));
-
-        interpolr.setRules(rules.toArray(new Rule[rules.size()]));
+        interpolr.setPlugins(new Plugin[] { new HandlebarsPlugin(), new ESIPlugin() });
         interpolr.start();
         return interpolr;
     }

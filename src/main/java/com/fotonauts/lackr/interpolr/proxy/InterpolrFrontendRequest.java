@@ -18,7 +18,7 @@ import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.mustache.MustacheContext;
+import com.fotonauts.lackr.mustache.HandlebarsContext;
 
 public class InterpolrFrontendRequest extends BaseFrontendRequest implements InterpolrContext {
 
@@ -28,7 +28,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     protected InterpolrProxy service;
 
-    private MustacheContext mustacheContext;
+    private HandlebarsContext handlebarsContext;
 
     private ConcurrentHashMap<String, InterpolrScope> backendRequestCache = new ConcurrentHashMap<String, InterpolrScope>();
 
@@ -38,7 +38,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         super(baseProxy, request);
         this.service = baseProxy;
         this.pendingCount = new AtomicInteger(0);
-        this.mustacheContext = new MustacheContext(this);
+        this.handlebarsContext = new HandlebarsContext(this);
     }
 
     public InterpolrScope getSubBackendExchange(String url, String format, InterpolrScope dad) {
@@ -103,8 +103,8 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         super.writeResponse(response);
     }
 
-    public MustacheContext getMustacheContext() {
-        return mustacheContext;
+    public HandlebarsContext getMustacheContext() {
+        return handlebarsContext;
     }
 
     public Interpolr getInterpolr() {

@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.mustache.Archive;
-import com.fotonauts.lackr.mustache.MustacheContext;
+import com.fotonauts.lackr.mustache.HandlebarsContext;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
@@ -37,9 +37,9 @@ public class MiscelaneousHelpers {
     public static CharSequence localize(Object targetAsObject, Options options) {
         if (targetAsObject == null)
             return "";
-        MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
-        for (String name : mustacheContext.getAllArchiveNames()) {
-            Archive archive = mustacheContext.getArchive(name);
+        HandlebarsContext handlebarsContext = (HandlebarsContext) options.context.get("_ftn_mustache_context");
+        for (String name : handlebarsContext.getAllArchiveNames()) {
+            Archive archive = handlebarsContext.getArchive(name);
             if (name.startsWith("translations/") && archive.getRootObject() instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> table = (Map<String, Object>) archive.getRootObject();
@@ -56,10 +56,10 @@ public class MiscelaneousHelpers {
             return "";
         @SuppressWarnings("unchecked")
         Map<String, Object> target = (Map<String, Object>) targetAsObject;
-        MustacheContext mustacheContext = (MustacheContext) options.context.get("_ftn_mustache_context");
+        HandlebarsContext handlebarsContext = (HandlebarsContext) options.context.get("_ftn_mustache_context");
         String templateString = (String) target.get("wrapped_mustache_template");
 
-        Handlebars handlebars = mustacheContext.getHandlebars();
+        Handlebars handlebars = handlebarsContext.getHandlebars();
         TemplateLoader oldLoader = handlebars.getLoader();
         try {
             final Object partialsAsObject = target.get("mustache_partials");
@@ -102,11 +102,11 @@ public class MiscelaneousHelpers {
                 template = handlebars.compile(new StringTemplateSource("inner view", templateString));
             } catch (Throwable e) {
                 log.debug("error in mustache partial compile:", e);
-                mustacheContext.getLackrFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
+                handlebarsContext.getLackrFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 return "";
             }
             try {
-                return mustacheContext.eval(template, target);
+                return handlebarsContext.eval(template, target);
             } catch (Throwable e) {
                 log.debug("error in mustache partial eval:", e);
                 return "";

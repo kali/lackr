@@ -29,7 +29,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
         inner.check();
         Map<String, Object> data = null;
         data = parse(inner, scope.getInterpolrContext(), name);
-        MustacheContext context = scope.getInterpolrContext().getMustacheContext();
+        HandlebarsContext context = scope.getInterpolrContext().getMustacheContext();
         inlineWrapperJsonEvaluation(data);
 
         Map<String, Object> wrapper = new HashMap<>();
@@ -80,7 +80,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     }
 
     @SuppressWarnings("unchecked")
-    private static void resolveArchiveReferences(Object data, final MustacheContext context) {
+    private static void resolveArchiveReferences(Object data, final HandlebarsContext context) {
         new ReferenceResolverWalker() {
             @Override
             public Object resolve(Object datum) {
