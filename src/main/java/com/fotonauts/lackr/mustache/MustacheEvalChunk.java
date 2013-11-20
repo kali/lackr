@@ -9,6 +9,7 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.Plugin;
 import com.github.jknack.handlebars.Template;
 
 public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
@@ -17,9 +18,11 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
 
     Chunk result = EMPTY;
     String name;
-
-    public MustacheEvalChunk(String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
+    Plugin plugin;
+    
+    public MustacheEvalChunk(Plugin plugin, String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
         super(buffer, start, stop, scope);
+        this.plugin = plugin;
         this.name = name;
     }
 
@@ -29,7 +32,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
         inner.check();
         Map<String, Object> data = null;
         data = parse(inner, scope.getInterpolrContext(), name);
-        HandlebarsContext context = scope.getInterpolrContext().getMustacheContext();
+        HandlebarsContext context = (HandlebarsContext) scope.getInterpolrContext().getPluginData(plugin);
         inlineWrapperJsonEvaluation(data);
 
         Map<String, Object> wrapper = new HashMap<>();
@@ -66,7 +69,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
                 builder.append("template name: " + name + "\n");
                 String[] lines;
                 try {
-                    lines = scope.getInterpolrContext().getMustacheContext().getExpandedTemplate(name).split("\n");
+                    lines = context.getExpandedTemplate(name).split("\n");
                     for (int i = 0; i < lines.length; i++) {
                         builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                     }

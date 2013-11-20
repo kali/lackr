@@ -1,5 +1,7 @@
 package com.fotonauts.lackr.interpolr;
 
 public interface Plugin {
-    public abstract Rule[] getRules();
+    public Rule[] getRules();
+    public Object createContext(InterpolrContext context);
+    public void preflightCheck(InterpolrContext context);
 }

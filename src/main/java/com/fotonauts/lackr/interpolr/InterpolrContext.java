@@ -3,7 +3,6 @@ package com.fotonauts.lackr.interpolr;
 import java.util.List;
 
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.mustache.HandlebarsContext;
 
 
 public interface InterpolrContext {
@@ -14,8 +13,6 @@ public interface InterpolrContext {
     //FIXME rename me
     InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope);
 
-    HandlebarsContext getMustacheContext();
-
     Interpolr getInterpolr();
 
     InterpolrScope getRootScope();
@@ -23,4 +20,5 @@ public interface InterpolrContext {
     //FIXME rename me
     List<LackrPresentableError> getBackendExceptions();
     
+    Object getPluginData(Plugin plugin);
 }

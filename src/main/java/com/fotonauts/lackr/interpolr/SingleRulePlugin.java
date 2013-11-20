@@ -13,4 +13,13 @@ public class SingleRulePlugin implements Plugin {
         return rule;
     }
 
+    @Override
+    public Object createContext(InterpolrContext context) {
+        return null;
+    }
+
+    @Override
+    public void preflightCheck(InterpolrContext context) {
+    }
+
 }

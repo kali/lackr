@@ -62,7 +62,8 @@ public class Interpolr extends AbstractLifeCycle {
     }
 
     public void preflightCheck(InterpolrContext context) {
-        context.getMustacheContext().checkAndCompileAll();
+        for(Plugin plugin: getPlugins())
+            plugin.preflightCheck(context);
         if (context.getRootScope().getParsedDocument() != null) {
             context.getRootScope().getParsedDocument().check();
         }

@@ -7,13 +7,17 @@ import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.Plugin;
 
 public class TemplateRule extends MarkupDetectingRule {
 
     protected static ConstantChunk EMPTY_CHUNK = new ConstantChunk("".getBytes());
 
-    public TemplateRule() {
+    private Plugin plugin;
+
+    public TemplateRule(Plugin plugin) {
         super("<!-- lackr:mustache:template name=\"*\" -->*<!-- /lackr:mustache:template -->");
+        this.plugin = plugin;
     }
 
     @Override
@@ -23,7 +27,7 @@ public class TemplateRule extends MarkupDetectingRule {
         try {
             name = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
             template = scope.getInterpolr().parse(buffer, boundPairs[2], boundPairs[3], scope);
-            scope.getInterpolrContext().getMustacheContext().registerTemplate(name, template);
+            ((HandlebarsContext) scope.getInterpolrContext().getPluginData(plugin)).registerTemplate(name, template);
             // Someday, we will not want lackr to delete parsed templates on the fly
             // return new DataChunk(buffer, boundPairs[2], boundPairs[3]);
             return EMPTY_CHUNK;

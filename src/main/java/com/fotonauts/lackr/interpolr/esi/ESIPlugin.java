@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.interpolr.esi;
 
+import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.Rule;
 
@@ -11,6 +12,15 @@ public class ESIPlugin implements Plugin {
     @Override
     public Rule[] getRules() {
         return rules;
+    }
+
+    @Override
+    public Object createContext(InterpolrContext context) {
+        return null;
+    }
+
+    @Override
+    public void preflightCheck(InterpolrContext context) {
     }
 
 }

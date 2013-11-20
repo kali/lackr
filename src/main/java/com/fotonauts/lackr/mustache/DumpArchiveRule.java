@@ -13,6 +13,7 @@ import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.Plugin;
 
 public class DumpArchiveRule extends MarkupDetectingRule {
 
@@ -21,10 +22,12 @@ public class DumpArchiveRule extends MarkupDetectingRule {
         private String name;
         private InterpolrScope scope;
         private Chunk result;
+        private Plugin plugin;
         
-        public DumpArchiveChunk(String archiveName, InterpolrScope scope) {
+        public DumpArchiveChunk(Plugin plugin, String archiveName, InterpolrScope scope) {
             this.name = archiveName;
             this.scope = scope;
+            this.plugin = plugin;
         }
         
         @Override
@@ -44,7 +47,8 @@ public class DumpArchiveRule extends MarkupDetectingRule {
 
         @Override
         public void check() {
-            Archive archive = scope.getInterpolrContext().getMustacheContext().getArchive(name);
+            HandlebarsContext ctx = (HandlebarsContext) scope.getInterpolrContext().getPluginData(plugin);
+            Archive archive = ctx.getArchive(name);
             ObjectMapper mapper = scope.getInterpolr().getJacksonObjectMapper();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             try {
@@ -64,8 +68,11 @@ public class DumpArchiveRule extends MarkupDetectingRule {
         
     }
     
-	public DumpArchiveRule() {
+    private Plugin plugin;
+    
+	public DumpArchiveRule(Plugin plugin) {
         super("<!-- lackr:mustache:dump archive=\"*\" -->");
+        this.plugin = plugin;
 	}
 
 	@Override
@@ -76,6 +83,6 @@ public class DumpArchiveRule extends MarkupDetectingRule {
         } catch (UnsupportedEncodingException e) {
             /* no thanks */
         }
-	    return new DumpArchiveChunk(archiveId, scope);
+	    return new DumpArchiveChunk(plugin, archiveId, scope);
 	}
 }

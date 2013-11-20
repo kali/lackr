@@ -2,6 +2,7 @@ package com.fotonauts.lackr.interpolr.proxy;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,12 +14,12 @@ import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.LackrBackendRequest.Listener;
+import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.mustache.HandlebarsContext;
+import com.fotonauts.lackr.interpolr.Plugin;
 
 public class InterpolrFrontendRequest extends BaseFrontendRequest implements InterpolrContext {
 
@@ -28,17 +29,22 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     protected InterpolrProxy service;
 
-    private HandlebarsContext handlebarsContext;
+//    private HandlebarsContext handlebarsContext;
 
     private ConcurrentHashMap<String, InterpolrScope> backendRequestCache = new ConcurrentHashMap<String, InterpolrScope>();
 
     private ProxyInterpolrScope rootScope;
+    
+    protected HashMap<Plugin, Object> pluginData = new HashMap<>();
 
     protected InterpolrFrontendRequest(final InterpolrProxy baseProxy, HttpServletRequest request) {
         super(baseProxy, request);
         this.service = baseProxy;
         this.pendingCount = new AtomicInteger(0);
-        this.handlebarsContext = new HandlebarsContext(this);
+//        this.handlebarsContext = new HandlebarsContext(this);
+        for(Plugin p: baseProxy.getInterpolr().getPlugins()) {
+            pluginData.put(p, p.createContext(this));
+        }
     }
 
     public InterpolrScope getSubBackendExchange(String url, String format, InterpolrScope dad) {
@@ -103,10 +109,6 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         super.writeResponse(response);
     }
 
-    public HandlebarsContext getMustacheContext() {
-        return handlebarsContext;
-    }
-
     public Interpolr getInterpolr() {
         return service.getInterpolr();
     }
@@ -141,5 +143,10 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     @Override
     protected int getContentLength() {
         return getRootScope().getParsedDocument().length();
+    }
+
+    @Override
+    public Object getPluginData(Plugin plugin) {
+        return pluginData.get(plugin);
     }    
 }
