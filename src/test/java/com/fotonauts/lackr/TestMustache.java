@@ -626,7 +626,7 @@ public class TestMustache extends BaseTestSubstitution {
                     { "strings": [
                         { "s": "blah" },
                         { "s": "12" },
-                        { "s": " !:" },
+                        { "s": " !:?" },
                         { "s": ".#()" },
                         { "s": "/'&-_" }
                     ] }
@@ -634,7 +634,7 @@ public class TestMustache extends BaseTestSubstitution {
             String result = expand(page).trim();
             assertContains(result, "blah -> _blah");
             assertContains(result, "12 -> _12");
-            assertContains(result, " !: -> __spc__bang__colon_");
+            assertContains(result, " !:? -> __spc__bang__colon__qmark_");
             assertContains(result, ".#() -> __dot__hash__lpar__rpar_");
             assertContains(result, "/'&-_ -> __slash__q__amp__dash__under_" );
     }

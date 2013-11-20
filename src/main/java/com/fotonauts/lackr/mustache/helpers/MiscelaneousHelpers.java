@@ -159,6 +159,9 @@ public class MiscelaneousHelpers {
             case '_':
                 builder.append("_under_");
                 break;
+            case '?':
+                builder.append("_qmark_");
+                break;
             default:
                 builder.append(c);
                 break;
