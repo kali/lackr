@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.LackrBackendResponse;
 import com.fotonauts.lackr.LackrBackendRequest.Listener;
+import com.fotonauts.lackr.LackrBackendResponse;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class TryPassBackendExchange extends LackrBackendExchange {

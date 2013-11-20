@@ -21,8 +21,8 @@ import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.esi.ESIPlugin;
+import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
 import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
-import com.fotonauts.lackr.mustache.HandlebarsPlugin;
 
 public class Factory {
 

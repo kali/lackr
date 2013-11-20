@@ -1,6 +1,7 @@
 package com.fotonauts.lackr.interpolr;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -12,7 +13,7 @@ public class Interpolr extends AbstractLifeCycle {
 
     private ObjectMapper jacksonObjectMapper;
 
-    private List<Plugin> plugins;
+    private List<Plugin> plugins = Collections.emptyList();
 
     @Override
     protected void doStart() throws Exception {

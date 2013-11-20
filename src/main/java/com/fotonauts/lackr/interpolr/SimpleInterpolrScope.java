@@ -1,9 +1,5 @@
 package com.fotonauts.lackr.interpolr;
 
-import com.fotonauts.lackr.interpolr.Document;
-import com.fotonauts.lackr.interpolr.Interpolr;
-import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class SimpleInterpolrScope implements InterpolrScope {
 

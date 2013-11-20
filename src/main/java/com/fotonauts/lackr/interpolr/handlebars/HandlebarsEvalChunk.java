@@ -1,4 +1,4 @@
-    package com.fotonauts.lackr.mustache;
+    package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,7 +12,7 @@ import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.github.jknack.handlebars.Template;
 
-public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
+public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
 
     private static Chunk EMPTY = new ConstantChunk(new byte[0]);
 
@@ -20,7 +20,7 @@ public class MustacheEvalChunk extends ParsedJsonChunk implements Chunk {
     String name;
     Plugin plugin;
     
-    public MustacheEvalChunk(Plugin plugin, String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
+    public HandlebarsEvalChunk(Plugin plugin, String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
         super(buffer, start, stop, scope);
         this.plugin = plugin;
         this.name = name;

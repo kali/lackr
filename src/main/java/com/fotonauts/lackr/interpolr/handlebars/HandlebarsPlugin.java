@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.mustache;
+package com.fotonauts.lackr.interpolr.handlebars;
 
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.Plugin;

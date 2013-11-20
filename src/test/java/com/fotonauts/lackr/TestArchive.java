@@ -1,5 +1,6 @@
 package com.fotonauts.lackr;
 
+import static com.fotonauts.lackr.TextUtils.assertContains;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -10,8 +11,6 @@ import org.junit.Test;
 import com.fotonauts.lackr.components.Factory;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrTestUtils;
-
-import static com.fotonauts.lackr.TextUtils.assertContains;
 
 // disable formatting in this file
 // @formatter:off

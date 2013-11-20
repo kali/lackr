@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.mustache;
+package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.mustache;
+package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.io.UnsupportedEncodingException;
 
@@ -21,7 +21,7 @@ public class EvalRule extends MarkupDetectingRule {
 		String name;
 		try {
 			name = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
-			return new MustacheEvalChunk(plugin, name, buffer, boundPairs[2], boundPairs[3], scope);
+			return new HandlebarsEvalChunk(plugin, name, buffer, boundPairs[2], boundPairs[3], scope);
 		} catch (UnsupportedEncodingException e) {
 			// fu*k off
 			return null;

@@ -9,9 +9,11 @@ public class TestSimpleSubstitution {
     @Test
     public void testNoop() throws Exception {
         Interpolr inter = new Interpolr();
+        inter.start();
         Document r = InterpolrTestUtils.parse(inter, "foobar");
         assertEquals("(foobar)", r.toDebugString());
         assertEquals("foobar", InterpolrTestUtils.expand(r));
+        inter.stop();
     }
 
     @Test

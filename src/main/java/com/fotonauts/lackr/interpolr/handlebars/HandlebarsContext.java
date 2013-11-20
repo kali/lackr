@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.mustache;
+package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,10 +14,6 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
-import com.fotonauts.lackr.mustache.helpers.MediaDerivativesUrlHelper;
-import com.fotonauts.lackr.mustache.helpers.MiscelaneousHelpers;
-import com.fotonauts.lackr.mustache.helpers.ReverseEachHelper;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Template;
@@ -69,10 +65,6 @@ public class HandlebarsContext {
 
         };
         handlebars = new Handlebars(loader);
-        handlebars.registerHelper(ReverseEachHelper.NAME, ReverseEachHelper.INSTANCE);
-        handlebars.registerHelpers(new DateTimeFormatterHelpers());
-        handlebars.registerHelpers(new MediaDerivativesUrlHelper());
-        handlebars.registerHelpers(new MiscelaneousHelpers());
     }
 
     public void checkAndCompileAll() {

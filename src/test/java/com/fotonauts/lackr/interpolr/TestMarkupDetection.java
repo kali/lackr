@@ -1,10 +1,10 @@
 package com.fotonauts.lackr.interpolr;
 
+import static com.fotonauts.lackr.interpolr.InterpolrTestUtils.expand;
+import static com.fotonauts.lackr.interpolr.InterpolrTestUtils.parse;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import static com.fotonauts.lackr.interpolr.InterpolrTestUtils.parse;
-import static com.fotonauts.lackr.interpolr.InterpolrTestUtils.expand;
 
 public class TestMarkupDetection {
 
