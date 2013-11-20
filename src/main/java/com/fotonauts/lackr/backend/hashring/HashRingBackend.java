@@ -27,9 +27,10 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
     public static class NotAvailableException extends Exception {
     };
 
-    int bucketPerHost = 128;
-    AtomicInteger up = new AtomicInteger(0);
-    RingMember[] hosts;
+    private int bucketPerHost = 128;
+    private AtomicInteger up = new AtomicInteger(0);
+    private RingMember[] hosts;
+    private int sleepMS = 100; 
 
     private NavigableMap<Integer, RingMember> ring;
 
@@ -64,7 +65,7 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
                         log.warn("Caught exception in probing thread: ", e);
                     }
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(getSleepMS());
                     } catch (InterruptedException e) {
                     }
                 }
@@ -149,6 +150,14 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
     @Override
     public boolean probe() {
         return up.get() > 0;
+    }
+
+    public int getSleepMS() {
+        return sleepMS;
+    }
+
+    public void setSleepMS(int sleep) {
+        this.sleepMS = sleep;
     }
 
 }
