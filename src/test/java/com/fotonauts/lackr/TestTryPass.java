@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
@@ -18,7 +17,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.trypass.TryPassBackend;
 import com.fotonauts.lackr.backend.trypass.TryPassBackendExchange;
 import com.fotonauts.lackr.components.Factory;
@@ -66,11 +64,6 @@ public class TestTryPass {
         client.loadPageAndExpectsContains("/server1", "Hey! I'm server1");
         client.loadPageAndExpectsContains("/server2", "Hey! I'm server2");
     }
-
-    /*
-    public LackrBackendRequest(BaseFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
-            String syntax, byte[] body, HttpFields fields, Listener listener) 
-    */
 
     @Test
     public void testRestart() throws Exception {
