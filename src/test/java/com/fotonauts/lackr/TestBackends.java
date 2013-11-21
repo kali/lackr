@@ -134,7 +134,6 @@ public class TestBackends {
         assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
         assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
         assertEquals("parameterNames: [blah, blih]", tokenizer.nextToken());
-        assertEquals("X-Ftn-IID: null", tokenizer.nextToken());
         assertFalse(tokenizer.hasMoreElements());
     }
 
@@ -146,28 +145,6 @@ public class TestBackends {
         ContentResponse e = r.send();
         assertEquals(200, e.getStatus());
         assertEquals("yop yop yop", e.getContentAsString());
-    }
-
-    @Test
-    @Ignore
-    // FIXME ESI + backends
-    public void testFemtorESIQuery() throws Exception {
-        Request r = client.createExchange("/femtor/dumpwrapper");
-        r.getHeaders().add("X-Ftn-OperationId", "someid");
-        ContentResponse e = r.send();
-        //    	System.err.println(e.getResponseContent());
-        assertEquals(200, e.getStatus());
-        StringTokenizer tokenizer = new StringTokenizer(e.getContentAsString(), "\n");
-        assertEquals("Hi from dummy femtor", tokenizer.nextToken());
-        assertEquals("method: GET", tokenizer.nextToken());
-        assertEquals("pathInfo: /femtor/dump", tokenizer.nextToken());
-        assertEquals("getQueryString: tut=pouet", tokenizer.nextToken());
-        assertEquals("getRequestURI: /femtor/dump", tokenizer.nextToken());
-        assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
-        assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
-        assertEquals("parameterNames: [tut]", tokenizer.nextToken());
-        assertEquals("X-Ftn-IID: TheIIDValue", tokenizer.nextToken());
-        assertFalse(tokenizer.hasMoreElements());
     }
 
     @Ignore

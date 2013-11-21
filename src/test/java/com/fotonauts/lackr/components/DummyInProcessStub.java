@@ -43,7 +43,6 @@ public class DummyInProcessStub implements Filter {
             response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/femtor/dumpwrapper")) {
 			response.setContentType("text/html");
-            ((HttpServletResponse) response).setHeader("X-Ftn-Set-Request-Header", "X-Ftn-IID: TheIIDValue");
 			response.getWriter().println("<!--# include virtual=\"/femtor/dump?tut=pouet\" -->");
 			response.flushBuffer();
         } else if(hr.getPathInfo().startsWith("/femtor/esiToInvalidUrl")) {
@@ -61,7 +60,6 @@ public class DummyInProcessStub implements Filter {
 			String parameters[] = (String[]) Collections.list(hr.getParameterNames()).toArray(new String[] {});
 			Arrays.sort(parameters);
 			response.getWriter().println("parameterNames: " + Arrays.toString(parameters));
-            response.getWriter().println("X-Ftn-IID: " + hr.getHeader("x-ftn-iid"));
 			response.flushBuffer();
         } else if(hr.getPathInfo().startsWith("/rewrite")) {
             ((HttpServletResponse) response).setStatus(399);

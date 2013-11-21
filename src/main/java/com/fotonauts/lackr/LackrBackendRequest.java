@@ -138,17 +138,6 @@ public class LackrBackendRequest {
             }
             */
             /*
-            if (exchange.getResponseHeaderValues("X-Ftn-Set-Request-Header") != null) {
-                for (String setRequestHeaders : exchange.getResponseHeaderValues("X-Ftn-Set-Request-Header")) {
-                    int index = setRequestHeaders.indexOf(':');
-                    if (index > 0) {
-                        getFrontendRequest().addAncilliaryHeader(setRequestHeaders.substring(0, index),
-                                setRequestHeaders.substring(index + 1).trim());
-                    }
-                }
-            }
-*/
-            /*
             if(exchange.getResponseHeader("X-Ftn-Picor-Endpoint") != null) {
                 getFrontendRequest().getBackendRequestEndpointsCounters().putIfAbsent(exchange.getResponseHeader("X-Ftn-Picor-Endpoint"), new AtomicInteger(0));
                 getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("X-Ftn-Picor-Endpoint")).incrementAndGet();
