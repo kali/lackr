@@ -89,11 +89,11 @@ public class BaseProxy extends AbstractHandler {
 
     @Override
     public void doStop() throws Exception {
-        log.info("Stopping, thread count: " + Thread.getAllStackTraces().size());
+        log.debug("Stopping, thread count: " + Thread.getAllStackTraces().size());
         backend.stop();
         getExecutor().shutdown();
         getExecutor().awaitTermination(1, TimeUnit.SECONDS);
-        log.info("Stopped thread count: " + Thread.getAllStackTraces().size());
+        log.debug("Stopped thread count: " + Thread.getAllStackTraces().size());
     }
 
     public void setEtagMode(EtagMode etagMode) {

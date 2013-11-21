@@ -61,7 +61,7 @@ public class Test304 {
         this.mode = mode;
         this.proxyType = proxyType;
         this.backendSetsEtag = backendSetsEtag;
-        System.err.println("mode:" + mode + " proxy:" + proxyType + " backendSetsEtag:" + backendSetsEtag);
+        // System.err.println("mode:" + mode + " proxy:" + proxyType + " backendSetsEtag:" + backendSetsEtag);
     }
 
     @Before
