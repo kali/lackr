@@ -7,7 +7,6 @@ import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +36,7 @@ public class TestESI {
                 Factory.buildFullClientBackend(remoteControlledStub.getPort()));
         proxyServer.start();
 
-        client = new TestClient(((ServerConnector) proxyServer.getConnectors()[0]).getLocalPort());
+        client = new TestClient(proxyServer);
         client.start();
     }
 

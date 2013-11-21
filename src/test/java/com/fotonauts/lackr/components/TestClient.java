@@ -10,6 +10,8 @@ import java.util.concurrent.TimeoutException;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 public class TestClient extends AbstractLifeCycle {
@@ -17,8 +19,8 @@ public class TestClient extends AbstractLifeCycle {
     HttpClient client;
     int port;
 
-    public TestClient(int port) {
-        this.port = port;
+    public TestClient(Server server) {
+        this.port = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
         this.client = Factory.buildFullClient();
     }
 
@@ -61,7 +63,11 @@ public class TestClient extends AbstractLifeCycle {
     }
 
     public void loadPageAndExpectsContains(String expect) throws InterruptedException, TimeoutException, ExecutionException {
-        ContentResponse response = createExchange("/page.html").timeout(600, TimeUnit.SECONDS).send();
+        loadPageAndExpectsContains("/page.html", expect);
+    }
+
+    public void loadPageAndExpectsContains(String target, String expect) throws InterruptedException, TimeoutException, ExecutionException {
+        ContentResponse response = createExchange(target).timeout(600, TimeUnit.SECONDS).send();
         //System.err.println(response.getContentAsString());
         assertEquals(200, response.getStatus());
         assertTrue("response contains `" + expect+ "'", response.getContentAsString().contains(expect));

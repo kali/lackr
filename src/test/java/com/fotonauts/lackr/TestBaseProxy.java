@@ -18,7 +18,6 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -42,7 +41,7 @@ public class TestBaseProxy {
         remoteControlledStub.start();
         proxyServer = Factory.buildSimpleProxyServer(remoteControlledStub.getPort());
         proxyServer.start();
-        client = new TestClient(((ServerConnector) proxyServer.getConnectors()[0]).getLocalPort());
+        client = new TestClient(proxyServer);
         client.start();
     }
     

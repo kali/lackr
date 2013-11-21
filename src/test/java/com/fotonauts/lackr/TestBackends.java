@@ -73,7 +73,7 @@ public class TestBackends {
         }
 
         proxyServer.start();
-        client = new TestClient(((ServerConnector) proxyServer.getConnectors()[0]).getLocalPort());
+        client = new TestClient(proxyServer);
 
         client.start();
     }

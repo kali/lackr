@@ -16,36 +16,32 @@ import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableExceptio
 public class TryPassBackendExchange extends LackrBackendExchange {
 
     static Logger log = LoggerFactory.getLogger(TryPassBackendExchange.class);
-
+    
+    private LackrBackendRequest effectiveBackendRequest; 
+    
     private AtomicInteger triedBackend = new AtomicInteger(0);
 
     private AtomicReference<LackrBackendExchange> lastExchange = new AtomicReference<LackrBackendExchange>();
 
     public TryPassBackendExchange(TryPassBackend backend, LackrBackendRequest spec) {
         super(backend, spec);
+        effectiveBackendRequest = spec;
     }
 
     protected void tryNext() throws NotAvailableException {
         int next = triedBackend.get();
         final Backend be = ((TryPassBackend) backend).getBackends()[next];
         log.debug("Trying {} for {}", be, getBackendRequest());
-        final LackrBackendExchange subExchange = be.createExchange(getBackendRequest());
+        final LackrBackendExchange subExchange = be.createExchange(effectiveBackendRequest);
         lastExchange.set(subExchange);
-        final LackrBackendExchange that = this;
+        final TryPassBackendExchange that = this;
         subExchange.setCompletionListener(new Listener() {
 
             @Override
             public void complete() {
                 try {
                     log.debug("entering subExchange {} completion handler", subExchange);
-                    if (subExchange.getResponse().getStatus() == 501
-                            && triedBackend.incrementAndGet() < ((TryPassBackend) backend).getBackends().length) {
-                        tryNext();
-                    } else {
-                        log.debug("{} handled {}, calling my own completion listener {}.", be, getBackendRequest(),
-                                that.getCompletionListener());
-                        that.getCompletionListener().complete();
-                    }
+                    ((TryPassBackend) backend).handleComplete(that, subExchange);
                 } catch (Throwable e) {
                     log.debug("Exception in completion handler", e);
                     that.getCompletionListener().fail(e);
@@ -76,5 +72,18 @@ public class TryPassBackendExchange extends LackrBackendExchange {
     @Override
     public LackrBackendResponse getResponse() {
         return lastExchange.get().getResponse();
+    }
+
+    // package visibility is intended
+    AtomicInteger getTriedBackend() {
+        return triedBackend;
+    }
+
+    public LackrBackendRequest getEffectiveBackendRequest() {
+        return effectiveBackendRequest;
+    }
+
+    void setEffectiveBackendRequest(LackrBackendRequest effectiveBackendRequest) {
+        this.effectiveBackendRequest = effectiveBackendRequest;
     }
 }

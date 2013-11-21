@@ -178,4 +178,8 @@ public class LackrBackendRequest {
     public HttpFields getFields() {
         return fields;
     }
+
+    public Listener getCompletionListener() {
+        return listener;
+    }
 }

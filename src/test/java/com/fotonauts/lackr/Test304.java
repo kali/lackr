@@ -20,7 +20,6 @@ import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.After;
 import org.junit.Before;
@@ -99,7 +98,7 @@ public class Test304 {
         server = Factory.buildProxyServer(proxy);
         server.start();
 
-        client = new TestClient(((ServerConnector) server.getConnectors()[0]).getLocalPort());
+        client = new TestClient(server);
         client.start();
     }
 
