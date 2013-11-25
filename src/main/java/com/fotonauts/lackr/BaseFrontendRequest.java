@@ -241,7 +241,8 @@ public class BaseFrontendRequest {
             }
         }
         if (getRequest().getContentLength() > 0 && getRequest().getContentType() != null)
-            fields.add(HttpField.CONTENT_TYPE.toString(), getRequest().getContentType());
+            fields.add(HttpHeader.CONTENT_TYPE.toString(), getRequest().getContentType());
+
         return fields;
     }
 
