@@ -218,6 +218,7 @@ public class BaseFrontendRequest {
                             onBackendRequestDone();
                         }
                     });
+            getProxy().customizeRequest(rootRequest);
             scheduleUpstreamRequest(rootRequest);
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);

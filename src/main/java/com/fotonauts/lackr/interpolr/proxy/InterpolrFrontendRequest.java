@@ -81,6 +81,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                         }
                     }
                 });
+        getProxy().customizeRequest(req);
         newBorn.setRequest(req);
         pendingCount.incrementAndGet();
         scheduleUpstreamRequest(req);

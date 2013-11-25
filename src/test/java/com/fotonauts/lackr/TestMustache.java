@@ -87,7 +87,7 @@ public class TestMustache {
     }
 
     @Test
-    @Ignore
+    @Ignore // this was compatible with mustache, but not handlebars
     public void testMustacheLenientParsing() throws Exception {
         String result = expand(TextUtils.S(/*
             <!-- lackr:mustache:template name="template_name" -->

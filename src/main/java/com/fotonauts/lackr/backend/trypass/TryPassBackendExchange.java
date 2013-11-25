@@ -35,14 +35,19 @@ public class TryPassBackendExchange extends LackrBackendExchange {
         final LackrBackendExchange subExchange = be.createExchange(effectiveBackendRequest);
         lastExchange.set(subExchange);
         final TryPassBackendExchange that = this;
+        final Listener previousListener = subExchange.getCompletionListener();
         subExchange.setCompletionListener(new Listener() {
 
             @Override
             public void complete() {
                 try {
+                    if(previousListener != null)
+                        previousListener.complete();
                     log.debug("entering subExchange {} completion handler", subExchange);
                     ((TryPassBackend) backend).handleComplete(that, subExchange);
                 } catch (Throwable e) {
+                    if(previousListener != null)
+                        previousListener.fail(e);
                     log.debug("Exception in completion handler", e);
                     that.getCompletionListener().fail(e);
                 }
@@ -50,6 +55,8 @@ public class TryPassBackendExchange extends LackrBackendExchange {
             
             @Override
             public void fail(Throwable t) {
+                if(previousListener != null)
+                    previousListener.fail(t);
                 log.debug("Failure handler for", t);
                 that.getCompletionListener().fail(t);
             }

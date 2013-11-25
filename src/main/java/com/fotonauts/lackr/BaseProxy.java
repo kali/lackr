@@ -37,10 +37,8 @@ public class BaseProxy extends AbstractHandler {
 
     @Override
     protected void doStart() throws Exception {
-        log.debug("Starting...");
         backend.start();
         setExecutor(Executors.newFixedThreadPool(64));
-        log.debug("Started.");
     }
 
     protected BaseFrontendRequest createLackrFrontendRequest(HttpServletRequest request) {
@@ -122,6 +120,9 @@ public class BaseProxy extends AbstractHandler {
 
     public void setManageIfNoneMatch(boolean manageIfNoneMatch) {
         this.manageIfNoneMatch = manageIfNoneMatch;
+    }
+
+    public void customizeRequest(LackrBackendRequest rootRequest) {
     }
 
 }
