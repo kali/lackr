@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import com.fotonauts.lackr.testutils.InterpolrTestUtils;
+
 public class TestSimpleSubstitution {
 
     @Test

@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.testutils;
 
 import static org.junit.Assert.assertEquals;
 
@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.testutils.AppStubForESI;
-import com.fotonauts.lackr.testutils.InterpolrContextStub;
+import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.interpolr.Interpolr;
+import com.fotonauts.lackr.interpolr.InterpolrContext;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class InterpolrTestUtils {
 

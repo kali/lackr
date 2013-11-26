@@ -12,8 +12,8 @@ import org.junit.Test;
 
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.interpolr.InterpolrTestUtils;
 import com.fotonauts.lackr.testutils.Factory;
+import com.fotonauts.lackr.testutils.InterpolrTestUtils;
 import com.fotonauts.lackr.testutils.TextUtils;
 
 //@formatter:off

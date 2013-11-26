@@ -70,7 +70,7 @@
 	<scm>
 		<connection>scm:git:ssh://git@github.com/fotonauts/lackr.git</connection>
 	</scm>
-	<repositories>
+    <repositories>
 		<repository>
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2/</url>
@@ -78,10 +78,6 @@
 		<repository>
 			<id>asf</id>
 			<url>http://repository.apache.org/snapshots/</url>
-		</repository>
-		<repository>
-			<id>scalatools snaps</id>
-			<url>http://scala-tools.org/repo-snapshots/</url>
 		</repository>
 	</repositories>
 	<distributionManagement>
@@ -95,7 +91,7 @@
 		</repository>
 		<snapshotRepository>
 			<id>s3.snapshot</id>
-			<url>s3://maven.fotonauts/snapshot</url>
+			<url>s3://maven-fotonauts/snapshot</url>
 		</snapshotRepository>
 	</distributionManagement>
 	<dependencies>
