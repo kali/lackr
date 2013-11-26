@@ -10,7 +10,6 @@ import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
 
-// FIXME reference to Femtor all around
 public class InProcessBackend extends AbstractLifeCycle implements Backend {
 
     static Logger log = LoggerFactory.getLogger(InProcessBackend.class);

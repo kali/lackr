@@ -28,7 +28,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.fotonauts.lackr.backend.inprocess.InProcessBackend;
-import com.fotonauts.lackr.testutils.DummyInProcessStub;
+import com.fotonauts.lackr.testutils.ServletFilterDummyStub;
 import com.fotonauts.lackr.testutils.Factory;
 import com.fotonauts.lackr.testutils.TestClient;
 
@@ -53,7 +53,7 @@ public class TestBackends {
     @Before
     public void setup() throws Exception {
         if (inProcess) {
-            InProcessBackend inprocess = new InProcessBackend(new DummyInProcessStub());
+            InProcessBackend inprocess = new InProcessBackend(new ServletFilterDummyStub());
             proxyServer = Factory.buildSimpleProxyServer(inprocess);
         } else {
             remote = new Server();
@@ -64,7 +64,7 @@ public class TestBackends {
             context.setContextPath("/");
             remote.setHandler(context);
 
-            context.addFilter(com.fotonauts.lackr.testutils.DummyInProcessStub.class.getCanonicalName(), "/*",
+            context.addFilter(com.fotonauts.lackr.testutils.ServletFilterDummyStub.class.getCanonicalName(), "/*",
                     EnumSet.of(DispatcherType.REQUEST));
             context.addServlet(new ServletHolder(new NoJspServlet()), "/*");
 
@@ -89,49 +89,49 @@ public class TestBackends {
     }
 
     @Test(timeout = 500)
-    public void testFemtor() throws Exception {
-        Request r = client.createExchange("/femtor/hi");
+    public void testFilter() throws Exception {
+        Request r = client.createExchange("/sfds/hi");
         ContentResponse e = r.send();
-        assertEquals("Hi from dummy femtor\n", e.getContentAsString());
+        assertEquals("Hi from dummy filter\n", e.getContentAsString());
     }
 
     @Test(timeout = 500)
-    public void testFemtorCrashServlet() throws Exception {
-        Request r = client.createExchange("/femtor/crash/servlet");
-        ContentResponse e = r.send();
-        assertEquals(50, e.getStatus() / 10); // expect 50x
-        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
-    }
-
-    @Test(timeout = 500)
-    public void testFemtorCrashRE() throws Exception {
-        Request r = client.createExchange("/femtor/crash/re");
+    public void testFilterCrashServlet() throws Exception {
+        Request r = client.createExchange("/sfds/crash/servlet");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
         assertTrue(e.getContentAsString().contains("catch me or you're dead."));
     }
 
     @Test(timeout = 500)
-    public void testFemtorCrashError() throws Exception {
-        Request r = client.createExchange("/femtor/crash/error");
+    public void testFilterCrashRE() throws Exception {
+        Request r = client.createExchange("/sfds/crash/re");
+        ContentResponse e = r.send();
+        assertEquals(50, e.getStatus() / 10); // expect 50x
+        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
+    }
+
+    @Test(timeout = 500)
+    public void testFilterCrashError() throws Exception {
+        Request r = client.createExchange("/sfds/crash/error");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
         assertTrue(e.getContentAsString().contains("catch me or you're dead."));
     }
 
     @Test
-    public void testFemtorQuery() throws Exception {
-        Request r = client.createExchange("/femtor/dump?blah=12&blih=42");
+    public void testFilterQuery() throws Exception {
+        Request r = client.createExchange("/sfds/dump?blah=12&blih=42");
         r.getHeaders().add("X-Ftn-OperationId", "someid");
         ContentResponse e = r.send();
         //    	System.err.println(e.getResponseContent());
         assertEquals(200, e.getStatus());
         StringTokenizer tokenizer = new StringTokenizer(e.getContentAsString(), "\n");
-        assertEquals("Hi from dummy femtor", tokenizer.nextToken());
+        assertEquals("Hi from dummy filter", tokenizer.nextToken());
         assertEquals("method: GET", tokenizer.nextToken());
-        assertEquals("pathInfo: /femtor/dump", tokenizer.nextToken());
+        assertEquals("pathInfo: /sfds/dump", tokenizer.nextToken());
         assertEquals("getQueryString: blah=12&blih=42", tokenizer.nextToken());
-        assertEquals("getRequestURI: /femtor/dump", tokenizer.nextToken());
+        assertEquals("getRequestURI: /sfds/dump", tokenizer.nextToken());
         assertEquals("X-Ftn-OperationId: someid", tokenizer.nextToken());
         assertEquals("x-ftn-operationid: someid", tokenizer.nextToken());
         assertEquals("parameterNames: [blah, blih]", tokenizer.nextToken());
@@ -139,7 +139,7 @@ public class TestBackends {
     }
 
     @Test
-    public void testFemtorBodyQuery() throws Exception {
+    public void testFilterBodyQuery() throws Exception {
         Request r = client.createExchange("/echobody");
         r.getHeaders().add("X-Ftn-OperationId", "someid");
         r.content(new StringContentProvider("yop yop yop", "UTF-8"));
@@ -151,8 +151,8 @@ public class TestBackends {
     @Ignore
     // ESI + backends
     @Test(timeout = 500)
-    public void testFemtorESItoInvalidUrl() throws Exception {
-        Request r = client.createExchange("/femtor/esiToInvalidUrl");
+    public void testFilterESItoInvalidUrl() throws Exception {
+        Request r = client.createExchange("/sfds/esiToInvalidUrl");
         ContentResponse e = r.send();
         assertTrue("invalid url from ESI should cleanly crash.", e.getStatus() >= 500);
     }
@@ -161,20 +161,10 @@ public class TestBackends {
     @Test(timeout = 500)
     @Ignore
     // FIXME specific
-    public void testFemtorRewrite() throws Exception {
-        Request r = client.createExchange("/rewrite");
-        ContentResponse e = r.send();
-        assertEquals("Hi from dummy femtor\n", new String(e.getContent()));
-    }
-
-    // FIXME
-    @Test(timeout = 500)
-    @Ignore
-    // FIXME specific
     public void testProxy() throws Exception {
-        Request r = client.createExchange("/femtor/asyncProxy?lackrPort=" + 1212 /* was lackrPort */);
+        Request r = client.createExchange("/sfds/asyncProxy?lackrPort=" + 1212 /* was lackrPort */);
         ContentResponse e = r.send();
-        assertEquals("Hi from dummy femtor\n", e.getContentAsString());
+        assertEquals("Hi from dummy Filter\n", e.getContentAsString());
     }
 
 }

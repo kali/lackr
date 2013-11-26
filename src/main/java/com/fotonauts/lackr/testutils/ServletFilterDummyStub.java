@@ -16,11 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// FIXME consider fusioning with AppStubForESI... should be easy enough
-// FIXME discard references to femtor (in path :/)
-public class DummyInProcessStub implements Filter {
+public class ServletFilterDummyStub implements Filter {
 
-    static Logger log = LoggerFactory.getLogger(DummyInProcessStub.class);
+    static Logger log = LoggerFactory.getLogger(ServletFilterDummyStub.class);
 
 	@Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -31,26 +29,26 @@ public class DummyInProcessStub implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest hr = (HttpServletRequest) request;
         log.debug("filtering: {}", hr);
-		if(hr.getPathInfo().startsWith("/femtor/crash/servlet")) {
+		if(hr.getPathInfo().startsWith("/sfds/crash/servlet")) {
 			throw new ServletException("catch me or you're dead.");
-		} else if(hr.getPathInfo().startsWith("/femtor/crash/re")) {
+		} else if(hr.getPathInfo().startsWith("/sfds/crash/re")) {
             throw new RuntimeException("catch me or you're dead.");
-        } else if(hr.getPathInfo().startsWith("/femtor/crash/error")) {
+        } else if(hr.getPathInfo().startsWith("/sfds/crash/error")) {
             throw new Error("catch me or you're dead.");
-        } else if(hr.getPathInfo().startsWith("/femtor/asyncProxy")) {
+        } else if(hr.getPathInfo().startsWith("/sfds/asyncProxy")) {
             ((HttpServletResponse) response).setStatus(398);
-            ((HttpServletResponse) response).setHeader("Location", "http://localhost:" + ((HttpServletRequest) request).getParameter("lackrPort") + "/femtor");
+            ((HttpServletResponse) response).setHeader("Location", "http://localhost:" + ((HttpServletRequest) request).getParameter("lackrPort") + "/sfds");
             response.flushBuffer();
-		} else if(hr.getPathInfo().startsWith("/femtor/dumpwrapper")) {
+		} else if(hr.getPathInfo().startsWith("/sfds/dumpwrapper")) {
 			response.setContentType("text/html");
-			response.getWriter().println("<!--# include virtual=\"/femtor/dump?tut=pouet\" -->");
+			response.getWriter().println("<!--# include virtual=\"/sfds/dump?tut=pouet\" -->");
 			response.flushBuffer();
-        } else if(hr.getPathInfo().startsWith("/femtor/esiToInvalidUrl")) {
+        } else if(hr.getPathInfo().startsWith("/sfds/esiToInvalidUrl")) {
             response.setContentType("text/html");
-            response.getWriter().println("<!--# include virtual=\"/femtor/dump\\\" -->");
+            response.getWriter().println("<!--# include virtual=\"/sfds/dump\\\" -->");
             response.flushBuffer();
-		} else if(hr.getPathInfo().startsWith("/femtor/dump")) {
-			response.getWriter().println("Hi from dummy femtor");
+		} else if(hr.getPathInfo().startsWith("/sfds/dump")) {
+			response.getWriter().println("Hi from dummy filter");
 			response.getWriter().println("method: " + hr.getMethod());
 			response.getWriter().println("pathInfo: " + hr.getPathInfo());
 			response.getWriter().println("getQueryString: " + hr.getQueryString());
@@ -63,15 +61,15 @@ public class DummyInProcessStub implements Filter {
 			response.flushBuffer();
         } else if(hr.getPathInfo().startsWith("/rewrite")) {
             ((HttpServletResponse) response).setStatus(399);
-            ((HttpServletResponse) response).setHeader("Location", "/femtor");
+            ((HttpServletResponse) response).setHeader("Location", "/sfds");
             response.flushBuffer();
 		} else if(hr.getPathInfo().startsWith("/echobody")) {
 			char[] buffer = new char[4096];
 			int len = request.getReader().read(buffer);
 			response.getWriter().write(buffer, 0, len);
 			response.flushBuffer();
-		} else if(hr.getPathInfo().startsWith("/femtor")) {
-			response.getWriter().println("Hi from dummy femtor");
+		} else if(hr.getPathInfo().startsWith("/sfds")) {
+			response.getWriter().println("Hi from dummy filter");
 			response.flushBuffer();
 		} else {
 			((HttpServletResponse) response).sendError(501);
