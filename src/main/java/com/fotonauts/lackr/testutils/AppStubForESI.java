@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.components;
+package com.fotonauts.lackr.testutils;
 
 import java.util.concurrent.atomic.AtomicReference;
 

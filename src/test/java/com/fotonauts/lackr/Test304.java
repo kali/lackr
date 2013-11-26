@@ -1,6 +1,6 @@
 package com.fotonauts.lackr;
 
-import static com.fotonauts.lackr.TextUtils.S;
+import static com.fotonauts.lackr.testutils.TextUtils.S;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -29,9 +29,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.fotonauts.lackr.BaseProxy.EtagMode;
-import com.fotonauts.lackr.components.Factory;
-import com.fotonauts.lackr.components.RemoteControlledStub;
-import com.fotonauts.lackr.components.TestClient;
+import com.fotonauts.lackr.testutils.Factory;
+import com.fotonauts.lackr.testutils.RemoteControlledStub;
+import com.fotonauts.lackr.testutils.TestClient;
 
 @RunWith(value = Parameterized.class)
 public class Test304 {

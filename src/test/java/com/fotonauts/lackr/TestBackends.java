@@ -28,9 +28,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.fotonauts.lackr.backend.inprocess.InProcessBackend;
-import com.fotonauts.lackr.components.DummyInProcessStub;
-import com.fotonauts.lackr.components.Factory;
-import com.fotonauts.lackr.components.TestClient;
+import com.fotonauts.lackr.testutils.DummyInProcessStub;
+import com.fotonauts.lackr.testutils.Factory;
+import com.fotonauts.lackr.testutils.TestClient;
 
 @RunWith(value = Parameterized.class)
 public class TestBackends {
@@ -64,7 +64,8 @@ public class TestBackends {
             context.setContextPath("/");
             remote.setHandler(context);
 
-            context.addFilter("com.fotonauts.lackr.components.DummyInProcessStub", "/*", EnumSet.of(DispatcherType.REQUEST));
+            context.addFilter(com.fotonauts.lackr.testutils.DummyInProcessStub.class.getCanonicalName(), "/*",
+                    EnumSet.of(DispatcherType.REQUEST));
             context.addServlet(new ServletHolder(new NoJspServlet()), "/*");
 
             remote.start();
@@ -82,7 +83,7 @@ public class TestBackends {
     public void tearDown() throws Exception {
         client.stop();
         proxyServer.stop();
-        if(remote != null)
+        if (remote != null)
             remote.stop();
         assertTrue(Thread.getAllStackTraces().size() < 10);
     }

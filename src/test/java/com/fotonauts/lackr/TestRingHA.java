@@ -17,7 +17,7 @@ import org.junit.After;
 
 import com.fotonauts.lackr.backend.hashring.HashRingBackend;
 import com.fotonauts.lackr.backend.hashring.RingMember;
-import com.fotonauts.lackr.components.Factory;
+import com.fotonauts.lackr.testutils.Factory;
 
 public class TestRingHA extends TestCase {
 

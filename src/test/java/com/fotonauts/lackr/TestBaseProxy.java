@@ -25,9 +25,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fotonauts.lackr.components.Factory;
-import com.fotonauts.lackr.components.RemoteControlledStub;
-import com.fotonauts.lackr.components.TestClient;
+import com.fotonauts.lackr.testutils.Factory;
+import com.fotonauts.lackr.testutils.RemoteControlledStub;
+import com.fotonauts.lackr.testutils.TestClient;
 
 public class TestBaseProxy {
 

@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.components;
+package com.fotonauts.lackr.testutils;
 
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;

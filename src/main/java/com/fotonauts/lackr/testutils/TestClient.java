@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.components;
+package com.fotonauts.lackr.testutils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

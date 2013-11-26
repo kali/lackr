@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.components.AppStubForESI;
-import com.fotonauts.lackr.components.InterpolrContextStub;
+import com.fotonauts.lackr.testutils.AppStubForESI;
+import com.fotonauts.lackr.testutils.InterpolrContextStub;
 
 public class InterpolrTestUtils {
 

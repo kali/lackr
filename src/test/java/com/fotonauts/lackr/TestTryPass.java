@@ -19,9 +19,9 @@ import org.junit.Test;
 
 import com.fotonauts.lackr.backend.trypass.TryPassBackend;
 import com.fotonauts.lackr.backend.trypass.TryPassBackendExchange;
-import com.fotonauts.lackr.components.Factory;
-import com.fotonauts.lackr.components.RemoteControlledStub;
-import com.fotonauts.lackr.components.TestClient;
+import com.fotonauts.lackr.testutils.Factory;
+import com.fotonauts.lackr.testutils.RemoteControlledStub;
+import com.fotonauts.lackr.testutils.TestClient;
 
 public class TestTryPass {
 

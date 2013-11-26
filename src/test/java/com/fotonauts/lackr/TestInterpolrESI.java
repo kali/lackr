@@ -7,10 +7,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fotonauts.lackr.components.AppStubForESI;
-import com.fotonauts.lackr.components.Factory;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrTestUtils;
+import com.fotonauts.lackr.testutils.AppStubForESI;
+import com.fotonauts.lackr.testutils.Factory;
 
 public class TestInterpolrESI {
 
