@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
-	<version>99.99.99</version>
+	<version>0.5.0</version>
 	<name>Lackr</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,6 +42,7 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+			<!-- 
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.2.1</version>
@@ -65,6 +66,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -77,6 +79,13 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.kuali.maven.wagons</groupId>
+				<artifactId>maven-s3-wagon</artifactId>
+				<version>1.1.22</version>
+			</extension>
+		</extensions>
 	</build>
 	<repositories>
 		<repository>
@@ -91,7 +100,23 @@
 			<id>scalatools snaps</id>
 			<url>http://scala-tools.org/repo-snapshots/</url>
 		</repository>
-	</repositories>
+	</repositories><!--  AKIAINOCTBU2SOXTBVZA
+	+pwWgA/E7YgZyxQ3oeAP4yDqlrew0hJ+crMSTaqG
+	 -->
+	<distributionManagement>
+		<site>
+			<id>s3.site</id>
+			<url>s3://maven-fotonauts/site</url>
+		</site>
+		<repository>
+			<id>s3.release</id>
+			<url>s3://maven-fotonauts/release</url>
+		</repository>
+		<snapshotRepository>
+			<id>s3.snapshot</id>
+			<url>s3://maven.fotonauts/snapshot</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
