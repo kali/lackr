@@ -1,6 +1,8 @@
 package com.fotonauts.lackr;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.jetty.http.HttpFields;
 import org.slf4j.Logger;
@@ -21,27 +23,26 @@ public class LackrBackendRequest {
     private final byte[] body;
 
     private final String method;
-    private final String parentQuery;
-    private final int parentId;
     private final String query;
     private final BaseFrontendRequest frontendRequest;
     private LackrBackendExchange exchange;
-    private final String syntax;
     private final HttpFields fields;
     private final CompletionListener completionListener;
+    private final Map<String, Object> attributes;
 
-    public LackrBackendRequest(BaseFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
-            String syntax, byte[] body, HttpFields fields, CompletionListener completionListener) {
+    public LackrBackendRequest(BaseFrontendRequest frontendRequest, String method, String query, byte[] body, HttpFields fields,
+            Map<String, Object> attributes, CompletionListener completionListener) {
         super();
         this.frontendRequest = frontendRequest;
         this.method = method;
         this.query = query;
-        this.parentQuery = parentQuery;
-        this.parentId = parentId;
-        this.syntax = syntax;
         this.body = body;
         this.fields = fields;
         this.completionListener = completionListener;
+        if (attributes == null)
+            this.attributes = new HashMap<>();
+        else
+            this.attributes = attributes;
     }
 
     /**
@@ -61,22 +62,6 @@ public class LackrBackendRequest {
     }
 
     /**
-     * Returns the parent query string.
-     * @return the parent query string.
-     */
-    public String getParentQuery() {
-        return parentQuery;
-    }
-
-    /**
-     * For tracing purposes.
-     * @return the parent id.
-     */
-    public int getParentId() {
-        return parentId;
-    }
-
-    /**
      * Return the full query to send (both path and parameters).  
      * @return the query 
      */
@@ -86,14 +71,6 @@ public class LackrBackendRequest {
 
     public BaseFrontendRequest getFrontendRequest() {
         return frontendRequest;
-    }
-
-    /**
-     * For ESI queries, denote the context kind in where the request was done (ml-like, or json based).
-     * @return the ESI syntax.
-     */
-    public String getSyntax() {
-        return syntax;
     }
 
     /**
@@ -121,41 +98,41 @@ public class LackrBackendRequest {
     }
 
     // TODO: "parsedDocument": that is interpolr crap
-//    public void postProcess() {
-        /*
-        LackrBackendExchange exchange = getExchange();
-        try {
-        */
-            /*
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("%s %s backend %s returned %d (?)", getMethod(), getQuery(), getFrontendRequest()
-                        .getService().getBackends()[triedBackend.get()].getClass().getName(), exchange.getResponseStatus()));
-            }
-            */
-            /*
-            if(exchange.getResponseHeader("X-Ftn-Picor-Endpoint") != null) {
-                getFrontendRequest().getBackendRequestEndpointsCounters().putIfAbsent(exchange.getResponseHeader("X-Ftn-Picor-Endpoint"), new AtomicInteger(0));
-                getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("X-Ftn-Picor-Endpoint")).incrementAndGet();
-            }
-            */
-/*
-            if (this != getFrontendRequest().getRootRequest()
-                    && (exchange.getResponse().getStatus() / 100 == 4 || exchange.getResponse().getStatus() / 100 == 5)
-                    && exchange.getResponse().getHeader("X-SSI-AWARE") == null)
-                getFrontendRequest().addBackendExceptions(
-                        new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponse().getStatus()));
-            if (exchange.getResponse().getBodyBytes() != null && exchange.getResponse().getBodyBytes().length > 0) {
-                parsedDocument = getFrontendRequest().postProcessBodyToDocument(exchange);
-            } else
-                parsedDocument = new Document(new DataChunk(new byte[0]));
-*/
-        /*
-        } catch (Throwable e) {
-            e.printStackTrace();
-            getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
-        }
-        */
-//    }
+    //    public void postProcess() {
+    /*
+    LackrBackendExchange exchange = getExchange();
+    try {
+    */
+    /*
+    if (log.isDebugEnabled()) {
+        log.debug(String.format("%s %s backend %s returned %d (?)", getMethod(), getQuery(), getFrontendRequest()
+                .getService().getBackends()[triedBackend.get()].getClass().getName(), exchange.getResponseStatus()));
+    }
+    */
+    /*
+    if(exchange.getResponseHeader("X-Ftn-Picor-Endpoint") != null) {
+        getFrontendRequest().getBackendRequestEndpointsCounters().putIfAbsent(exchange.getResponseHeader("X-Ftn-Picor-Endpoint"), new AtomicInteger(0));
+        getFrontendRequest().getBackendRequestEndpointsCounters().get(exchange.getResponseHeader("X-Ftn-Picor-Endpoint")).incrementAndGet();
+    }
+    */
+    /*
+                if (this != getFrontendRequest().getRootRequest()
+                        && (exchange.getResponse().getStatus() / 100 == 4 || exchange.getResponse().getStatus() / 100 == 5)
+                        && exchange.getResponse().getHeader("X-SSI-AWARE") == null)
+                    getFrontendRequest().addBackendExceptions(
+                            new LackrPresentableError("Fragment " + getQuery() + " returned code " + exchange.getResponse().getStatus()));
+                if (exchange.getResponse().getBodyBytes() != null && exchange.getResponse().getBodyBytes().length > 0) {
+                    parsedDocument = getFrontendRequest().postProcessBodyToDocument(exchange);
+                } else
+                    parsedDocument = new Document(new DataChunk(new byte[0]));
+    */
+    /*
+    } catch (Throwable e) {
+        e.printStackTrace();
+        getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
+    }
+    */
+    //    }
 
     public void start() throws NotAvailableException, IOException {
         log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
@@ -176,5 +153,9 @@ public class LackrBackendRequest {
 
     public CompletionListener getCompletionListener() {
         return completionListener;
+    }
+
+    public Map<String, Object> getAttributes() {
+        return attributes;
     }
 }

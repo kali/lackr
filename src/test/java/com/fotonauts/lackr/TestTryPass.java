@@ -77,8 +77,7 @@ public class TestTryPass {
                         && subExchange.getResponse().getHeader(HttpHeader.LOCATION.asString()) != null) {
                     LackrBackendRequest req = exchange.getEffectiveBackendRequest();
                     String location = subExchange.getResponse().getHeader(HttpHeader.LOCATION.asString());
-                    return new LackrBackendRequest(req.getFrontendRequest(), req.getMethod(), location, req.getParentQuery(),
-                            req.getParentId(), req.getSyntax(), req.getBody(), req.getFields(), req.getCompletionListener());
+                    return new LackrBackendRequest(req.getFrontendRequest(), req.getMethod(), location,req.getBody(), req.getFields(), req.getAttributes(), req.getCompletionListener());
                 } else
                     return null;
             }

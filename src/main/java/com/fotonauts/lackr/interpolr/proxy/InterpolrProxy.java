@@ -2,6 +2,7 @@ package com.fotonauts.lackr.interpolr.proxy;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,9 +35,9 @@ public class InterpolrProxy extends BaseProxy {
     }
 
     protected BaseFrontendRequest createFrontendRequest(HttpServletRequest request) {
-        return new InterpolrFrontendRequest(this, request);        
+        return new InterpolrFrontendRequest(this, request);
     }
-    
+
     // only called for the main request, not for esi sub-fragments.
     @Override
     public void onBackendRequestDone(BaseFrontendRequest baseFrontendRequest) {
@@ -52,14 +53,15 @@ public class InterpolrProxy extends BaseProxy {
             yieldRootRequestProcessing(frontendRequest);
         }
     }
-    
-    LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest, String url, String format,
-            CompletionListener listener) {
-        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, dadRequest.getQuery(), dadRequest.hashCode(), format,
-                null, dadRequest.getFields(), listener);
+
+    LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest, String url,
+            String format, CompletionListener listener) {
+        HashMap<String, Object> attributes = new HashMap<>(1);
+        attributes.put("PARENT", dadRequest);
+        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, dadRequest.getFields(), attributes, listener);
         return req;
     }
-    
+
     void scheduleSubBackendRequest(LackrBackendRequest req) {
         scheduleBackendRequest(req);
     }
@@ -74,14 +76,14 @@ public class InterpolrProxy extends BaseProxy {
             frontendRequest.addBackendExceptions(LackrPresentableError.fromThrowable(e));
         }
     }
-    
+
     protected void yieldRootRequestProcessing(InterpolrFrontendRequest frontendRequest) {
         log.debug("Yield root request.");
         super.onBackendRequestDone(frontendRequest);
     }
 
     @Override
-    public void writeResponse(BaseFrontendRequest baseFrontendRequest, HttpServletResponse response) throws IOException {
+    protected void writeResponse(BaseFrontendRequest baseFrontendRequest, HttpServletResponse response) throws IOException {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
         if (frontendRequest.getPendingCount() > 0)
             frontendRequest.addBackendExceptions(new LackrPresentableError("There is unfinished business with backends..."));
@@ -93,13 +95,13 @@ public class InterpolrProxy extends BaseProxy {
     protected void writeContentTo(BaseFrontendRequest req, OutputStream out) throws IOException {
         ((InterpolrFrontendRequest) req).getRootScope().getParsedDocument().writeTo(out);
     }
-    
+
     @Override
     protected void doStart() throws Exception {
         super.doStart();
         interpolr.start();
     }
-    
+
     @Override
     public void doStop() throws Exception {
         interpolr.stop();

@@ -40,9 +40,9 @@ public class BaseProxy extends AbstractHandler {
     private Backend backend;
 
     private ExecutorService executor;
-    
+
     private EtagMode etagMode = EtagMode.FORWARD;
-    
+
     private boolean manageIfNoneMatch;
 
     public BaseProxy() {
@@ -67,16 +67,16 @@ public class BaseProxy extends AbstractHandler {
         byte[] body = null;
         if (frontendReq.getRequest().getContentLength() > 0)
             body = IO.readBytes(frontendReq.getRequest().getInputStream());
-   
-        LackrBackendRequest rootRequest = new LackrBackendRequest(frontendReq, frontendReq.getRequest().getMethod(), getPathAndQuery(frontendReq.getRequest()), null, 0, null, body,
-                buildHttpFields(frontendReq), new CompletionListener() {
-   
+
+        LackrBackendRequest rootRequest = new LackrBackendRequest(frontendReq, frontendReq.getRequest().getMethod(),
+                getPathAndQuery(frontendReq.getRequest()), body, buildHttpFields(frontendReq), null, new CompletionListener() {
+
                     @Override
                     public void fail(Throwable t) {
                         frontendReq.addBackendExceptions(t);
                         onBackendRequestDone(frontendReq);
                     }
-   
+
                     @Override
                     public void complete() {
                         onBackendRequestDone(frontendReq);
@@ -88,7 +88,7 @@ public class BaseProxy extends AbstractHandler {
 
     protected void scheduleBackendRequest(final LackrBackendRequest request) {
         getExecutor().execute(new Runnable() {
-    
+
             @Override
             public void run() {
                 try {
@@ -98,7 +98,7 @@ public class BaseProxy extends AbstractHandler {
                     request.getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
                 }
             }
-    
+
         });
     }
 
@@ -108,11 +108,11 @@ public class BaseProxy extends AbstractHandler {
     }
 
     protected void writeResponse(BaseFrontendRequest frontendRequest, HttpServletResponse response) throws IOException {
-        
+
         if (frontendRequest.getBackendExceptions().isEmpty()) {
             preflightCheck(frontendRequest);
         }
-    
+
         try {
             if (!frontendRequest.getBackendExceptions().isEmpty()) {
                 writeErrorResponse(frontendRequest, response);
@@ -134,10 +134,10 @@ public class BaseProxy extends AbstractHandler {
 
     protected void writeSuccessResponse(BaseFrontendRequest state, HttpServletResponse response) throws IOException {
         LackrBackendExchange rootExchange = state.getRootRequest().getExchange();
-    
+
         String etag = getETag(state);
         log.debug("etag for response for {} is {} ({})", state.getRootRequest(), etag, getEtagMode());
-    
+
         // IF NONE MATCH
         if (getManageIfNoneMatch() && state.getRequest().getMethod().equals("GET")
                 && rootExchange.getResponse().getStatus() == HttpStatus.OK_200 && etag != null) {
@@ -151,15 +151,15 @@ public class BaseProxy extends AbstractHandler {
                 return;
             }
         }
-    
+
         log.debug("writing {} response for {}", rootExchange.getResponse().getStatus(), state.getRootRequest());
         response.setStatus(rootExchange.getResponse().getStatus());
         copyResponseHeaders(state, response);
-        
+
         // ETAG
         if (getEtagMode() != EtagMode.DISCARD && etag != null)
             response.setHeader(HttpHeader.ETAG.asString(), etag);
-    
+
         // CONTENT-TYPE AND CONTENT-LENTH
         int contentLength = state.getContentLength();
         if (contentLength > 0)
@@ -167,16 +167,16 @@ public class BaseProxy extends AbstractHandler {
         if (rootExchange.getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
             response.setHeader(HttpHeader.CONTENT_TYPE.asString(),
                     rootExchange.getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()));
-    
+
         // CONTENT
-        if(!state.getRequest().getMethod().equals("HEAD"))
+        if (!state.getRequest().getMethod().equals("HEAD"))
             writeContentTo(state, response.getOutputStream());
         response.flushBuffer(); // force commiting
     }
 
     protected void writeErrorResponse(BaseFrontendRequest req, HttpServletResponse response) throws IOException {
         log.debug("writing error response for " + req.getRootRequest().getQuery());
-    
+
         response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
         response.setContentType("text/plain");
         StringBuilder sb = new StringBuilder();// new PrintStream(baos);
@@ -189,7 +189,7 @@ public class BaseProxy extends AbstractHandler {
         byte[] ba = s.getBytes("UTF-8");
         response.setContentLength(ba.length);
         response.getOutputStream().write(ba);
-    
+
         String message;
         try {
             message = req.getBackendExceptions().get(0).getMessage().split("\n")[0];
@@ -210,7 +210,7 @@ public class BaseProxy extends AbstractHandler {
             // nope.
         }
         DigestOutputStream dos = new DigestOutputStream(new OutputStream() {
-    
+
             @Override
             public void write(int arg0) throws IOException {
                 // noop
@@ -218,7 +218,7 @@ public class BaseProxy extends AbstractHandler {
         }, m);
         dos.on(true);
         try {
-            writeContentTo(req,dos);
+            writeContentTo(req, dos);
             dos.flush();
             dos.close();
         } catch (IOException e) {
@@ -299,7 +299,7 @@ public class BaseProxy extends AbstractHandler {
         }
         if (frontendReq.getRequest().getContentLength() > 0 && frontendReq.getRequest().getContentType() != null)
             fields.add(HttpHeader.CONTENT_TYPE.toString(), frontendReq.getRequest().getContentType());
-    
+
         return fields;
     }
 
@@ -311,8 +311,8 @@ public class BaseProxy extends AbstractHandler {
             }
         }
         if (frontendReq.getRootRequest().getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
-            response.addHeader(HttpHeader.CONTENT_TYPE.asString(),
-                    frontendReq.getRootRequest().getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()));
+            response.addHeader(HttpHeader.CONTENT_TYPE.asString(), frontendReq.getRootRequest().getExchange().getResponse()
+                    .getHeader(HttpHeader.CONTENT_TYPE.asString()));
     }
 
     //--------------------------------------------------------------------------------------
