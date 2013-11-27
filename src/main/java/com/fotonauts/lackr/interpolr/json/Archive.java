@@ -1,9 +1,10 @@
-package com.fotonauts.lackr.interpolr.handlebars;
+package com.fotonauts.lackr.interpolr.json;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 
 public class Archive {
 
@@ -39,7 +40,7 @@ public class Archive {
         for(Entry<String, Object> entry : objects.entrySet()) {
             straightIndex.put(Integer.parseInt(entry.getKey()), entry.getValue());
         }
-        new ReferenceResolverWalker() {
+        new JsonWalker() {
             @Override
             public Object resolve(Object datum) {
                 if(datum instanceof Map<?,?>) {
@@ -57,7 +58,7 @@ public class Archive {
         return straightIndex.get(objectId);
     }
 
-    public Object getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 

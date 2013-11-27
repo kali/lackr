@@ -2,44 +2,42 @@
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
+import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.JsonParseUtils;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.github.jknack.handlebars.Template;
 
-public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
+public class HandlebarsEvalChunk implements Chunk {
 
     private static Chunk EMPTY = new ConstantChunk(new byte[0]);
 
-    Chunk result = EMPTY;
-    String name;
-    Plugin plugin;
+    private Document inner;
+    private InterpolrScope scope;
+    private Chunk result = EMPTY;
+    private String name;
+
+    private Plugin plugin;
     
     public HandlebarsEvalChunk(Plugin plugin, String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
-        super(buffer, start, stop, scope);
+        this.scope = scope;
         this.plugin = plugin;
+        inner = scope.getInterpolr().parse(buffer, start, stop, scope);
         this.name = name;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void check() {
         inner.check();
+        
         Map<String, Object> data = null;
-        data = parse(inner, scope.getInterpolrContext(), name);
+        data = JsonParseUtils.parse(inner, scope.getInterpolrContext(), name);
         HandlebarsContext context = (HandlebarsContext) scope.getInterpolrContext().getPluginData(plugin);
-        inlineWrapperJsonEvaluation(data);
-
-        Map<String, Object> wrapper = new HashMap<>();
-        wrapper.put("root", data);
-        resolveArchiveReferences(wrapper, context);
-        data = (Map<String, Object>) wrapper.get("root");
-
         Template template = context.get(name);
         if (template == null) {
             StringBuilder builder = new StringBuilder();
@@ -47,7 +45,7 @@ public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
             builder.append("url: " + scope.toString() + "\n");
             builder.append("template name: " + name + "\n");
             builder.append("\nexpanded data:\n");
-            builder.append(contentAsDebugString(inner, -1, -1));
+            builder.append(JsonParseUtils.contentAsDebugString(inner, -1, -1));
             builder.append("\n");
             builder.append("known templates: ");
             for (String name : context.getAllNames()) {
@@ -77,14 +75,15 @@ public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
                     /* very depressing to get here */
                 }
                 builder.append("\nexpanded data:\n");
-                builder.append(contentAsDebugString(inner, -1, -1));
+                builder.append(JsonParseUtils.contentAsDebugString(inner, -1, -1));
                 scope.getInterpolrContext().addError(new LackrPresentableError(builder.toString()));
             }
     }
 
+    /*
     @SuppressWarnings("unchecked")
     private static void resolveArchiveReferences(Object data, final HandlebarsContext context) {
-        new ReferenceResolverWalker() {
+        new JsonWalker() {
             @Override
             public Object resolve(Object datum) {
                 if (datum instanceof Map<?, ?>) {
@@ -99,6 +98,7 @@ public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
             }
         }.walk(data);
     }
+    */
 
     @Override
     public int length() {

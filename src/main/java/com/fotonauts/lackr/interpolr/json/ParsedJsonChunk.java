@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.interpolr.handlebars;
+package com.fotonauts.lackr.interpolr.json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,18 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.Document;
-import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 
-public abstract class ParsedJsonChunk implements Chunk {
+public abstract class ParsedJsonChunk  {
 
     protected Document inner;
     protected InterpolrScope scope;
@@ -83,10 +76,10 @@ public abstract class ParsedJsonChunk implements Chunk {
         return builder.toString();
     }
 
+    /*
     public String prettyPrint(Map<String, Object> data) {
         return prettyPrint(data, scope);
     }
-
     public static String prettyPrint(Map<String, Object> data, InterpolrScope scope) {
         ObjectMapper mapper = null;
         if (scope != null)
@@ -143,4 +136,5 @@ public abstract class ParsedJsonChunk implements Chunk {
         }
         return null;
     }
+    */
 }

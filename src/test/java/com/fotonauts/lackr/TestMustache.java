@@ -183,6 +183,7 @@ public class TestMustache {
 
 
     // FIXME specific
+    @Ignore
     @Test
     public void testInlineWrapperSubstitution() throws Exception {
         // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb

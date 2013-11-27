@@ -1,11 +1,11 @@
-package com.fotonauts.lackr.interpolr.handlebars;
+package com.fotonauts.lackr.interpolr.json;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public abstract class ReferenceResolverWalker {
+public abstract class JsonWalker {
 
     public abstract Object resolve(Object datum);
 

@@ -13,12 +13,10 @@ import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Plugin;
-import com.fotonauts.lackr.interpolr.handlebars.HandlebarsContext;
 
 public class InterpolrContextStub implements InterpolrContext {
     static Logger log = LoggerFactory.getLogger(InterpolrContextStub.class);
 
-    protected HandlebarsContext mustache = new HandlebarsContext(this);
     protected List<LackrPresentableError> errors = new LinkedList<>();
     protected Interpolr interpolr;
     protected InterpolrScope rootScope;

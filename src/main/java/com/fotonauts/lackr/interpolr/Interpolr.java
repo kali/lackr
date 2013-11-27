@@ -4,20 +4,31 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 import com.fotonauts.lackr.MimeType;
 
 public class Interpolr extends AbstractLifeCycle {
 
-    private ObjectMapper jacksonObjectMapper;
-
     private List<Plugin> plugins = Collections.emptyList();
 
     @Override
     protected void doStart() throws Exception {
-        jacksonObjectMapper = new ObjectMapper();
+        for(Plugin p: plugins) {
+            if(p instanceof AdvancedPlugin) {
+                ((AdvancedPlugin) p).setInterpolr(this);
+                ((AdvancedPlugin) p).start();
+            }
+        }
+    }
+    
+    @Override
+    protected void doStop() throws Exception {
+        for(Plugin p: plugins) {
+            if(p instanceof AdvancedPlugin) {
+                ((AdvancedPlugin) p).stop();
+            }
+        }
     }
 
     public void processResult(InterpolrScope scope) {
@@ -58,9 +69,11 @@ public class Interpolr extends AbstractLifeCycle {
         return result;
     }
 
+    /*
     public ObjectMapper getJacksonObjectMapper() {
         return jacksonObjectMapper;
     }
+    */
 
     public void preflightCheck(InterpolrContext context) {
         for(Plugin plugin: getPlugins())

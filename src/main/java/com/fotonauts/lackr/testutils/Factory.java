@@ -22,6 +22,7 @@ import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.esi.ESIPlugin;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
+import com.fotonauts.lackr.interpolr.json.JsonPlugin;
 import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
 
 public class Factory {
@@ -59,7 +60,7 @@ public class Factory {
         Interpolr interpolr = new Interpolr();
 //        List<String> caps = Arrays.asList(capabilities.split(" "));
 
-        interpolr.setPlugins(new Plugin[] { new HandlebarsPlugin(), new ESIPlugin() });
+        interpolr.setPlugins(new Plugin[] { new JsonPlugin(), new HandlebarsPlugin(), new ESIPlugin() });
         interpolr.start();
         return interpolr;
     }

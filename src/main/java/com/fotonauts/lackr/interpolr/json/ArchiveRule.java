@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.interpolr.handlebars;
+package com.fotonauts.lackr.interpolr.json;
 
 import java.io.UnsupportedEncodingException;
 
@@ -23,7 +23,7 @@ public class ArchiveRule extends MarkupDetectingRule {
         try {
             String archiveId = new String(buffer, boundPairs[0], boundPairs[1] - boundPairs[0], "UTF-8");
             Document inner = scope.getInterpolr().parse(buffer, boundPairs[2], boundPairs[3], scope);
-            HandlebarsContext ctx = (HandlebarsContext) scope.getInterpolrContext().getPluginData(plugin);
+            JsonContext ctx = (JsonContext) scope.getInterpolrContext().getPluginData(plugin);
             ctx.registerArchive(archiveId, inner);
 
             return new Document(new Chunk[] { new DataChunk(buffer, start, boundPairs[2]), inner,

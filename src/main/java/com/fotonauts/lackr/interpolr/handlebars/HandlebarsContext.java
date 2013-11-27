@@ -21,6 +21,7 @@ import com.github.jknack.handlebars.io.StringTemplateSource;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 
+
 public class HandlebarsContext {
 
     static Logger log = LoggerFactory.getLogger(HandlebarsContext.class);
@@ -28,21 +29,20 @@ public class HandlebarsContext {
     private Handlebars handlebars;
     private Map<String, Document> registeredTemplatesDocument;
     private Map<String, Template> compiledTemplates;
-    private Map<String, Document> registeredArchiveDocuments;
-    private Map<String, Archive> expandedArchives;
 
     private InterpolrContext interpolrContext;
+
+    private HandlebarsPlugin plugin;
 
     public InterpolrContext getLackrFrontendRequest() {
         return interpolrContext;
     }
 
-    public HandlebarsContext(InterpolrContext interpolrContext) {
+    public HandlebarsContext(HandlebarsPlugin plugin, InterpolrContext interpolrContext) {
+        this.plugin = plugin;
         this.interpolrContext = interpolrContext;
         registeredTemplatesDocument = Collections.synchronizedMap(new HashMap<String, Document>());
-        compiledTemplates = Collections.synchronizedMap(new HashMap<String, Template>()); // not sure this one has to be synced
-        registeredArchiveDocuments = Collections.synchronizedMap(new HashMap<String, Document>());
-        expandedArchives = Collections.synchronizedMap(new HashMap<String, Archive>()); // not sure this one has to be synced
+        compiledTemplates = new HashMap<String, Template>();
         TemplateLoader loader = new TemplateLoader() {
 
             public TemplateSource sourceAt(final String uri) throws IOException {
@@ -69,12 +69,6 @@ public class HandlebarsContext {
 
     public void checkAndCompileAll() {
         log.debug("checkAndCompileAll");
-        for (Entry<String, Document> registered : registeredArchiveDocuments.entrySet()) {
-            registered.getValue().check();
-            Map<String, Object> parsedData = ParsedJsonChunk.parse(registered.getValue(), interpolrContext, registered.getKey());
-            if (parsedData != null)
-                expandedArchives.put(registered.getKey(), new Archive(parsedData));
-        }
         for (Entry<String, Document> registered : registeredTemplatesDocument.entrySet()) {
             registered.getValue().check();
             String expanded = getExpandedTemplate(registered.getKey());
@@ -111,11 +105,6 @@ public class HandlebarsContext {
         registeredTemplatesDocument.put(name, template);
     }
 
-    public void registerArchive(String name, Document archive) {
-        log.debug("registerArchive({}, {})", name, archive);
-        registeredArchiveDocuments.put(name, archive);
-    }
-
     public Template get(String templateName) {
         Template t = compiledTemplates.get(templateName);
         if (log.isDebugEnabled() && t != null) {
@@ -149,25 +138,19 @@ public class HandlebarsContext {
         return (String[]) registeredTemplatesDocument.keySet().toArray(new String[0]);
     }
 
-    public String[] getAllArchiveNames() {
-        return (String[]) expandedArchives.keySet().toArray(new String[0]);
-    }
-
-    public Archive getArchive(String name) {
-        return expandedArchives.get(name);
-    }
-
     public Handlebars getHandlebars() {
         return handlebars;
     }
 
     public String eval(Template template, Map<String, Object> data) throws IOException {
+        
         /* FIXME
         data.put("_ftn_inline_images", baseFrontendRequest.getUserAgent().supportsInlineImages());
         data.put("_ftn_locale", baseFrontendRequest.getPreferredLocale());
         */
+        
         data.put("_ftn_mustache_context", this);
-        return template.apply(data);
+        return template.apply(plugin.preProcess(this, data));
     }
 
 }

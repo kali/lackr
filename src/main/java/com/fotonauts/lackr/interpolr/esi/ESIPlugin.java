@@ -22,5 +22,4 @@ public class ESIPlugin implements Plugin {
     @Override
     public void preflightCheck(InterpolrContext context) {
     }
-
 }

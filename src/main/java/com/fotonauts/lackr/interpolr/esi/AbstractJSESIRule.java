@@ -1,17 +1,9 @@
 package com.fotonauts.lackr.interpolr.esi;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.ObjectMapper;
-
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.JsonParseUtils;
 import com.fotonauts.lackr.interpolr.esi.codec.JsonQuotingChunk;
 
 public class AbstractJSESIRule extends ESIIncludeRule {
@@ -45,29 +37,7 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	public void check(InterpolrScope scope) {
 		if(!MimeType.isJS(scope.getResultMimeType()))
 			return;
-        ObjectMapper mapper = scope.getInterpolr().getJacksonObjectMapper();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			baos.write("{ \"placeholder\" : ".getBytes());
-			scope.getParsedDocument().writeTo(baos);
-			baos.write("}".getBytes());
-			mapper.readValue(baos.toByteArray(), Map.class);
-		} catch (JsonParseException e) {
-			StringBuilder builder = new StringBuilder();
-			builder.append("JsonParseException: a fragment supposed to be a json value does not parse:\n");
-			builder.append("url: " + scope.toString() + "\n");
-			builder.append(e.getMessage() + "\n");
-			builder.append("\n");
-			try {
-				builder.append(baos.toString("UTF-8"));
-			} catch (UnsupportedEncodingException e2) {
-				// no way
-			} 
-			builder.append("\n\n");
-			scope.getInterpolrContext().addError(new LackrPresentableError(builder.toString()));
-		} catch (IOException e) {
-		    scope.getInterpolrContext().addError(LackrPresentableError.fromThrowable(e));
-		}
+		JsonParseUtils.parse(scope.getParsedDocument(), scope.getInterpolrContext(), "[esi fragment]");
 	}
 
 }

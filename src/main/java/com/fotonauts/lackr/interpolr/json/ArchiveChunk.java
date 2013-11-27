@@ -1,16 +1,21 @@
-package com.fotonauts.lackr.interpolr.handlebars;
+package com.fotonauts.lackr.interpolr.json;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 
-public class ArchiveChunk extends ParsedJsonChunk {
+public class ArchiveChunk implements Chunk {
 
     private String id;
+    protected Document inner;
+    protected InterpolrScope scope;
 
     public ArchiveChunk(String id, byte[] buffer, int start, int stop, InterpolrScope scope) {
-        super(buffer, start, stop, scope);
+        this.scope = scope;
+        inner = scope.getInterpolr().parse(buffer, start, stop, scope);
         this.id = id;
     }
 
@@ -31,7 +36,7 @@ public class ArchiveChunk extends ParsedJsonChunk {
 
     @Override
     public void check() {
-        // check is handled by mustache context
+        // check is handled by context
     }
     
 }
