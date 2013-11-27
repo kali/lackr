@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.LackrBackendResponse;
+import com.fotonauts.lackr.CompletionListener;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class TryPassBackendExchange extends LackrBackendExchange {
@@ -35,8 +35,8 @@ public class TryPassBackendExchange extends LackrBackendExchange {
         final LackrBackendExchange subExchange = be.createExchange(effectiveBackendRequest);
         lastExchange.set(subExchange);
         final TryPassBackendExchange that = this;
-        final Listener previousListener = subExchange.getCompletionListener();
-        subExchange.setCompletionListener(new Listener() {
+        final CompletionListener previousListener = subExchange.getCompletionListener();
+        subExchange.setCompletionListener(new CompletionListener() {
 
             @Override
             public void complete() {

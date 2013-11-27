@@ -3,7 +3,6 @@ package com.fotonauts.lackr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.LackrBackendRequest.Listener;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 import com.mongodb.BasicDBObject;
 
@@ -19,7 +18,7 @@ public abstract class LackrBackendExchange {
     protected long startTimestamp;
     protected LackrBackendRequest lackrBackendRequest;
     protected Backend backend;
-    private Listener listener;
+    private CompletionListener completionListener;
 
     public LackrBackendRequest getBackendRequest() {
         return lackrBackendRequest;
@@ -116,7 +115,7 @@ public abstract class LackrBackendExchange {
         /*
         if (sync) {
             log.debug("Start post-processing {}", this);
-            listener.run();
+            completionListener.run();
         } else
         */
             log.debug("Enqueue post-processing {} (status: {})", this, getResponse().getStatus());
@@ -137,11 +136,11 @@ public abstract class LackrBackendExchange {
         return String.format("%s:%s", this.getClass().getSimpleName(), getBackendRequest());
     }
 
-    public Listener getCompletionListener() {
-        return listener;
+    public CompletionListener getCompletionListener() {
+        return completionListener;
     }
 
-    public void setCompletionListener(Listener listener) {
-        this.listener = listener;
+    public void setCompletionListener(CompletionListener completionListener) {
+        this.completionListener = completionListener;
     }
 }

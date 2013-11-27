@@ -16,11 +16,6 @@ import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableExceptio
  */
 public class LackrBackendRequest {
 
-    public static interface Listener {
-        public void complete();
-        public void fail(Throwable t);
-    }
-    
     static Logger log = LoggerFactory.getLogger(LackrBackendRequest.class);
 
     private final byte[] body;
@@ -33,10 +28,10 @@ public class LackrBackendRequest {
     private LackrBackendExchange exchange;
     private final String syntax;
     private final HttpFields fields;
-    private final Listener listener;
+    private final CompletionListener completionListener;
 
     public LackrBackendRequest(BaseFrontendRequest frontendRequest, String method, String query, String parentQuery, int parentId,
-            String syntax, byte[] body, HttpFields fields, Listener listener) {
+            String syntax, byte[] body, HttpFields fields, CompletionListener completionListener) {
         super();
         this.frontendRequest = frontendRequest;
         this.method = method;
@@ -46,7 +41,7 @@ public class LackrBackendRequest {
         this.syntax = syntax;
         this.body = body;
         this.fields = fields;
-        this.listener = listener;
+        this.completionListener = completionListener;
     }
 
     /**
@@ -166,7 +161,7 @@ public class LackrBackendRequest {
         log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
         exchange = getFrontendRequest().getProxy().getBackend().createExchange(this);
         log.debug("Created exchange {}", exchange);
-        exchange.setCompletionListener(listener);
+        exchange.setCompletionListener(completionListener);
         exchange.start();
     }
 
@@ -179,7 +174,7 @@ public class LackrBackendRequest {
         return fields;
     }
 
-    public Listener getCompletionListener() {
-        return listener;
+    public CompletionListener getCompletionListener() {
+        return completionListener;
     }
 }

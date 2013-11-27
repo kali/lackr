@@ -1,21 +1,17 @@
 package com.fotonauts.lackr.interpolr.proxy;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.BaseFrontendRequest;
+import com.fotonauts.lackr.CompletionListener;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.LackrBackendRequest.Listener;
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
@@ -29,20 +25,17 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     protected InterpolrProxy service;
 
-//    private HandlebarsContext handlebarsContext;
-
     private ConcurrentHashMap<String, InterpolrScope> backendRequestCache = new ConcurrentHashMap<String, InterpolrScope>();
 
     private ProxyInterpolrScope rootScope;
-    
+
     protected HashMap<Plugin, Object> pluginData = new HashMap<>();
 
     protected InterpolrFrontendRequest(final InterpolrProxy baseProxy, HttpServletRequest request) {
         super(baseProxy, request);
         this.service = baseProxy;
         this.pendingCount = new AtomicInteger(0);
-//        this.handlebarsContext = new HandlebarsContext(this);
-        for(Plugin p: baseProxy.getInterpolr().getPlugins()) {
+        for (Plugin p : baseProxy.getInterpolr().getPlugins()) {
             pluginData.put(p, p.createContext(this));
         }
     }
@@ -57,74 +50,34 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         final ProxyInterpolrScope newBorn = new ProxyInterpolrScope(this);
         backendRequestCache.put(key, newBorn);
         LackrBackendRequest dadRequest = ((ProxyInterpolrScope) dad).getRequest();
-        LackrBackendRequest req = new LackrBackendRequest(this, "GET", url, dadRequest.getQuery(), dad.hashCode(), format, null,
-                dadRequest.getFields(), new Listener() {
+        LackrBackendRequest req = service.createSubRequest(this, dadRequest, url, format, new CompletionListener() {
 
-                    @Override
-                    public void fail(Throwable t) {
-                        addBackendExceptions(t);
-                        log.debug("Failure for {}", newBorn.toString());
-                        log.debug("with: ", t);
-                        if (pendingCount.decrementAndGet() == 0)
-                            yieldRootRequestProcessing();
-                    }
+            @Override
+            public void fail(Throwable t) {
+                addBackendExceptions(t);
+                log.debug("with: ", t);
+                if (pendingCount.decrementAndGet() == 0)
+                    service.yieldRootRequestProcessing((InterpolrFrontendRequest) getRootRequest().getFrontendRequest());
+            }
 
-                    @Override
-                    public void complete() {
-                        try {
-                            log.debug("Request completion for {}", newBorn.toString());
-                            getInterpolr().processResult(newBorn);
-                            log.debug("Interpolation done for {}", newBorn.toString());
-                        } finally {
-                            if (pendingCount.decrementAndGet() == 0)
-                                yieldRootRequestProcessing();
-                        }
-                    }
-                });
-        getProxy().customizeRequest(req);
+            @Override
+            public void complete() {
+                try {
+                    getInterpolr().processResult(newBorn);
+                } finally {
+                    if (pendingCount.decrementAndGet() == 0)
+                        service.yieldRootRequestProcessing((InterpolrFrontendRequest) getRootRequest().getFrontendRequest());
+                }
+            }
+        });
         newBorn.setRequest(req);
         pendingCount.incrementAndGet();
-        scheduleUpstreamRequest(req);
+        service.scheduleSubBackendRequest(req);
         return newBorn;
-    }
-
-    protected void yieldRootRequestProcessing() {
-        log.debug("Yield root request.");
-        super.onBackendRequestDone();
-    }
-
-    @Override
-    protected void preflightCheck() {
-        log.debug("Entering preflight check for {}", this);
-        try {
-            getInterpolr().preflightCheck(this);
-        } catch (Throwable e) {
-            getBackendExceptions().add(LackrPresentableError.fromThrowable(e));
-        }
-    }
-
-    public void writeResponse(HttpServletResponse response) throws IOException {
-        if (pendingCount.get() > 0)
-            getBackendExceptions().add(new LackrPresentableError("There is unfinished business with backends..."));
-
-        super.writeResponse(response);
     }
 
     public Interpolr getInterpolr() {
         return service.getInterpolr();
-    }
-
-    @Override
-    public void onBackendRequestDone() {
-        log.debug("Request completion for root: {}", getPathAndQuery(request));
-        rootScope = new ProxyInterpolrScope(this);
-        rootScope.setRequest(rootRequest);
-        getInterpolr().processResult(getRootScope());
-        log.debug("Interpolation done for root: {}", getPathAndQuery(request));
-        if (pendingCount.get() == 0) {
-            log.debug("No ESI found for {}.", getPathAndQuery(request));
-            yieldRootRequestProcessing();
-        }
     }
 
     @Override
@@ -137,17 +90,20 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     }
 
     @Override
-    protected void writeContentTo(OutputStream out) throws IOException {
-        getRootScope().getParsedDocument().writeTo(out);
-    }
-    
-    @Override
-    protected int getContentLength() {
+    public int getContentLength() {
         return getRootScope().getParsedDocument().length();
     }
 
     @Override
     public Object getPluginData(Plugin plugin) {
         return pluginData.get(plugin);
-    }    
+    }
+
+    public void setRootScope(ProxyInterpolrScope rootScope) {
+        this.rootScope = rootScope;
+    }
+
+    public int getPendingCount() {
+        return pendingCount.get();
+    }
 }
