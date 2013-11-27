@@ -109,8 +109,8 @@ public class TestMustache {
             <!-- lackr:mustache:eval name="template_name" -->
                 { "name": "the name "value": "the value" }
             <!-- /lackr:mustache:eval -->*/));
-        assertTrue(result.getBackendExceptions().size() > 0);
-        assertContains(result.getBackendExceptions().get(0).getMessage(), "JsonParseException");
+        assertTrue(result.getErrors().size() > 0);
+        assertContains(result.getErrors().get(0).getMessage(), "JsonParseException");
     }
 
     // This test is now irrelevant (and broken) as we use a default value in
@@ -149,8 +149,8 @@ public class TestMustache {
             <!-- lackr:mustache:eval name="bogus_template_name" -->
                 { "name": "the name", "value": "the value" }
             <!-- /lackr:mustache:eval -->*/));
-        assertTrue(result.getBackendExceptions().size() > 0);
-        assertContains(result.getBackendExceptions().get(0).getMessage(), "Mustache template not found");
+        assertTrue(result.getErrors().size() > 0);
+        assertContains(result.getErrors().get(0).getMessage(), "Mustache template not found");
     }
 
     @Test
@@ -163,7 +163,7 @@ public class TestMustache {
                 { "name": "the name", "value": "the value" }
             <!-- /lackr:mustache:eval -->*/));
         assertNotNull("result is an error", result);
-        assertFalse("error found", result.getBackendExceptions().isEmpty());
+        assertFalse("error found", result.getErrors().isEmpty());
     }
 
     @Test

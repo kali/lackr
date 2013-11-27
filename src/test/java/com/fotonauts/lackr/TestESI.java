@@ -143,7 +143,7 @@ public class TestESI {
     @Ignore
     public void testMethodsMainRequest() throws Exception {
         for (HttpMethod method : new HttpMethod[] { HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT }) {
-            Request r = client.createExchange("/method");
+            Request r = client.createRequest("/method");
             ContentResponse e = r.method(method).send();
             assertEquals(method.asString(), e.getContentAsString());
         }
@@ -153,7 +153,7 @@ public class TestESI {
     @Ignore
     public void testMethodSubRequest() throws Exception {
         for (HttpMethod method : new HttpMethod[] { HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT }) {
-            remoteApp.pageContent.set("Main request does:" + method + "\n" + "ESI does:<!--# include virtual=\\\"/method\\\" -->");
+            remoteApp.pageContent.set("Main incomingServletRequest does:" + method + "\n" + "ESI does:<!--# include virtual=\\\"/method\\\" -->");
             client.loadPageAndExpectsContains("ESI does:GET");
         }
     }

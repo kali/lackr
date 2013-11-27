@@ -7,18 +7,15 @@ import com.fotonauts.lackr.LackrPresentableError;
 
 public interface InterpolrContext {
 
-    //FIXME rename me
-    void addBackendExceptions(LackrPresentableError lackrPresentableError);
+    void addError(LackrPresentableError lackrPresentableError);
 
-    //FIXME rename me
-    InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope);
+    InterpolrScope getOrCreateSubScope(String url, String syntaxIdentifier, InterpolrScope parentScope);
 
     Interpolr getInterpolr();
 
     InterpolrScope getRootScope();
 
-    //FIXME rename me
-    List<LackrPresentableError> getBackendExceptions();
+    List<LackrPresentableError> getErrors();
     
     Object getPluginData(Plugin plugin);
 }

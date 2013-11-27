@@ -55,7 +55,7 @@ public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
                 builder.append(" ");
             }
             builder.append("\n");
-            scope.getInterpolrContext().addBackendExceptions(new LackrPresentableError(builder.toString()));
+            scope.getInterpolrContext().addError(new LackrPresentableError(builder.toString()));
         } else
             try {
                 result = new ConstantChunk(context.eval(template, data).getBytes("UTF-8"));
@@ -78,7 +78,7 @@ public class HandlebarsEvalChunk extends ParsedJsonChunk implements Chunk {
                 }
                 builder.append("\nexpanded data:\n");
                 builder.append(contentAsDebugString(inner, -1, -1));
-                scope.getInterpolrContext().addBackendExceptions(new LackrPresentableError(builder.toString()));
+                scope.getInterpolrContext().addError(new LackrPresentableError(builder.toString()));
             }
     }
 

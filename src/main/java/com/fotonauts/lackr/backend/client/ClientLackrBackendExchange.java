@@ -36,7 +36,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
         request.method(HttpMethod.fromString(spec.getMethod()));
         request.getHeaders().add(spec.getFields());
         if (spec.getBody() != null) {
-            request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getRequest().getHeader("Content-Type"));
+            request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getIncomingServletRequest().getHeader("Content-Type"));
             request.content(new BytesContentProvider(spec.getBody()));
         }
         log.debug("Created {}", this);

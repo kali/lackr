@@ -32,7 +32,7 @@ public abstract class AbstractMLESIRule extends ESIIncludeRule {
 	public void check(InterpolrScope scope) {
 		String mimeType = scope.getResultMimeType();
 		if (MimeType.isJS(mimeType))
-		    scope.getInterpolrContext().addBackendExceptions(
+		    scope.getInterpolrContext().addError(
 			        new LackrPresentableError("unsupported ESI type (js* in *ML context): " + scope.toString()));
 	}
 }

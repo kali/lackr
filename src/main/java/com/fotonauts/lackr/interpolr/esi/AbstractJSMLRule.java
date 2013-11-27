@@ -28,7 +28,7 @@ public class AbstractJSMLRule extends ESIIncludeRule {
 	public void check(InterpolrScope scope) {
 		String mimeType = scope.getResultMimeType();
 		if (MimeType.isJS(mimeType)) {
-			scope.getInterpolrContext().addBackendExceptions(
+			scope.getInterpolrContext().addError(
 			        new LackrPresentableError("unsupported ESI type (js* in js(*ML) context", scope));
 		}
 	}

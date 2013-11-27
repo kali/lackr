@@ -113,7 +113,7 @@ public class Test304 {
     @Test
     public void testEtagTrivialModes() throws Exception {
         pageData.set("blah");
-        ContentResponse response = client.createExchange("/").send();
+        ContentResponse response = client.createRequest("/").send();
         String etag = response.getHeaders().getStringField(HttpHeader.ETAG);
         switch (mode) {
         case DISCARD:
@@ -134,12 +134,12 @@ public class Test304 {
         if (mode != EtagMode.CONTENT_SUM)
             return;
         pageData.set("blah");
-        ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
+        ContentResponse e1 = client.runRequest(client.createRequest("/page.html"), "blah");
         String etag1 = e1.getHeaders().getStringField("etag");
         assertNotNull("e1 has etag", etag1);
 
         pageData.set("blih");
-        ContentResponse e2 = client.runRequest(client.createExchange("/page.html"), "blih");
+        ContentResponse e2 = client.runRequest(client.createRequest("/page.html"), "blih");
         String etag2 = e2.getHeaders().getStringField("etag");
         assertNotNull("e2 has etag", etag2);
 
@@ -151,11 +151,11 @@ public class Test304 {
         if (mode != EtagMode.CONTENT_SUM || !proxyType.equals("interpolr"))
             return;
         pageData.set(S(/*<!--# include virtual="/variable.html" -->*/));
-        ContentResponse e1 = client.createExchange("/page.html").send();
+        ContentResponse e1 = client.createRequest("/page.html").send();
         String etag1 = e1.getHeaders().getStringField("etag");
         assertNotNull("e1 has etag", etag1);
 
-        ContentResponse e2 = client.createExchange("/page.html").send();
+        ContentResponse e2 = client.createRequest("/page.html").send();
         String etag2 = e2.getHeaders().getStringField("etag");
         assertNotNull("e2 has etag", etag2);
 
@@ -167,14 +167,14 @@ public class Test304 {
         if (mode == EtagMode.DISCARD || (mode == EtagMode.FORWARD && !backendSetsEtag))
             return;
         pageData.set("blah");
-        ContentResponse e1 = client.runRequest(client.createExchange("/page.html"), "blah");
+        ContentResponse e1 = client.runRequest(client.createRequest("/page.html"), "blah");
         String etag1 = e1.getHeaders().getStringField("etag");
         assertNotNull("e1 has etag", etag1);
 
-        ContentResponse e2 = client.runRequest(client.createExchange("/page.html"), "blah");
+        ContentResponse e2 = client.runRequest(client.createRequest("/page.html"), "blah");
         assertEquals(e2.getStatus(), HttpStatus.OK_200);
 
-        Request req3 = client.createExchange("/page.html");
+        Request req3 = client.createRequest("/page.html");
         req3.header(HttpHeader.IF_NONE_MATCH, etag1);
         ContentResponse e3 = req3.send();
         assertEquals(HttpStatus.NOT_MODIFIED_304, e3.getStatus());
@@ -183,7 +183,7 @@ public class Test304 {
         assertTrue(e3.getContent() == null || e3.getContent().length == 0);
 
         pageData.set("blih");
-        Request req4 = client.createExchange("/page.html");
+        Request req4 = client.createRequest("/page.html");
         req4.header(HttpHeader.IF_NONE_MATCH, etag1);
         ContentResponse e4 = client.runRequest(req4, "blih");
         assertEquals(e4.getStatus(), HttpStatus.OK_200);

@@ -89,7 +89,7 @@ public class HandlebarsContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                interpolrContext.addBackendExceptions(new LackrPresentableError(builder.toString()));
+                interpolrContext.addError(new LackrPresentableError(builder.toString()));
             } catch (IOException e) {
                 StringBuilder builder = new StringBuilder();
                 builder.append("Handlebars: IOException\n");
@@ -99,7 +99,7 @@ public class HandlebarsContext {
                 for (int i = 0; i < lines.length; i++)
                     builder.append(String.format("% 3d %s\n", i + 1, lines[i]));
                 builder.append("\n");
-                interpolrContext.addBackendExceptions(new LackrPresentableError(builder.toString()));
+                interpolrContext.addError(new LackrPresentableError(builder.toString()));
             }
 
         }

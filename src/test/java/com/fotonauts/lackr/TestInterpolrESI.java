@@ -125,7 +125,7 @@ public class TestInterpolrESI {
             Request r = client.newRequest("http://localhost:" + lackrPort + "/page.html");
             r.method(method);
             page.setLength(0);
-            page.append("Main request does:" + method + "\n" + "ESI does:<!--# include virtual=\\\"/method\\\" -->");
+            page.append("Main incomingServletRequest does:" + method + "\n" + "ESI does:<!--# include virtual=\\\"/method\\\" -->");
             ContentResponse e = r.send();
             System.err.println(e.getContentAsString());
             assertContains(e.getContentAsString(), "ESI does:GET");

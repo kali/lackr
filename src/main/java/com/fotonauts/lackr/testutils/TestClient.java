@@ -34,8 +34,7 @@ public class TestClient extends AbstractLifeCycle {
         client.stop();
     }
 
-    // FIXME rename me (createRequest)
-    public Request createExchange(String path) {
+    public Request createRequest(String path) {
         return client.newRequest("http://localhost:" + port + path);
     }
 
@@ -52,12 +51,12 @@ public class TestClient extends AbstractLifeCycle {
     }
 
     public void loadPageAndExpects(String expects) throws InterruptedException, TimeoutException, ExecutionException {
-        Request exchange = createExchange("/page.html");
+        Request exchange = createRequest("/page.html");
         runRequest(exchange, expects);
     }
 
     public void loadPageAndExpectsCrash() throws InterruptedException, TimeoutException, ExecutionException {
-        Request req = createExchange("/page.html");
+        Request req = createRequest("/page.html");
         ContentResponse resp = req.send();
         assertTrue("returns an error", resp.getStatus() >= 400);
     }
@@ -67,7 +66,7 @@ public class TestClient extends AbstractLifeCycle {
     }
 
     public void loadPageAndExpectsContains(String target, String expect) throws InterruptedException, TimeoutException, ExecutionException {
-        ContentResponse response = createExchange(target).timeout(600, TimeUnit.SECONDS).send();
+        ContentResponse response = createRequest(target).timeout(600, TimeUnit.SECONDS).send();
         //System.err.println(response.getContentAsString());
         assertEquals(200, response.getStatus());
         assertTrue("response contains `" + expect+ "'", response.getContentAsString().contains(expect));

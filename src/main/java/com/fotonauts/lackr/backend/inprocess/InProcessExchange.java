@@ -16,7 +16,7 @@ public class InProcessExchange extends LackrBackendExchange {
 
 	public InProcessExchange(InProcessBackend inProcessBackend, LackrBackendRequest spec) {
 		super(inProcessBackend, spec);
-		this.request = new InProcessRequest(spec.getFrontendRequest().getRequest(), spec);
+		this.request = new InProcessRequest(spec.getFrontendRequest().getIncomingServletRequest(), spec);
 		this.response = new InProcessResponse(this);
 		this.inProcessBackend = inProcessBackend;
 	}

@@ -86,7 +86,7 @@ public class InProcessRequest extends HttpServletRequestWrapper {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Enumeration getParameterNames() {
-        if (request.getFrontendRequest().getRootRequest() == request)
+        if (request.getFrontendRequest().getBackendRequest() == request)
             return super.getParameterNames();
         else
             return Collections.enumeration(getParams().keySet());
@@ -94,7 +94,7 @@ public class InProcessRequest extends HttpServletRequestWrapper {
 
     @Override
     public String getParameter(String name) {
-        if (request.getFrontendRequest().getRootRequest() == request)
+        if (request.getFrontendRequest().getBackendRequest() == request)
             return super.getParameter(name);
         else
             return getParams().getString(name);
@@ -102,7 +102,7 @@ public class InProcessRequest extends HttpServletRequestWrapper {
 
     @Override
     public String[] getParameterValues(String name) {
-        if (request.getFrontendRequest().getRootRequest() == request)
+        if (request.getFrontendRequest().getBackendRequest() == request)
             return super.getParameterValues(name);
         else if (getParams() != null && getParams().getValues(name) != null)
             return (String[]) getParams().getValues(name).toArray(new String[0]);
@@ -113,7 +113,7 @@ public class InProcessRequest extends HttpServletRequestWrapper {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public Map getParameterMap() {
-        if (request.getFrontendRequest().getRootRequest() == request)
+        if (request.getFrontendRequest().getBackendRequest() == request)
             return super.getParameterMap();
         else
             return getParams().toStringArrayMap();

@@ -15,11 +15,11 @@ public class BaseFrontendRequest {
 
     static Logger log = LoggerFactory.getLogger(BaseFrontendRequest.class);
 
-    protected HttpServletRequest request;
+    protected HttpServletRequest incomingServletRequest;
 
     protected BaseProxy proxy;
 
-    protected LackrBackendRequest rootRequest;
+    protected LackrBackendRequest backendRequest;
 
     private AsyncContext continuation;
 
@@ -27,7 +27,7 @@ public class BaseFrontendRequest {
 
     protected BaseFrontendRequest(final BaseProxy baseProxy, HttpServletRequest request) {
         this.proxy = baseProxy;
-        this.request = request;
+        this.incomingServletRequest = request;
         this.continuation = request.startAsync();
         this.continuation.setTimeout(getProxy().getTimeout() * 1000);
         /*
@@ -58,34 +58,34 @@ public class BaseFrontendRequest {
         */
     }
 
-    public void addBackendExceptions(LackrPresentableError x) {
+    public void addError(LackrPresentableError x) {
         log.debug("Registering error:", x);
         backendExceptions.add(x);
     }
 
     public void addBackendExceptions(Throwable x) {
-        addBackendExceptions(LackrPresentableError.fromThrowable(x));
+        addError(LackrPresentableError.fromThrowable(x));
     }
 
-    public HttpServletRequest getRequest() {
-        return request;
+    public HttpServletRequest getIncomingServletRequest() {
+        return incomingServletRequest;
     }
 
-    public LackrBackendRequest getRootRequest() {
-        return rootRequest;
+    public LackrBackendRequest getBackendRequest() {
+        return backendRequest;
     }
 
     public BaseProxy getProxy() {
         return proxy;
     }
 
-    public List<LackrPresentableError> getBackendExceptions() {
+    public List<LackrPresentableError> getErrors() {
         return backendExceptions;
     }
 
     public int getContentLength() {
-        if (getRootRequest().getExchange().getResponse().getBodyBytes() != null)
-            return getRootRequest().getExchange().getResponse().getBodyBytes().length;
+        if (getBackendRequest().getExchange().getResponse().getBodyBytes() != null)
+            return getBackendRequest().getExchange().getResponse().getBodyBytes().length;
         return 0;
     }
 
@@ -93,8 +93,8 @@ public class BaseFrontendRequest {
         return continuation;
     }
     
-    public void setRootRequest(LackrBackendRequest rootRequest) {
-        this.rootRequest = rootRequest;
+    public void setBackendRequest(LackrBackendRequest rootRequest) {
+        this.backendRequest = rootRequest;
     }
 
 }

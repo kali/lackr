@@ -134,12 +134,12 @@ public abstract class ParsedJsonChunk implements Chunk {
             builder.append(e.getMessage() + "\n");
             builder.append(contentAsDebugString(inner, e.getLocation().getLineNr(), e.getLocation().getColumnNr()));
             builder.append("\n");
-            context.addBackendExceptions(new LackrPresentableError(builder.toString()));
+            context.addError(new LackrPresentableError(builder.toString()));
         } catch (IOException e) {
             StringBuilder builder = new StringBuilder();
             builder.append("While parsing json for " + context + ": IOException\n");
             builder.append(e.getMessage() + "\n");
-            context.addBackendExceptions(new LackrPresentableError(builder.toString()));
+            context.addError(new LackrPresentableError(builder.toString()));
         }
         return null;
     }

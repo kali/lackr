@@ -52,7 +52,7 @@ public abstract class LackrBackendExchange {
             if (!BaseFrontendRequest.skipHeader(header)) {
                 addRequestHeader(header, lackrBackendRequest.getFrontendRequest().getRequest().getHeader(header));
             }
-            // content type is skipped, but we MUST copy it for the root request, or else...
+            // content type is skipped, but we MUST copy it for the root incomingServletRequest, or else...
             if("Content-Type".equalsIgnoreCase(header) && lackrBackendRequest.getParentQuery() == null) {
                 addRequestHeader(header, lackrBackendRequest.getFrontendRequest().getRequest().getHeader(header));                
             }
@@ -81,7 +81,7 @@ public abstract class LackrBackendExchange {
         try {
             doStart();
         } catch (Throwable e) {
-            log.debug("Error starting request", e);
+            log.debug("Error starting incomingServletRequest", e);
             getCompletionListener().fail(e);
         }
 

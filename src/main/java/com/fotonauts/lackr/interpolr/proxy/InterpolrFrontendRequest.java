@@ -40,7 +40,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         }
     }
 
-    public InterpolrScope getSubBackendExchange(String url, String format, InterpolrScope dad) {
+    public InterpolrScope getOrCreateSubScope(String url, String format, InterpolrScope dad) {
         log.debug("{} requires {} (as {})", dad, url, format);
         String key = format + "::" + url;
         InterpolrScope ex = backendRequestCache.get(key);
@@ -57,7 +57,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                 addBackendExceptions(t);
                 log.debug("with: ", t);
                 if (pendingCount.decrementAndGet() == 0)
-                    service.yieldRootRequestProcessing((InterpolrFrontendRequest) getRootRequest().getFrontendRequest());
+                    service.yieldRootRequestProcessing((InterpolrFrontendRequest) getBackendRequest().getFrontendRequest());
             }
 
             @Override
@@ -66,7 +66,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                     getInterpolr().processResult(newBorn);
                 } finally {
                     if (pendingCount.decrementAndGet() == 0)
-                        service.yieldRootRequestProcessing((InterpolrFrontendRequest) getRootRequest().getFrontendRequest());
+                        service.yieldRootRequestProcessing((InterpolrFrontendRequest) getBackendRequest().getFrontendRequest());
                 }
             }
         });
@@ -82,7 +82,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     @Override
     public String toString() {
-        return rootRequest.toString();
+        return backendRequest.toString();
     }
 
     public InterpolrScope getRootScope() {

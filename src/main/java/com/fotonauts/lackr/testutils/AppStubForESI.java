@@ -42,7 +42,7 @@ public class AppStubForESI {
     public InterpolrContext createInterpolrContext(Interpolr interpolr) {
         return new InterpolrContextStub(interpolr) {
             
-            public InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope) {
+            public InterpolrScope getOrCreateSubScope(String url, String syntaxIdentifier, InterpolrScope scope) {
                 return getInterpolrScope(this, syntaxIdentifier, url);
             }
 

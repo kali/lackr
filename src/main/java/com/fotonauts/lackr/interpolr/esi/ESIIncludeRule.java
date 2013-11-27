@@ -35,7 +35,7 @@ abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule
     public Chunk substitute(byte[] buffer, int start, int[] boundPairs, int stop, InterpolrScope scope) {
         String url = makeUrl(buffer, boundPairs[0], boundPairs[1]);
         InterpolrScope sub;
-        sub = scope.getInterpolrContext().getSubBackendExchange(url, getSyntaxIdentifier(), scope);
+        sub = scope.getInterpolrContext().getOrCreateSubScope(url, getSyntaxIdentifier(), scope);
         return new RequestChunk(sub, this);
     }
 

@@ -64,9 +64,9 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 				// no way
 			} 
 			builder.append("\n\n");
-			scope.getInterpolrContext().addBackendExceptions(new LackrPresentableError(builder.toString()));
+			scope.getInterpolrContext().addError(new LackrPresentableError(builder.toString()));
 		} catch (IOException e) {
-		    scope.getInterpolrContext().addBackendExceptions(LackrPresentableError.fromThrowable(e));
+		    scope.getInterpolrContext().addError(LackrPresentableError.fromThrowable(e));
 		}
 	}
 

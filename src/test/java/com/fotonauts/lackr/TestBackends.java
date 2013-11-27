@@ -90,14 +90,14 @@ public class TestBackends {
 
     @Test(timeout = 500)
     public void testFilter() throws Exception {
-        Request r = client.createExchange("/sfds/hi");
+        Request r = client.createRequest("/sfds/hi");
         ContentResponse e = r.send();
         assertEquals("Hi from dummy filter\n", e.getContentAsString());
     }
 
     @Test(timeout = 500)
     public void testFilterCrashServlet() throws Exception {
-        Request r = client.createExchange("/sfds/crash/servlet");
+        Request r = client.createRequest("/sfds/crash/servlet");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
         assertTrue(e.getContentAsString().contains("catch me or you're dead."));
@@ -105,7 +105,7 @@ public class TestBackends {
 
     @Test(timeout = 500)
     public void testFilterCrashRE() throws Exception {
-        Request r = client.createExchange("/sfds/crash/re");
+        Request r = client.createRequest("/sfds/crash/re");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
         assertTrue(e.getContentAsString().contains("catch me or you're dead."));
@@ -113,7 +113,7 @@ public class TestBackends {
 
     @Test(timeout = 500)
     public void testFilterCrashError() throws Exception {
-        Request r = client.createExchange("/sfds/crash/error");
+        Request r = client.createRequest("/sfds/crash/error");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
         assertTrue(e.getContentAsString().contains("catch me or you're dead."));
@@ -121,7 +121,7 @@ public class TestBackends {
 
     @Test
     public void testFilterQuery() throws Exception {
-        Request r = client.createExchange("/sfds/dump?blah=12&blih=42");
+        Request r = client.createRequest("/sfds/dump?blah=12&blih=42");
         r.getHeaders().add("X-Ftn-OperationId", "someid");
         ContentResponse e = r.send();
         //    	System.err.println(e.getResponseContent());
@@ -140,7 +140,7 @@ public class TestBackends {
 
     @Test
     public void testFilterBodyQuery() throws Exception {
-        Request r = client.createExchange("/echobody");
+        Request r = client.createRequest("/echobody");
         r.getHeaders().add("X-Ftn-OperationId", "someid");
         r.content(new StringContentProvider("yop yop yop", "UTF-8"));
         ContentResponse e = r.send();
@@ -152,19 +152,9 @@ public class TestBackends {
     // ESI + backends
     @Test(timeout = 500)
     public void testFilterESItoInvalidUrl() throws Exception {
-        Request r = client.createExchange("/sfds/esiToInvalidUrl");
+        Request r = client.createRequest("/sfds/esiToInvalidUrl");
         ContentResponse e = r.send();
         assertTrue("invalid url from ESI should cleanly crash.", e.getStatus() >= 500);
-    }
-
-    // FIXME
-    @Test(timeout = 500)
-    @Ignore
-    // FIXME specific
-    public void testProxy() throws Exception {
-        Request r = client.createExchange("/sfds/asyncProxy?lackrPort=" + 1212 /* was lackrPort */);
-        ContentResponse e = r.send();
-        assertEquals("Hi from dummy Filter\n", e.getContentAsString());
     }
 
 }

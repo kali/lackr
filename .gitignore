@@ -6,3 +6,4 @@ target
 .rsync-filter
 .settings
 .DS_store
+release.properties

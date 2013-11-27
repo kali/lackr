@@ -38,18 +38,18 @@ public class InterpolrProxy extends BaseProxy {
         return new InterpolrFrontendRequest(this, request);
     }
 
-    // only called for the main request, not for esi sub-fragments.
+    // only called for the main incomingServletRequest, not for esi sub-fragments.
     @Override
     public void onBackendRequestDone(BaseFrontendRequest baseFrontendRequest) {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
-        log.debug("Request completion for root: {}", getPathAndQuery(frontendRequest.getRequest()));
+        log.debug("Request completion for root: {}", getPathAndQuery(frontendRequest.getIncomingServletRequest()));
         ProxyInterpolrScope scope = new ProxyInterpolrScope(frontendRequest);
         frontendRequest.setRootScope(scope);
-        scope.setRequest(frontendRequest.getRootRequest());
+        scope.setRequest(frontendRequest.getBackendRequest());
         getInterpolr().processResult(frontendRequest.getRootScope());
-        log.debug("Interpolation done for root: {}", getPathAndQuery(baseFrontendRequest.getRequest()));
+        log.debug("Interpolation done for root: {}", getPathAndQuery(baseFrontendRequest.getIncomingServletRequest()));
         if (frontendRequest.getPendingCount() == 0) {
-            log.debug("No ESI found for {}.", getPathAndQuery(baseFrontendRequest.getRequest()));
+            log.debug("No ESI found for {}.", getPathAndQuery(baseFrontendRequest.getIncomingServletRequest()));
             yieldRootRequestProcessing(frontendRequest);
         }
     }
@@ -66,19 +66,8 @@ public class InterpolrProxy extends BaseProxy {
         scheduleBackendRequest(req);
     }
 
-    @Override
-    protected void preflightCheck(BaseFrontendRequest baseFrontendRequest) {
-        InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
-        log.debug("Entering preflight check for {}", frontendRequest);
-        try {
-            getInterpolr().preflightCheck(frontendRequest);
-        } catch (Throwable e) {
-            frontendRequest.addBackendExceptions(LackrPresentableError.fromThrowable(e));
-        }
-    }
-
     protected void yieldRootRequestProcessing(InterpolrFrontendRequest frontendRequest) {
-        log.debug("Yield root request.");
+        log.debug("Yield root incomingServletRequest.");
         super.onBackendRequestDone(frontendRequest);
     }
 
@@ -86,9 +75,22 @@ public class InterpolrProxy extends BaseProxy {
     protected void writeResponse(BaseFrontendRequest baseFrontendRequest, HttpServletResponse response) throws IOException {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
         if (frontendRequest.getPendingCount() > 0)
-            frontendRequest.addBackendExceptions(new LackrPresentableError("There is unfinished business with backends..."));
+            frontendRequest.addError(new LackrPresentableError("There is unfinished business with backends..."));
 
+        if(frontendRequest.getErrors().isEmpty())
+            preflightCheck(baseFrontendRequest);
+        
         super.writeResponse(baseFrontendRequest, response);
+    }
+
+    protected void preflightCheck(BaseFrontendRequest baseFrontendRequest) {
+        InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
+        log.debug("Entering preflight check for {}", frontendRequest);
+        try {
+            getInterpolr().preflightCheck(frontendRequest);
+        } catch (Throwable e) {
+            frontendRequest.addError(LackrPresentableError.fromThrowable(e));
+        }
     }
 
     @Override

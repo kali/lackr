@@ -65,7 +65,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         e.header("Host", "something");
         client.runRequest(e, "something");
     }
@@ -82,7 +82,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         e.header("User-Agent", "something");
         client.runRequest(e, "something");
     }
@@ -98,7 +98,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         System.err.println();
         e.method(HttpMethod.POST);
         e.content(new StringContentProvider("coin"));
@@ -119,7 +119,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         e.header("Accept", "test/accept");
         client.runRequest(e, "test/accept");
     }
@@ -137,7 +137,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         client.runRequest(e, "null");
     }
 
@@ -154,7 +154,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         ContentResponse r = e.send();
 
         assertEquals(301, r.getStatus());
@@ -176,7 +176,7 @@ public class TestBaseProxy {
             }
         });
 
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         e.send();
     }
 
@@ -190,14 +190,14 @@ public class TestBaseProxy {
                         MimeType.TEXT_PLAIN);
             }
         });
-        Request e = client.createExchange("/?par=toto");
+        Request e = client.createRequest("/?par=toto");
         client.runRequest(e, "toto");
 
-        e = client.createExchange("/?par=toto");
+        e = client.createRequest("/?par=toto");
         e.method(HttpMethod.POST);
         client.runRequest(e, "toto");
 
-        e = client.createExchange("/?par=toto");
+        e = client.createRequest("/?par=toto");
         e.method(HttpMethod.PUT);
         client.runRequest(e, "toto");
     }
@@ -212,10 +212,10 @@ public class TestBaseProxy {
                         MimeType.TEXT_PLAIN);
             }
         });
-        Request e = client.createExchange("/queryString?par=toto");
+        Request e = client.createRequest("/queryString?par=toto");
         client.runRequest(e, "par=toto");
 
-        e = client.createExchange("/queryString?par=toto");
+        e = client.createRequest("/queryString?par=toto");
         e.method(HttpMethod.POST);
         client.runRequest(e, "par=toto");
     }
@@ -233,21 +233,21 @@ public class TestBaseProxy {
                         MimeType.TEXT_PLAIN);
             }
         });
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         client. runRequest(e, "null");
         assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
 
-        e = client.createExchange("/SETIT");
+        e = client.createRequest("/SETIT");
         ContentResponse r = client.runRequest(e, "null");
         System.err.println(r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
         assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
         assertTrue("response has set-cookie", r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
 
-        e = client.createExchange("/");
+        e = client.createRequest("/");
         client.runRequest(e, "null");
         assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
 
-        e = client.createExchange("/");
+        e = client.createRequest("/");
         e.getHeaders().add(HttpHeader.COOKIE.asString(), "c=2");
         client.runRequest(e, "c=2");
         assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
@@ -262,7 +262,7 @@ public class TestBaseProxy {
                 RemoteControlledStub.writeResponse(response, "yop!".getBytes(), MimeType.TEXT_PLAIN);
             }
         });
-        Request e = client.createExchange("/");
+        Request e = client.createRequest("/");
         StringBuilder sb = new StringBuilder(10000);
         for (int i = 0; i < 10000; i++)
             sb.append("c");

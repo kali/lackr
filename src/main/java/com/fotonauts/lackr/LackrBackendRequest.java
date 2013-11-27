@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 /**
- * Represents the specification and current state of a request to be tried against one or more {@link Backend}.
+ * Represents the specification and current state of a incomingServletRequest to be tried against one or more {@link Backend}.
  * 
  * @author kali
  *
@@ -46,15 +46,15 @@ public class LackrBackendRequest {
     }
 
     /**
-     * Returns the HTTP body of the request.
-     * @return the body (null if the request does not have a body).
+     * Returns the HTTP body of the incomingServletRequest.
+     * @return the body (null if the incomingServletRequest does not have a body).
      */
     public byte[] getBody() {
         return body;
     }
 
     /**
-     * Returns the HTTP method of the request.
+     * Returns the HTTP method of the incomingServletRequest.
      * @return the method name as the usual capitalized string.
      */
     public String getMethod() {
@@ -82,7 +82,7 @@ public class LackrBackendRequest {
     }
 
     /**
-     * Parameters part of the request.
+     * Parameters part of the incomingServletRequest.
      * @return the parameters (can be null, matching the Servlet API convention).
      */
     public String getParams() {
@@ -135,7 +135,7 @@ public class LackrBackendRequest {
     //    }
 
     public void start() throws NotAvailableException, IOException {
-        log.debug("Starting request on fragment {} {}", getMethod(), getQuery());
+        log.debug("Starting incomingServletRequest on fragment {} {}", getMethod(), getQuery());
         exchange = getFrontendRequest().getProxy().getBackend().createExchange(this);
         log.debug("Created exchange {}", exchange);
         exchange.setCompletionListener(completionListener);

@@ -40,7 +40,7 @@ public class RequestChunk implements Chunk {
 		if(isChecked)
 			return;
 		if(sub.getParsedDocument() == null)
-		    sub.getInterpolrContext().addBackendExceptions(new LackrPresentableError("expected a parsed document here, found nothing", sub));
+		    sub.getInterpolrContext().addError(new LackrPresentableError("expected a parsed document here, found nothing", sub));
 		else {
 		    sub.getParsedDocument().check();
 		    rule.check(sub);

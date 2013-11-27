@@ -58,18 +58,18 @@ public class BaseProxy extends AbstractHandler {
             scheduleBackendRequest(rootRequest);
         } catch (Throwable e) {
             log.debug("in kick() error handler: " + e);
-            frontendReq.getBackendExceptions().add(LackrPresentableError.fromThrowable(e));
+            frontendReq.getErrors().add(LackrPresentableError.fromThrowable(e));
             frontendReq.getContinuation().dispatch();
         }
     }
 
     protected LackrBackendRequest createBackendRequest(final BaseFrontendRequest frontendReq) throws IOException {
         byte[] body = null;
-        if (frontendReq.getRequest().getContentLength() > 0)
-            body = IO.readBytes(frontendReq.getRequest().getInputStream());
+        if (frontendReq.getIncomingServletRequest().getContentLength() > 0)
+            body = IO.readBytes(frontendReq.getIncomingServletRequest().getInputStream());
 
-        LackrBackendRequest rootRequest = new LackrBackendRequest(frontendReq, frontendReq.getRequest().getMethod(),
-                getPathAndQuery(frontendReq.getRequest()), body, buildHttpFields(frontendReq), null, new CompletionListener() {
+        LackrBackendRequest rootRequest = new LackrBackendRequest(frontendReq, frontendReq.getIncomingServletRequest().getMethod(),
+                getPathAndQuery(frontendReq.getIncomingServletRequest()), body, buildHttpFields(frontendReq), null, new CompletionListener() {
 
                     @Override
                     public void fail(Throwable t) {
@@ -82,7 +82,7 @@ public class BaseProxy extends AbstractHandler {
                         onBackendRequestDone(frontendReq);
                     }
                 });
-        frontendReq.setRootRequest(rootRequest);
+        frontendReq.setBackendRequest(rootRequest);
         return rootRequest;
     }
 
@@ -95,7 +95,7 @@ public class BaseProxy extends AbstractHandler {
                     request.start();
                 } catch (Throwable e) {
                     e.printStackTrace(System.err);
-                    request.getFrontendRequest().addBackendExceptions(LackrPresentableError.fromThrowable(e));
+                    request.getFrontendRequest().addError(LackrPresentableError.fromThrowable(e));
                 }
             }
 
@@ -109,12 +109,8 @@ public class BaseProxy extends AbstractHandler {
 
     protected void writeResponse(BaseFrontendRequest frontendRequest, HttpServletResponse response) throws IOException {
 
-        if (frontendRequest.getBackendExceptions().isEmpty()) {
-            preflightCheck(frontendRequest);
-        }
-
         try {
-            if (!frontendRequest.getBackendExceptions().isEmpty()) {
+            if (!frontendRequest.getErrors().isEmpty()) {
                 writeErrorResponse(frontendRequest, response);
             } else {
                 writeSuccessResponse(frontendRequest, response);
@@ -125,25 +121,22 @@ public class BaseProxy extends AbstractHandler {
         }
     }
 
-    protected void preflightCheck(BaseFrontendRequest baseFrontendRequest) {
-    }
-
     protected void writeContentTo(BaseFrontendRequest req, OutputStream out) throws IOException {
-        out.write(req.getRootRequest().getExchange().getResponse().getBodyBytes());
+        out.write(req.getBackendRequest().getExchange().getResponse().getBodyBytes());
     }
 
     protected void writeSuccessResponse(BaseFrontendRequest state, HttpServletResponse response) throws IOException {
-        LackrBackendExchange rootExchange = state.getRootRequest().getExchange();
+        LackrBackendExchange rootExchange = state.getBackendRequest().getExchange();
 
         String etag = getETag(state);
-        log.debug("etag for response for {} is {} ({})", state.getRootRequest(), etag, getEtagMode());
+        log.debug("etag for response for {} is {} ({})", state.getBackendRequest(), etag, getEtagMode());
 
         // IF NONE MATCH
-        if (getManageIfNoneMatch() && state.getRequest().getMethod().equals("GET")
+        if (getManageIfNoneMatch() && state.getIncomingServletRequest().getMethod().equals("GET")
                 && rootExchange.getResponse().getStatus() == HttpStatus.OK_200 && etag != null) {
-            String ifNoneMatch = state.getRequest().getHeader(HttpHeader.IF_NONE_MATCH.asString());
+            String ifNoneMatch = state.getIncomingServletRequest().getHeader(HttpHeader.IF_NONE_MATCH.asString());
             if (etag.equals(ifNoneMatch)) {
-                log.debug("writing 304 response for {}", state.getRootRequest());
+                log.debug("writing 304 response for {}", state.getBackendRequest());
                 // spec says no content-type, no content-length with 304
                 response.setStatus(HttpStatus.NOT_MODIFIED_304);
                 copyResponseHeaders(state, response);
@@ -152,7 +145,7 @@ public class BaseProxy extends AbstractHandler {
             }
         }
 
-        log.debug("writing {} response for {}", rootExchange.getResponse().getStatus(), state.getRootRequest());
+        log.debug("writing {} response for {}", rootExchange.getResponse().getStatus(), state.getBackendRequest());
         response.setStatus(rootExchange.getResponse().getStatus());
         copyResponseHeaders(state, response);
 
@@ -169,18 +162,18 @@ public class BaseProxy extends AbstractHandler {
                     rootExchange.getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()));
 
         // CONTENT
-        if (!state.getRequest().getMethod().equals("HEAD"))
+        if (!state.getIncomingServletRequest().getMethod().equals("HEAD"))
             writeContentTo(state, response.getOutputStream());
         response.flushBuffer(); // force commiting
     }
 
     protected void writeErrorResponse(BaseFrontendRequest req, HttpServletResponse response) throws IOException {
-        log.debug("writing error response for " + req.getRootRequest().getQuery());
+        log.debug("writing error response for " + req.getBackendRequest().getQuery());
 
         response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
         response.setContentType("text/plain");
         StringBuilder sb = new StringBuilder();// new PrintStream(baos);
-        for (LackrPresentableError t : req.getBackendExceptions()) {
+        for (LackrPresentableError t : req.getErrors()) {
             log.debug("Backend error: ", t);
             sb.append(t.getMessage());
             sb.append('\n');
@@ -192,8 +185,8 @@ public class BaseProxy extends AbstractHandler {
 
         String message;
         try {
-            message = req.getBackendExceptions().get(0).getMessage().split("\n")[0];
-            if (req.getBackendExceptions().size() > 1)
+            message = req.getErrors().get(0).getMessage().split("\n")[0];
+            if (req.getErrors().size() > 1)
                 message = message + " — and friends.";
         } catch (Throwable e) {
             message = "Failed to extract a nice message from this mess";
@@ -234,7 +227,7 @@ public class BaseProxy extends AbstractHandler {
         case DISCARD:
             return null;
         case FORWARD:
-            return req.getRootRequest().getExchange().getResponse().getHeader(HttpHeader.ETAG.asString());
+            return req.getBackendRequest().getExchange().getResponse().getHeader(HttpHeader.ETAG.asString());
         }
         return null;
     }
@@ -291,27 +284,27 @@ public class BaseProxy extends AbstractHandler {
 
     private HttpFields buildHttpFields(BaseFrontendRequest frontendReq) {
         HttpFields fields = new HttpFields();
-        for (Enumeration<?> e = frontendReq.getRequest().getHeaderNames(); e.hasMoreElements();) {
+        for (Enumeration<?> e = frontendReq.getIncomingServletRequest().getHeaderNames(); e.hasMoreElements();) {
             String header = (String) e.nextElement();
             if (!skipHeader(header)) {
-                fields.add(header, frontendReq.getRequest().getHeader(header));
+                fields.add(header, frontendReq.getIncomingServletRequest().getHeader(header));
             }
         }
-        if (frontendReq.getRequest().getContentLength() > 0 && frontendReq.getRequest().getContentType() != null)
-            fields.add(HttpHeader.CONTENT_TYPE.toString(), frontendReq.getRequest().getContentType());
+        if (frontendReq.getIncomingServletRequest().getContentLength() > 0 && frontendReq.getIncomingServletRequest().getContentType() != null)
+            fields.add(HttpHeader.CONTENT_TYPE.toString(), frontendReq.getIncomingServletRequest().getContentType());
 
         return fields;
     }
 
     public void copyResponseHeaders(BaseFrontendRequest frontendReq, HttpServletResponse response) {
-        for (String name : frontendReq.getRootRequest().getExchange().getResponse().getHeaderNames()) {
+        for (String name : frontendReq.getBackendRequest().getExchange().getResponse().getHeaderNames()) {
             if (!skipHeader(name)) {
-                for (String value : frontendReq.getRootRequest().getExchange().getResponse().getHeaderValues(name))
+                for (String value : frontendReq.getBackendRequest().getExchange().getResponse().getHeaderValues(name))
                     response.addHeader(name, value);
             }
         }
-        if (frontendReq.getRootRequest().getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
-            response.addHeader(HttpHeader.CONTENT_TYPE.asString(), frontendReq.getRootRequest().getExchange().getResponse()
+        if (frontendReq.getBackendRequest().getExchange().getResponse().getHeader(HttpHeader.CONTENT_TYPE.asString()) != null)
+            response.addHeader(HttpHeader.CONTENT_TYPE.asString(), frontendReq.getBackendRequest().getExchange().getResponse()
                     .getHeader(HttpHeader.CONTENT_TYPE.asString()));
     }
 

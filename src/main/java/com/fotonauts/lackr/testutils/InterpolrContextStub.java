@@ -31,13 +31,13 @@ public class InterpolrContextStub implements InterpolrContext {
     }
 
     @Override
-    public void addBackendExceptions(LackrPresentableError lackrPresentableError) {
+    public void addError(LackrPresentableError lackrPresentableError) {
         log.debug(lackrPresentableError.getMessage(), lackrPresentableError);
         errors.add(lackrPresentableError);
     }
 
     @Override
-    public InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope) {
+    public InterpolrScope getOrCreateSubScope(String url, String syntaxIdentifier, InterpolrScope scope) {
         throw new RuntimeException("not implemented, you need to subclass InterpolrContextStub");
     }
 
@@ -56,7 +56,7 @@ public class InterpolrContextStub implements InterpolrContext {
     }
 
     @Override
-    public List<LackrPresentableError> getBackendExceptions() {
+    public List<LackrPresentableError> getErrors() {
         return errors;
     }
 

@@ -15,7 +15,7 @@ public interface Backend extends LifeCycle {
     /**
      * The "interesting" method of the backend.
      * 
-     * @param request the request specification to process
+     * @param incomingServletRequest the incomingServletRequest specification to process
      * @return a {@link LackrBackendExchange} materialising the transaction with the Backend.
      * @throws NotAvailableException if the Backend is not available.
      */

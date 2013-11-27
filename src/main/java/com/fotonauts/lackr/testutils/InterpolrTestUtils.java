@@ -24,14 +24,14 @@ public class InterpolrTestUtils {
         final AppStubForESI finalApp = app;
         final InterpolrContextStub context = new InterpolrContextStub(inter) {
             @Override
-            public InterpolrScope getSubBackendExchange(String url, String syntaxIdentifier, InterpolrScope scope) {
+            public InterpolrScope getOrCreateSubScope(String url, String syntaxIdentifier, InterpolrScope scope) {
                 InterpolrScope s = finalApp.getInterpolrScope(this, syntaxIdentifier, url);
                 s.getInterpolr().processResult(s);
                 return s;
             }
         };
 
-        InterpolrScope scope = context.getSubBackendExchange("/page.html", "ML", null);
+        InterpolrScope scope = context.getOrCreateSubScope("/page.html", "ML", null);
         context.setRootScope(scope);
         inter.processResult(scope);
         inter.preflightCheck(context);
@@ -44,7 +44,7 @@ public class InterpolrTestUtils {
 
     public static Document parseToDocument(Interpolr inter, String data, String mimeType) {
         InterpolrContext context = parseToContext(inter, data, mimeType, null);
-        if (context == null || context.getBackendExceptions().size() > 0)
+        if (context == null || context.getErrors().size() > 0)
             return null;
         return context.getRootScope().getParsedDocument();
     }
