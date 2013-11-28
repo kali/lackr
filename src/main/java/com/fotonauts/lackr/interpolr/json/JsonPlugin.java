@@ -12,7 +12,7 @@ import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.Rule;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsContext;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
-import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin.Preprocessor;
+import com.fotonauts.lackr.interpolr.handlebars.Preprocessor;
 
 public class JsonPlugin implements AdvancedPlugin, Preprocessor {
     

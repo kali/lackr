@@ -147,9 +147,9 @@ public class HandlebarsContext {
         /* FIXME
         data.put("_ftn_inline_images", baseFrontendRequest.getUserAgent().supportsInlineImages());
         data.put("_ftn_locale", baseFrontendRequest.getPreferredLocale());
+        data.put("_ftn_mustache_context", this);
         */
         
-        data.put("_ftn_mustache_context", this);
         return template.apply(plugin.preProcess(this, data));
     }
 

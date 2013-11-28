@@ -22,7 +22,7 @@ public class TestArchive {
     
     @Before()
     public void setup() throws Exception {
-        interpolr = Factory.buildInterpolr("archive mustache");
+        interpolr = Factory.buildInterpolr("json handlebars");
         interpolr.start();
     }
 

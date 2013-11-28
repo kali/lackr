@@ -23,7 +23,7 @@ public class TestMustache {
     
     @Before()
     public void setup() throws Exception {
-        interpolr = Factory.buildInterpolr("esi archive mustache");
+        interpolr = Factory.buildInterpolr("json handlebars esi $$inline_wrapper");
         interpolr.start();
     }
 
@@ -182,8 +182,6 @@ public class TestMustache {
     }
 
 
-    // FIXME specific
-    @Ignore
     @Test
     public void testInlineWrapperSubstitution() throws Exception {
         // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb

@@ -1,6 +1,7 @@
 package com.fotonauts.lackr.testutils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.esi.ESIPlugin;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
+import com.fotonauts.lackr.interpolr.json.WrapperFlattener;
 import com.fotonauts.lackr.interpolr.json.JsonPlugin;
 import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
 
@@ -58,9 +60,25 @@ public class Factory {
 
     public static Interpolr buildInterpolr(String capabilities) throws Exception {
         Interpolr interpolr = new Interpolr();
-//        List<String> caps = Arrays.asList(capabilities.split(" "));
-
-        interpolr.setPlugins(new Plugin[] { new JsonPlugin(), new HandlebarsPlugin(), new ESIPlugin() });
+        ArrayList<Plugin> plugins = new ArrayList<>();
+        HandlebarsPlugin handlebarsPlugin = new HandlebarsPlugin();
+        for(String cap: capabilities.split(" ")) {
+            switch(cap) {
+            case "esi":
+                plugins.add(new ESIPlugin());
+                break;
+            case "handlebars":
+                plugins.add(handlebarsPlugin);
+                break;
+            case "json":
+                plugins.add(new JsonPlugin());
+                break;
+            case "$$inline_wrapper":
+                handlebarsPlugin.registerPreprocessor(new WrapperFlattener());
+                break;
+            }
+        }
+        interpolr.setPlugins(plugins.toArray(new Plugin[plugins.size()]));
         interpolr.start();
         return interpolr;
     }
