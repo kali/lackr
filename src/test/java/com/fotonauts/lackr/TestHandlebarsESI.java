@@ -17,7 +17,7 @@ import com.fotonauts.lackr.testutils.InterpolrTestUtils;
 import com.fotonauts.lackr.testutils.TextUtils;
 
 //@formatter:off
-public class TestMustache {
+public class TestHandlebarsESI {
     
     Interpolr interpolr;
     
@@ -181,20 +181,6 @@ public class TestMustache {
         assertEquals("main opens\nsome text from the template name:the name value:the value\nand closes", result.replaceAll(" *\n *", "\n").trim());
     }
 
-
-    @Test
-    public void testInlineWrapperSubstitution() throws Exception {
-        // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
-        String page = TextUtils.S(/*
-            <!-- lackr:mustache:template name="t" -->
-                {{blu}} {{glou}} {{glap}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="t" -->
-                { "blu": "bla", "blo":{ "$$inline_wrapper" : { "glou" : 42, "glap" : "haha" } } }
-            <!-- /lackr:mustache:eval -->*/);
-        String result = expand(page);
-        assertNearlyEquals("bla 42 haha", result);
-    }
 
     protected void assertNearlyEquals(String expected, String got) {
         assertNotNull(got);

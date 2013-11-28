@@ -16,13 +16,13 @@ import com.fotonauts.lackr.testutils.TextUtils;
 // disable formatting in this file
 // @formatter:off
 
-public class TestArchive {
+public class TestJsonPlugin {
     
     Interpolr interpolr;
     
     @Before()
     public void setup() throws Exception {
-        interpolr = Factory.buildInterpolr("json handlebars");
+        interpolr = Factory.buildInterpolr("json handlebars $$inline_wrapper");
         interpolr.start();
     }
 
@@ -171,5 +171,20 @@ DUMP: {
         assertContains(result.trim(), "KIDS: luke leia");        
         assertContains(result.trim(), "DAD: darth");        
     }
+
+    @Test
+    public void testInlineWrapperSubstitution() throws Exception {
+        // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
+        String page = TextUtils.S(/*
+            <!-- lackr:mustache:template name="t" -->
+                {{toplevel}} -{{toplevelkey}}- {{innerInt}} {{innerString}}
+            <!-- /lackr:mustache:template -->
+            <!-- lackr:mustache:eval name="t" -->
+                { "toplevel": "TOP", "toplevelkey":{ "$$inline_wrapper" : { "innerInt" : 42, "innerString" : "foo" } } }
+            <!-- /lackr:mustache:eval -->*/);
+        String result = InterpolrTestUtils.expand(interpolr, page);
+        assertContains(result, "TOP -- 42 foo");
+    }
+
 
 }
