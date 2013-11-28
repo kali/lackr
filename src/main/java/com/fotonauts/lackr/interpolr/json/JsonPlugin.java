@@ -48,7 +48,7 @@ public class JsonPlugin implements AdvancedPlugin, Preprocessor {
     }
     
     private void resolveArchiveReferences(Object data, final HandlebarsContext context) {
-        final JsonContext jsonContext = (JsonContext) context.getLackrFrontendRequest().getPluginData(this);
+        final JsonContext jsonContext = (JsonContext) context.getInterpolrContext().getPluginData(this);
         new JsonWalker() {
             @Override
             public Object resolve(Object datum) {

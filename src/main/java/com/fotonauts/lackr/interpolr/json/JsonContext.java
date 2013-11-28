@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,10 @@ public class JsonContext {
 
     public Archive getArchive(String name) {
         return expandedArchives.get(name);
+    }
+    
+    public Set<String> getAllArchiveNames() {
+        return expandedArchives.keySet();
     }
 
 }

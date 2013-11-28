@@ -34,7 +34,7 @@ public class HandlebarsContext {
 
     private HandlebarsPlugin plugin;
 
-    public InterpolrContext getLackrFrontendRequest() {
+    public InterpolrContext getInterpolrContext() {
         return interpolrContext;
     }
 
@@ -143,14 +143,16 @@ public class HandlebarsContext {
     }
 
     public String eval(Template template, Map<String, Object> data) throws IOException {
-        
+        data = plugin.preProcess(this, data);
+        data.put("_ftn_handlebars_context", this);
+        String result = template.apply(data); 
+        data.remove("_ftn_handlebars_context");
         /* FIXME
         data.put("_ftn_inline_images", baseFrontendRequest.getUserAgent().supportsInlineImages());
         data.put("_ftn_locale", baseFrontendRequest.getPreferredLocale());
-        data.put("_ftn_mustache_context", this);
         */
         
-        return template.apply(plugin.preProcess(this, data));
+        return result;
     }
 
 }
