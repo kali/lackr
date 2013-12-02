@@ -11,8 +11,8 @@ public class EvalRule extends MarkupDetectingRule {
 
     private Plugin plugin;
     
-	public EvalRule(Plugin plugin) {
-		super("<!-- lackr:mustache:eval name=\"*\" -->*<!-- /lackr:mustache:eval -->");
+	public EvalRule(HandlebarsPlugin plugin) {
+		super("<!-- " + plugin.getPrefix() + ":eval name=\"*\" -->*<!-- /" + plugin.getPrefix() + ":eval -->");
 		this.plugin = plugin;
 	}
 

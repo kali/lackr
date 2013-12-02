@@ -15,8 +15,8 @@ public class TemplateRule extends MarkupDetectingRule {
 
     private Plugin plugin;
 
-    public TemplateRule(Plugin plugin) {
-        super("<!-- lackr:mustache:template name=\"*\" -->*<!-- /lackr:mustache:template -->");
+    public TemplateRule(HandlebarsPlugin plugin) {
+        super("<!-- " + plugin.getPrefix() + ":template name=\"*\" -->*<!-- /" + plugin.getPrefix() + ":template -->");
         this.plugin = plugin;
     }
 

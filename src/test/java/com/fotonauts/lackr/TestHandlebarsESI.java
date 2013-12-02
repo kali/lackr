@@ -40,12 +40,12 @@ public class TestHandlebarsESI {
     @Test
     public void testMustache() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name", "value": "the value" }
-            <!-- /lackr:mustache:eval -->
+            <!-- /lackr:handlebars:eval -->
         */));
         assertNearlyEquals("some text from the template name:the name value:the value", result);
     }
@@ -53,12 +53,12 @@ public class TestHandlebarsESI {
     @Test
     public void testMustacheReversed() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name", "value": "the value" }
-            <!-- /lackr:mustache:eval -->
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- /lackr:handlebars:eval -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}}
-            <!-- /lackr:mustache:template -->
+            <!-- /lackr:handlebars:template -->
         */));
         assertNearlyEquals("some text from the template name:the name value:the value", result);
     }
@@ -66,24 +66,24 @@ public class TestHandlebarsESI {
     @Test
     public void testMustacheWithEsi() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} some:{{esi.some}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name", "value": "the value", "esi":"ssi:include:virtual:/esi.json" }
-            <!-- /lackr:mustache:eval --> */));
+            <!-- /lackr:handlebars:eval --> */));
         assertNearlyEquals("some text from the template name:the name value:the value some:json crap", result);
     }
 
     @Test
     public void testMustacheTemplateWithEsi() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 <!--# include virtual="/esi.must" -->
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name", "value": "the value", "esi":"ssi:include:virtual:/esi.json" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertNearlyEquals("some text from the template name:the name value:the value some:json crap", result);
     }
 
@@ -91,24 +91,24 @@ public class TestHandlebarsESI {
     @Ignore // this was compatible with mustache, but not handlebars
     public void testMustacheLenientParsing() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name} value:{{value}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name", "value": "the value" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertNearlyEquals("some text from the template name:{{name} value:the value", result);
     }
 
     @Test()
     public void testMustacheJsonParseException() throws Exception {
         InterpolrContext result = InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name "value": "the value" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertTrue(result.getErrors().size() > 0);
         assertContains(result.getErrors().get(0).getMessage(), "JsonParseException");
     }
@@ -121,12 +121,12 @@ public class TestHandlebarsESI {
     @Test
     public void testMustacheException() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} blah:{{esi.blih}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name", "value": "the value", "esi":"ssi:include:virtual:/esi.json" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertNotNull("result is an error", result);
         assertTrue(result.contains("MustacheException"));
     }
@@ -134,21 +134,21 @@ public class TestHandlebarsESI {
     @Test
     public void testMustacheAbsentKeyInHybridKeys() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 {{ absent.stuff }}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="template_name" --> 
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" --> 
                 { }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertNearlyEquals("", result);
     }
 
     @Test()
     public void testMustacheNoTemplates() throws Exception {
         InterpolrContext result = InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
-            <!-- lackr:mustache:eval name="bogus_template_name" -->
+            <!-- lackr:handlebars:eval name="bogus_template_name" -->
                 { "name": "the name", "value": "the value" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertTrue(result.getErrors().size() > 0);
         assertContains(result.getErrors().get(0).getMessage(), "Mustache template not found");
     }
@@ -156,12 +156,12 @@ public class TestHandlebarsESI {
     @Test
     public void testMustacheTemplateNotFound() throws Exception {
         InterpolrContext result = InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
-            <!-- lackr:mustache:template name="template_name" -->
+            <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} blah:{{esi.blih}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="bogus_template_name" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="bogus_template_name" -->
                 { "name": "the name", "value": "the value" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertNotNull("result is an error", result);
         assertFalse("error found", result.getErrors().isEmpty());
     }
@@ -169,15 +169,15 @@ public class TestHandlebarsESI {
     @Test
     public void testPartial() throws Exception {
         String result = expand(TextUtils.S(/*
-            <!-- lackr:mustache:template name="partial" -->
+            <!-- lackr:handlebars:template name="partial" -->
                 some text from the template name:{{name}} value:{{value}}
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:template name="main" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:template name="main" -->
                 main opens {{>partial}} and closes
-            <!-- /lackr:mustache:template -->
-            <!-- lackr:mustache:eval name="main" -->
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="main" -->
                 { "name": "the name", "value": "the value" }
-            <!-- /lackr:mustache:eval -->*/));
+            <!-- /lackr:handlebars:eval -->*/));
         assertEquals("main opens\nsome text from the template name:the name value:the value\nand closes", result.replaceAll(" *\n *", "\n").trim());
     }
 

@@ -20,9 +20,19 @@ public class JsonPlugin implements AdvancedPlugin, Preprocessor {
 
     private Rule[] rules;
     private Interpolr interpolr;
+    private String archiveCaptureTrigger = "<script type=\"vnd.fotonauts/lackrarchive\" id=\"*\">*</script><!-- END OF ARCHIVE -->";
 
+    public JsonPlugin(String archiveCaptureTrigger) {
+        this.archiveCaptureTrigger = archiveCaptureTrigger;
+        buildRules();
+    }
+    
     public JsonPlugin() {
-        rules = new Rule[] { new DumpArchiveRule(this), new ArchiveRule(this) };
+        buildRules();
+    }
+    
+    private void buildRules() {
+        rules = new Rule[] { new DumpArchiveRule(this), new ArchiveRule(this, archiveCaptureTrigger) };
     }
     
     @Override

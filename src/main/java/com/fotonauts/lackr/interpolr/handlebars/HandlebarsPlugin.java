@@ -20,7 +20,18 @@ public class HandlebarsPlugin implements Plugin {
     private Rule[] rules;
     private List<Preprocessor> preprocessors = new ArrayList<>();
 
+    private String prefix = "lackr:handlebars";
+
+    public HandlebarsPlugin(String prefix) {
+        this.prefix = prefix;
+        buildRules();
+    }
+
     public HandlebarsPlugin() {
+        buildRules();
+    }
+
+    private void buildRules() {
         rules = new Rule[] { new TemplateRule(this), new EvalRule(this) };
     }
     
@@ -59,5 +70,9 @@ public class HandlebarsPlugin implements Plugin {
     public void registerPreprocessor(Preprocessor preprocessor) {
         log.debug("registering preprocessor {}", preprocessor);
         preprocessors.add(preprocessor);
+    }
+    
+    public String getPrefix() {
+        return prefix;
     }
 }

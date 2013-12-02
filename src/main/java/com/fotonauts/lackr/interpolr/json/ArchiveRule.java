@@ -13,8 +13,8 @@ public class ArchiveRule extends MarkupDetectingRule {
 
     private Plugin plugin;
 
-    public ArchiveRule(Plugin plugin) {
-        super("<script type=\"vnd.fotonauts/picordata\" id=\"*\">*</script><!-- END OF ARCHIVE -->");
+    public ArchiveRule(JsonPlugin plugin, String archiveCaptureTrigger) {
+        super(archiveCaptureTrigger);
         this.plugin = plugin;
     }
 

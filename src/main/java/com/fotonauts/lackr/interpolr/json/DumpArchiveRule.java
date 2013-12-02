@@ -58,7 +58,7 @@ public class DumpArchiveRule extends MarkupDetectingRule {
     private Plugin plugin;
 
     public DumpArchiveRule(Plugin plugin) {
-        super("<!-- lackr:mustache:dump archive=\"*\" -->");
+        super("<!-- lackr:handlebars:dump archive=\"*\" -->");
         this.plugin = plugin;
     }
 
