@@ -2,67 +2,79 @@ package com.fotonauts.lackr.interpolr.json;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsContext;
 import com.fotonauts.lackr.interpolr.handlebars.Preprocessor;
+import com.github.jknack.handlebars.Context.Builder;
 
 public class WrapperFlattener implements Preprocessor {
 
     private String keyname = "$$inline_wrapper";
-    
+
     public WrapperFlattener() {
     }
 
     public WrapperFlattener(String keyname) {
         this.keyname = keyname;
     }
-    
+
     public String getKeyname() {
         return keyname;
     }
-    
+
     public void setKeyname(String keyname) {
         this.keyname = keyname;
     }
-    
+
+    // { a:blah, b: {
+    //   $$inline_wrapper: {
+    //     c: 12
+    //   }
+    // }
+    // ======> { a:blah, c: 12}
     @Override
-    public void preProcess(HandlebarsContext handlebarsContext, Map<String, Object> data) {
-        inlineWrapperJsonEvaluation(data);
-    }
+    public void preProcess(final HandlebarsContext handlebarsContext, Map<String, Object> data) {
+        new JsonWalker() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public Object onValue(Object datum) {
+                if (!(datum instanceof Map<?, ?>))
+                    return datum;
 
-    @SuppressWarnings("unchecked")
-    public void inlineWrapperJsonEvaluation(Object data) {
-        if (data instanceof List<?>) {
-            List<Serializable> dataAsList = (List<Serializable>) data;
-            for (Serializable s : dataAsList)
-                inlineWrapperJsonEvaluation(s);
-
-        } else if (data instanceof Map<?, ?>) {
-            Map<String, Serializable> dataAsMap = (Map<String, Serializable>) data;
-            List<String> keysToRemove = new LinkedList<>();
-            Map<String, Serializable> stuffToInline = new HashMap<>();
-            for (Entry<String, Serializable> pair : dataAsMap.entrySet()) {
-                if (pair.getValue() instanceof Map<?, ?>) {
-                    Map<String, Serializable> valueAsMap = (Map<String, Serializable>) pair.getValue();
-                    if (valueAsMap.size() == 1 && valueAsMap.containsKey(keyname)) {
-                        if (valueAsMap.get(keyname) instanceof Map<?, ?>) {
-                            stuffToInline
-                                    .putAll((Map<? extends String, ? extends Serializable>) valueAsMap.get(keyname));
-                            keysToRemove.add(pair.getKey());
+                boolean needRewrite = false;
+                Map<String, Serializable> dataAsMap = (Map<String, Serializable>) datum;
+                for (Serializable value : dataAsMap.values()) {
+                    if (!needRewrite && value instanceof Map<?, ?>) {
+                        if (((Map<?, ?>) value).containsKey(keyname)) {
+                            needRewrite = true;
                         }
                     }
                 }
+
+                if (!needRewrite)
+                    return datum;
+
+                Map<String, Serializable> result = new HashMap<>();
+                for (Entry<String, Serializable> entry : dataAsMap.entrySet()) {
+                    if (entry.getValue() instanceof Map<?, ?> && ((Map<?, ?>) (entry.getValue())).containsKey(keyname)
+                            && ((Map<?, ?>) (entry.getValue())).get(keyname) instanceof Map<?, ?>) {
+
+                        for (Entry<String, Serializable> innerEntry : ((Map<String, Serializable>) ((Map<?, ?>) (entry.getValue()))
+                                .get(keyname)).entrySet())
+                            result.put(innerEntry.getKey(), innerEntry.getValue());
+                    } else
+                        result.put(entry.getKey(), entry.getValue());
+                }
+                return result;
             }
-            for (String k : keysToRemove)
-                dataAsMap.remove(k);
-            dataAsMap.putAll(stuffToInline);
-            for (Serializable value : dataAsMap.values())
-                inlineWrapperJsonEvaluation(value);
-        }
+        }.walk(data);
     }
+
+    @Override
+    public Builder preProcess(HandlebarsContext handlebarsContext, Builder builder) {
+        return builder;
+    };
 
 }

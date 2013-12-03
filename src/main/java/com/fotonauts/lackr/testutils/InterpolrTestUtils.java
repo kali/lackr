@@ -35,6 +35,9 @@ public class InterpolrTestUtils {
         context.setRootScope(scope);
         inter.processResult(scope);
         inter.preflightCheck(context);
+        if(context.getErrors().size() > 0) {
+            throw context.getErrors().get(0);
+        }
         return context;
     }
 

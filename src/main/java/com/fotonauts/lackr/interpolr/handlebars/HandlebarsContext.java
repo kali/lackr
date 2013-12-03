@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
+import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.Template;
@@ -143,15 +144,8 @@ public class HandlebarsContext {
     }
 
     public String eval(Template template, Map<String, Object> data) throws IOException {
-        data = plugin.preProcess(this, data);
-        data.put("_ftn_handlebars_context", this);
-        String result = template.apply(data); 
-        data.remove("_ftn_handlebars_context");
-        /* FIXME
-        data.put("_ftn_inline_images", baseFrontendRequest.getUserAgent().supportsInlineImages());
-        data.put("_ftn_locale", baseFrontendRequest.getPreferredLocale());
-        */
-        
+        Context context = plugin.makeHbsContext(this, data);
+        String result = template.apply(context); 
         return result;
     }
 

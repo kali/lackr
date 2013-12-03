@@ -35,7 +35,7 @@ public class JsonContext {
             registered.getValue().check();
             Map<String, Object> parsedData = JsonParseUtils.parse(registered.getValue(), interpolrContext, registered.getKey());
             if (parsedData != null)
-                expandedArchives.put(registered.getKey(), new Archive(parsedData));
+                expandedArchives.put(registered.getKey(), new Archive(registered.getKey(), parsedData));
         }
     }
 

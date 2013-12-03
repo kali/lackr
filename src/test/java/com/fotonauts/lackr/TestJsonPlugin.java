@@ -70,6 +70,24 @@ DUMP: {
     }
 
     @Test
+    public void testMustacheEvalSimple() throws Exception {
+        String archive = TextUtils.S(/*
+                <script type="vnd.fotonauts/lackrarchive" id="archive_1">
+                    { "root_id": 1, "objects": { "1" : { "name": "object number 1" } } }
+                </script><!-- END OF ARCHIVE -->
+            */);
+        String result =  InterpolrTestUtils.expand(interpolr, archive + TextUtils.S(/*
+            <!-- lackr:handlebars:template name="template_name" -->
+                NAME1: {{object.name}}
+            <!-- /lackr:handlebars:template -->
+            <!-- lackr:handlebars:eval name="template_name" -->
+                { "object": { "$$archive" : "archive_1", "$$id" : 1 } }
+            <!-- /lackr:handlebars:eval -->
+            */));
+        assertContains(result.trim(), "NAME1: object number 1");
+    }
+
+    @Test
     public void testMustacheEval() throws Exception {
         String archive = TextUtils.S(/*
                 <script type="vnd.fotonauts/lackrarchive" id="archive_1">
@@ -95,12 +113,12 @@ DUMP: {
                 NAME3: {{#items}}{{name}} {{/items}}
             <!-- /lackr:handlebars:template -->
             <!-- lackr:handlebars:eval name="items" -->
-                { "items": [ { "$$archive" : "archive_1", "$$id" : 1 }, { "name": "crap" } ] } 
+                { "items": [ { "$$archive" : "archive_1", "$$id" : 1 }, { "name": "foo" } ] } 
             <!-- /lackr:handlebars:eval -->
         */));
         assertContains(result.trim(), "NAME1: object number 1");
         assertContains(result.trim(), "NAME2: object number 1");
-        assertContains(result.trim(), "NAME3: object number 1 crap");
+        assertContains(result.trim(), "NAME3: object number 1 foo");
     }
 
     @Test
@@ -186,5 +204,9 @@ DUMP: {
         assertContains(result, "TOP -- 42 foo");
     }
 
-
+    public static void main(String[] args) throws Exception {
+        TestJsonPlugin p = new TestJsonPlugin();
+        p.setup();
+        p.testArchiveReferenceDeser();
+    }
 }

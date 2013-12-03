@@ -8,10 +8,12 @@ import java.util.Map.Entry;
 
 public class Archive {
 
+    private String name;
     private Map<String, Object> data;
     private final Map<Integer, Object> straightIndex = new HashMap<Integer, Object>();
 
-    public Archive(Map<String, Object> data) {
+    public Archive(String name, Map<String, Object> data) {
+        this.name = name;
         this.data = data;
         process();
     }
@@ -42,11 +44,11 @@ public class Archive {
         }
         new JsonWalker() {
             @Override
-            public Object resolve(Object datum) {
+            public Object onValue(Object datum) {
                 if(datum instanceof Map<?,?>) {
                     Map<String,Object> hash = (Map<String, Object>) datum;
                     if(hash.containsKey("$$id") && hash.size() == 1) {
-                        return straightIndex.get(hash.get("$$id"));
+                        return new Reference(Archive.this, (Integer) hash.get("$$id"));
                     }
                 }
                 return null;
@@ -75,5 +77,13 @@ public class Archive {
             return (Integer) r;
         return null;
     }
-
+    
+    public String getName() {
+        return name;
+    }
+    
+    @Override
+    public int hashCode() {
+        return getName().hashCode();
+    }
 }

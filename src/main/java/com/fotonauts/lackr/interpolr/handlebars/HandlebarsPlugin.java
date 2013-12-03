@@ -12,6 +12,9 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.Rule;
+import com.github.jknack.handlebars.Context;
+import com.github.jknack.handlebars.Context.Builder;
+import com.github.jknack.handlebars.context.MapValueResolver;
 
 public class HandlebarsPlugin implements Plugin {
 
@@ -51,8 +54,7 @@ public class HandlebarsPlugin implements Plugin {
         hbsContext.checkAndCompileAll();
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, Object>  preProcess(HandlebarsContext handlebarsContext, Map<String, Object> data) {
+    public Context makeHbsContext(HandlebarsContext handlebarsContext, Map<String, Object> data) {
         log.debug("preprocess {} with {} preprocessors", data, preprocessors.size());
         
         Map<String, Object> wrapper = new HashMap<>();
@@ -64,7 +66,14 @@ public class HandlebarsPlugin implements Plugin {
                 throw LackrPresentableError.fromThrowable(e);
             }
         }
-        return (Map<String, Object>) wrapper.get("root");
+        Builder contextBuilder = Context
+                .newBuilder(wrapper.get("root"))
+                .combine("_ftn_handlebars_context", handlebarsContext)
+                .resolver(MapValueResolver.INSTANCE);
+        for(Preprocessor prep:preprocessors) {
+            contextBuilder = prep.preProcess(handlebarsContext, contextBuilder);
+        }
+        return contextBuilder.build();
     }
     
     public void registerPreprocessor(Preprocessor preprocessor) {

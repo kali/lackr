@@ -1,7 +1,6 @@
 package com.fotonauts.lackr;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -11,7 +10,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fotonauts.lackr.interpolr.Interpolr;
-import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.testutils.Factory;
 import com.fotonauts.lackr.testutils.InterpolrTestUtils;
 import com.fotonauts.lackr.testutils.TextUtils;
@@ -100,17 +98,15 @@ public class TestHandlebarsESI {
         assertNearlyEquals("some text from the template name:{{name} value:the value", result);
     }
 
-    @Test()
+    @Test(expected=LackrPresentableError.class)
     public void testMustacheJsonParseException() throws Exception {
-        InterpolrContext result = InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
+        InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
             <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}}
             <!-- /lackr:handlebars:template -->
             <!-- lackr:handlebars:eval name="template_name" -->
                 { "name": "the name "value": "the value" }
             <!-- /lackr:handlebars:eval -->*/));
-        assertTrue(result.getErrors().size() > 0);
-        assertContains(result.getErrors().get(0).getMessage(), "JsonParseException");
     }
 
     // This test is now irrelevant (and broken) as we use a default value in
@@ -143,27 +139,23 @@ public class TestHandlebarsESI {
         assertNearlyEquals("", result);
     }
 
-    @Test()
+    @Test(expected=LackrPresentableError.class)
     public void testMustacheNoTemplates() throws Exception {
-        InterpolrContext result = InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
+        InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
             <!-- lackr:handlebars:eval name="bogus_template_name" -->
                 { "name": "the name", "value": "the value" }
             <!-- /lackr:handlebars:eval -->*/));
-        assertTrue(result.getErrors().size() > 0);
-        assertContains(result.getErrors().get(0).getMessage(), "Mustache template not found");
     }
 
-    @Test
+    @Test(expected=LackrPresentableError.class)
     public void testMustacheTemplateNotFound() throws Exception {
-        InterpolrContext result = InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
+        InterpolrTestUtils.parseToContext(interpolr, TextUtils.S(/*
             <!-- lackr:handlebars:template name="template_name" -->
                 some text from the template name:{{name}} value:{{value}} blah:{{esi.blih}}
             <!-- /lackr:handlebars:template -->
             <!-- lackr:handlebars:eval name="bogus_template_name" -->
                 { "name": "the name", "value": "the value" }
             <!-- /lackr:handlebars:eval -->*/));
-        assertNotNull("result is an error", result);
-        assertFalse("error found", result.getErrors().isEmpty());
     }
 
     @Test
@@ -191,6 +183,4 @@ public class TestHandlebarsESI {
     protected void assertContains(String haystack, String needle) {
         assertTrue(haystack + "\n\nexpected to contain\n\n" + needle, haystack.contains(needle));
     }
-
-
 }
