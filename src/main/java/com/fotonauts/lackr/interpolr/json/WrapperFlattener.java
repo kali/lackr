@@ -35,7 +35,7 @@ public class WrapperFlattener implements Preprocessor {
     // }
     // ======> { a:blah, c: 12}
     @Override
-    public void preProcess(final HandlebarsContext handlebarsContext, Map<String, Object> data) {
+    public void preProcessData(final HandlebarsContext handlebarsContext, Map<String, Object> data) {
         new JsonWalker() {
             @SuppressWarnings("unchecked")
             @Override
@@ -61,9 +61,7 @@ public class WrapperFlattener implements Preprocessor {
                     if (entry.getValue() instanceof Map<?, ?> && ((Map<?, ?>) (entry.getValue())).containsKey(keyname)
                             && ((Map<?, ?>) (entry.getValue())).get(keyname) instanceof Map<?, ?>) {
 
-                        for (Entry<String, Serializable> innerEntry : ((Map<String, Serializable>) ((Map<?, ?>) (entry.getValue()))
-                                .get(keyname)).entrySet())
-                            result.put(innerEntry.getKey(), innerEntry.getValue());
+                        result.putAll(((Map<String, Serializable>) ((Map<?, ?>) (entry.getValue())).get(keyname)));
                     } else
                         result.put(entry.getKey(), entry.getValue());
                 }
@@ -73,7 +71,7 @@ public class WrapperFlattener implements Preprocessor {
     }
 
     @Override
-    public Builder preProcess(HandlebarsContext handlebarsContext, Builder builder) {
+    public Builder preProcessContextBuilder(HandlebarsContext handlebarsContext, Builder builder) {
         return builder;
     };
 

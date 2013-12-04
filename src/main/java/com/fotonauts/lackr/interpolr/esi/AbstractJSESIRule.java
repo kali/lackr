@@ -3,7 +3,6 @@ package com.fotonauts.lackr.interpolr.esi;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.JsonParseUtils;
 import com.fotonauts.lackr.interpolr.esi.codec.JsonQuotingChunk;
 
 public class AbstractJSESIRule extends ESIIncludeRule {
@@ -37,7 +36,9 @@ public class AbstractJSESIRule extends ESIIncludeRule {
 	public void check(InterpolrScope scope) {
 		if(!MimeType.isJS(scope.getResultMimeType()))
 			return;
+		/* FIXME: disabled, as some ESI are actualy json string (for instance: '"disabled"')
 		JsonParseUtils.parse(scope.getParsedDocument(), scope.getInterpolrContext(), "[esi fragment]");
+		*/
 	}
 
 }

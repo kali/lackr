@@ -8,10 +8,15 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrPresentableError;
 
 public class JsonParseUtils {
+
+    static Logger log = LoggerFactory.getLogger(JsonParseUtils.class);
+
     private static ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
     @SuppressWarnings("unchecked")
@@ -33,6 +38,10 @@ public class JsonParseUtils {
                 return null;
             }
         } catch (JsonParseException e) {
+            if(log.isErrorEnabled()) {
+                log.error("Parsing json: [[{}]] ", new String(baos.toByteArray()));
+                log.error(e.getMessage(),e);
+            }
             StringBuilder builder = new StringBuilder();
             builder.append("While parsing json for " + context + ": JsonParseException\n");
             builder.append(e.getMessage() + "\n");
@@ -40,6 +49,10 @@ public class JsonParseUtils {
             builder.append("\n");
             context.addError(new LackrPresentableError(builder.toString()));
         } catch (IOException e) {
+            if(log.isErrorEnabled()) {
+                log.error("Parsing json: [[{}]] ", new String(baos.toByteArray()));
+                log.error(e.getMessage(),e);
+            }
             StringBuilder builder = new StringBuilder();
             builder.append("While parsing json for " + context + ": IOException\n");
             builder.append(e.getMessage() + "\n");

@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.ConstantChunk;
@@ -14,6 +17,8 @@ import com.fotonauts.lackr.interpolr.Plugin;
 import com.github.jknack.handlebars.Template;
 
 public class HandlebarsEvalChunk implements Chunk {
+
+    static Logger log = LoggerFactory.getLogger(HandlebarsEvalChunk.class);
 
     private static Chunk EMPTY = new ConstantChunk(new byte[0]);
 

@@ -30,7 +30,8 @@ public class JsonPlugin implements AdvancedPlugin {
             if (context instanceof Reference) {
                 Object target = ((Reference) context).getTarget();
                 if (target instanceof Map<?, ?>) {
-                    return ((Map<String,Object>) target).get(name);
+                    if(((Map) target).containsKey(name))
+                        return ((Map<String,Object>) target).get(name);
                 }
             }
             return UNRESOLVED;
@@ -113,12 +114,12 @@ public class JsonPlugin implements AdvancedPlugin {
                 ((HandlebarsPlugin) p).registerPreprocessor(new Preprocessor() {
 
                     @Override
-                    public Builder preProcess(HandlebarsContext handlebarsContext, Builder builder) {
+                    public Builder preProcessContextBuilder(HandlebarsContext handlebarsContext, Builder builder) {
                         return builder.resolver(MapValueResolver.INSTANCE, resolverSingleton);
                     }
 
                     @Override
-                    public void preProcess(HandlebarsContext handlebarsContext, Map<String, Object> data) {
+                    public void preProcessData(HandlebarsContext handlebarsContext, Map<String, Object> data) {
                         log.debug("preprocess {}", data);
                         resolveArchiveReferences(data, handlebarsContext);
                         log.debug("preprocess result: {}", data);

@@ -143,10 +143,14 @@ public class HandlebarsContext {
         return handlebars;
     }
 
-    public String eval(Template template, Map<String, Object> data) throws IOException {
+    public String eval(Template template, Object data) throws IOException {
         Context context = plugin.makeHbsContext(this, data);
         String result = template.apply(context); 
         return result;
+    }
+
+    public HandlebarsPlugin getPlugin() {
+        return plugin;
     }
 
 }

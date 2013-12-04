@@ -5,6 +5,6 @@ import java.util.Map;
 import com.github.jknack.handlebars.Context.Builder;
 
 public interface Preprocessor {
-    void preProcess(HandlebarsContext handlebarsContext, Map<String, Object> data);
-    Builder preProcess(HandlebarsContext handlebarsContext, Builder builder);
+    void preProcessData(HandlebarsContext handlebarsContext, Map<String, Object> data);
+    Builder preProcessContextBuilder(HandlebarsContext handlebarsContext, Builder builder);
 }

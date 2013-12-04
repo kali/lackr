@@ -54,14 +54,14 @@ public class HandlebarsPlugin implements Plugin {
         hbsContext.checkAndCompileAll();
     }
 
-    public Context makeHbsContext(HandlebarsContext handlebarsContext, Map<String, Object> data) {
+    public Context makeHbsContext(HandlebarsContext handlebarsContext, Object data) {
         log.debug("preprocess {} with {} preprocessors", data, preprocessors.size());
         
         Map<String, Object> wrapper = new HashMap<>();
         wrapper.put("root", data);
         for(Preprocessor prep: preprocessors) {
             try {
-                prep.preProcess(handlebarsContext, wrapper);
+                prep.preProcessData(handlebarsContext, wrapper);
             } catch (Throwable e) {
                 throw LackrPresentableError.fromThrowable(e);
             }
@@ -71,7 +71,7 @@ public class HandlebarsPlugin implements Plugin {
                 .combine("_ftn_handlebars_context", handlebarsContext)
                 .resolver(MapValueResolver.INSTANCE);
         for(Preprocessor prep:preprocessors) {
-            contextBuilder = prep.preProcess(handlebarsContext, contextBuilder);
+            contextBuilder = prep.preProcessContextBuilder(handlebarsContext, contextBuilder);
         }
         return contextBuilder.build();
     }
