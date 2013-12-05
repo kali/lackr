@@ -192,21 +192,35 @@ DUMP: {
 
     @Test
     public void testInlineWrapperSubstitution() throws Exception {
-        // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
         String page = TextUtils.S(/*
             <!-- lackr:handlebars:template name="t" -->
-                {{toplevel}} -{{toplevelkey}}- {{innerInt}} {{innerString}}
+                {{toplevel}} {{innerInt}} {{innerString}}
             <!-- /lackr:handlebars:template -->
             <!-- lackr:handlebars:eval name="t" -->
                 { "toplevel": "TOP", "toplevelkey":{ "$$inline_wrapper" : { "innerInt" : 42, "innerString" : "foo" } } }
             <!-- /lackr:handlebars:eval -->*/);
         String result = InterpolrTestUtils.expand(interpolr, page);
-        assertContains(result, "TOP -- 42 foo");
+        assertContains(result, "TOP 42 foo");
     }
 
-    public static void main(String[] args) throws Exception {
-        TestJsonPlugin p = new TestJsonPlugin();
-        p.setup();
-        p.testArchiveReferenceDeser();
+    @Test
+    public void testInlineWrapperSubstitutionInArchive() throws Exception {
+        String page = TextUtils.S(/*
+                <script type="vnd.fotonauts/lackrarchive" id="archive_1">
+                    { "root_id": 1, "objects": {
+                          "1" : { "$ATTR": { "stuff" : "some", "foo": { "junk": { "$$inline_wrapper" : { "items" : [ { "name" : "name" }] } } } } }
+                    } }
+                </script><!-- END OF ARCHIVE -->
+
+            <!-- lackr:handlebars:template name="t" -->
+                expectname:{{#root.foo.items}}{{name}} {{/root.foo.items}}
+            <!-- /lackr:handlebars:template -->
+
+            <!-- lackr:handlebars:eval name="t" -->
+                    { "root" : { "$$archive" : "archive_1", "$$id" : 1 } }
+            <!-- /lackr:handlebars:eval -->*/);
+        String result = InterpolrTestUtils.expand(interpolr, page);
+        assertContains(result, "expectname:name");
     }
+
 }

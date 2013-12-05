@@ -18,6 +18,7 @@ public class Archive {
         process();
     }
     
+    /*
     @SuppressWarnings("unchecked")
     private void simplifyJavascriptObjects(Object object) {
         if(object instanceof Map<?,?>) {
@@ -34,26 +35,31 @@ public class Archive {
                 simplifyJavascriptObjects(value);            
         }
     }
+    */
     
     @SuppressWarnings("unchecked")
     private void process() {
-        simplifyJavascriptObjects(data);
+//        simplifyJavascriptObjects(data);
+        addArchiveReference(data);
         Map<String,Object> objects = (Map<String, Object>) data.get("objects");
         for(Entry<String, Object> entry : objects.entrySet()) {
             straightIndex.put(Integer.parseInt(entry.getKey()), entry.getValue());
         }
-        new JsonWalker() {
-            @Override
-            public Object onValue(Object datum) {
-                if(datum instanceof Map<?,?>) {
-                    Map<String,Object> hash = (Map<String, Object>) datum;
-                    if(hash.containsKey("$$id") && hash.size() == 1) {
-                        return new Reference(Archive.this, (Integer) hash.get("$$id"));
-                    }
-                }
-                return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void addArchiveReference(Object object) {
+        if(object instanceof Map<?,?>) {
+            Map<String,Object> hash = (Map<String, Object>) object;
+            if(hash.containsKey("$$id") && !hash.containsKey("$$archive")) {
+                hash.put("$$archive", name);
             }
-        }.walk(data);
+            for(Object value : hash.values())
+                addArchiveReference(value);
+        } else if(object instanceof List<?>) {
+            for(Object value : ((List<Object>) object))
+                addArchiveReference(value);            
+        }
     }
 
     public Object getObject(int objectId) {

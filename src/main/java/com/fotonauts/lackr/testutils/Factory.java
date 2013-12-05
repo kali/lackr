@@ -23,7 +23,6 @@ import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.esi.ESIPlugin;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
-import com.fotonauts.lackr.interpolr.json.WrapperFlattener;
 import com.fotonauts.lackr.interpolr.json.JsonPlugin;
 import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
 
@@ -73,9 +72,11 @@ public class Factory {
             case "json":
                 plugins.add(new JsonPlugin());
                 break;
+                /*
             case "$$inline_wrapper":
                 handlebarsPlugin.registerPreprocessor(new WrapperFlattener());
                 break;
+                */
             }
         }
         interpolr.setPlugins(plugins.toArray(new Plugin[plugins.size()]));
