@@ -12,8 +12,8 @@ import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.Rule;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsContext;
+import com.fotonauts.lackr.interpolr.handlebars.HandlebarsExtension;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
-import com.fotonauts.lackr.interpolr.handlebars.ValueResolverProvider;
 import com.github.jknack.handlebars.ValueResolver;
 
 public class JsonPlugin implements AdvancedPlugin {
@@ -23,7 +23,7 @@ public class JsonPlugin implements AdvancedPlugin {
     private Rule[] rules;
     private Interpolr interpolr;
     private String archiveCaptureTrigger = "<script type=\"vnd.fotonauts/lackrarchive\" id=\"*\">*</script><!-- END OF ARCHIVE -->";
-
+    
     public JsonPlugin(String archiveCaptureTrigger) {
         this.archiveCaptureTrigger = archiveCaptureTrigger;
         buildRules();
@@ -57,10 +57,10 @@ public class JsonPlugin implements AdvancedPlugin {
         for (Plugin p : interpolr.getPlugins()) {
             if (p instanceof HandlebarsPlugin) {
                 log.debug("Registering archive plugin as a HandlebarsPlugin preprocessor.");
-                ((HandlebarsPlugin) p).registerPreprocessor(new ValueResolverProvider() {
+                ((HandlebarsPlugin) p).registerExtension(new HandlebarsExtension.Noop() {
 
                     @Override
-                    public Collection<ValueResolver> provide(HandlebarsContext handlebarsContext) {
+                    public Collection<ValueResolver> getValueResolvers(HandlebarsContext handlebarsContext) {
                         JsonContext jsonContext = (JsonContext) handlebarsContext.getInterpolrContext().getPluginData(
                                 JsonPlugin.this);
                         ArrayList<ValueResolver> list = new ArrayList<>(1);

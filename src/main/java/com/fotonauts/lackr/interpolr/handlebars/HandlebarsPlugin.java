@@ -1,7 +1,9 @@
 package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,7 @@ public class HandlebarsPlugin implements Plugin {
     static Logger log = LoggerFactory.getLogger(HandlebarsPlugin.class);
 
     private Rule[] rules;
-    private List<ValueResolverProvider> valueResolverProviders = new ArrayList<>();
+    private List<HandlebarsExtension> handlebarsExtensions = new ArrayList<>();
 
     private String prefix = "lackr:handlebars";
 
@@ -55,8 +57,10 @@ public class HandlebarsPlugin implements Plugin {
     public Context makeHbsContext(HandlebarsContext handlebarsContext, Object data) {
         
         ArrayList<ValueResolver> resolvers = new ArrayList<>();
-        for(ValueResolverProvider prep:valueResolverProviders) {
-            resolvers.addAll(prep.provide(handlebarsContext));
+        for(HandlebarsExtension prep:handlebarsExtensions) {
+            Collection<ValueResolver> r = prep.getValueResolvers(handlebarsContext);
+            if(r!=null)
+                resolvers.addAll(r);
         }
         resolvers.add(MapValueResolver.INSTANCE);
 
@@ -64,13 +68,18 @@ public class HandlebarsPlugin implements Plugin {
                 .newBuilder(data)
                 .combine("_ftn_handlebars_context", handlebarsContext)
                 .resolver(resolvers.toArray(new ValueResolver[resolvers.size()]));
+        
+        for(HandlebarsExtension prep:handlebarsExtensions) {
+            Map<String,Object> combined = prep.getCombinedValues(handlebarsContext);
+            if(combined != null)
+                contextBuilder.combine(combined);
+        }
 
         return contextBuilder.build();
     }
     
-    public void registerPreprocessor(ValueResolverProvider valueResolverProvider) {
-        log.debug("registering preprocessor {}", valueResolverProvider);
-        valueResolverProviders.add(valueResolverProvider);
+    public void registerExtension(HandlebarsExtension handlebarsExtension) {
+        handlebarsExtensions.add(handlebarsExtension);
     }
     
     public String getPrefix() {
