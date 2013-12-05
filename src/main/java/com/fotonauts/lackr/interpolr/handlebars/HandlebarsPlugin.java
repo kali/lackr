@@ -1,19 +1,17 @@
 package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.Rule;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Context.Builder;
+import com.github.jknack.handlebars.ValueResolver;
 import com.github.jknack.handlebars.context.MapValueResolver;
 
 public class HandlebarsPlugin implements Plugin {
@@ -21,7 +19,7 @@ public class HandlebarsPlugin implements Plugin {
     static Logger log = LoggerFactory.getLogger(HandlebarsPlugin.class);
 
     private Rule[] rules;
-    private List<Preprocessor> preprocessors = new ArrayList<>();
+    private List<ValueResolverProvider> valueResolverProviders = new ArrayList<>();
 
     private String prefix = "lackr:handlebars";
 
@@ -55,30 +53,24 @@ public class HandlebarsPlugin implements Plugin {
     }
 
     public Context makeHbsContext(HandlebarsContext handlebarsContext, Object data) {
-        log.debug("preprocess {} with {} preprocessors", data, preprocessors.size());
         
-        Map<String, Object> wrapper = new HashMap<>();
-        wrapper.put("root", data);
-        for(Preprocessor prep: preprocessors) {
-            try {
-                prep.preProcessData(handlebarsContext, wrapper);
-            } catch (Throwable e) {
-                throw LackrPresentableError.fromThrowable(e);
-            }
+        ArrayList<ValueResolver> resolvers = new ArrayList<>();
+        for(ValueResolverProvider prep:valueResolverProviders) {
+            resolvers.addAll(prep.provide(handlebarsContext));
         }
+        resolvers.add(MapValueResolver.INSTANCE);
+
         Builder contextBuilder = Context
-                .newBuilder(wrapper.get("root"))
+                .newBuilder(data)
                 .combine("_ftn_handlebars_context", handlebarsContext)
-                .resolver(MapValueResolver.INSTANCE);
-        for(Preprocessor prep:preprocessors) {
-            contextBuilder = prep.preProcessContextBuilder(handlebarsContext, contextBuilder);
-        }
+                .resolver(resolvers.toArray(new ValueResolver[resolvers.size()]));
+
         return contextBuilder.build();
     }
     
-    public void registerPreprocessor(Preprocessor preprocessor) {
-        log.debug("registering preprocessor {}", preprocessor);
-        preprocessors.add(preprocessor);
+    public void registerPreprocessor(ValueResolverProvider valueResolverProvider) {
+        log.debug("registering preprocessor {}", valueResolverProvider);
+        valueResolverProviders.add(valueResolverProvider);
     }
     
     public String getPrefix() {

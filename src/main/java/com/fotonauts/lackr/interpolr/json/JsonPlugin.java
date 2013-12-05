@@ -1,6 +1,7 @@
 package com.fotonauts.lackr.interpolr.json;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +13,8 @@ import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.Rule;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsContext;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
-import com.fotonauts.lackr.interpolr.handlebars.Preprocessor;
-import com.github.jknack.handlebars.Context.Builder;
-import com.github.jknack.handlebars.context.MapValueResolver;
+import com.fotonauts.lackr.interpolr.handlebars.ValueResolverProvider;
+import com.github.jknack.handlebars.ValueResolver;
 
 public class JsonPlugin implements AdvancedPlugin {
 
@@ -57,18 +57,16 @@ public class JsonPlugin implements AdvancedPlugin {
         for (Plugin p : interpolr.getPlugins()) {
             if (p instanceof HandlebarsPlugin) {
                 log.debug("Registering archive plugin as a HandlebarsPlugin preprocessor.");
-                ((HandlebarsPlugin) p).registerPreprocessor(new Preprocessor() {
+                ((HandlebarsPlugin) p).registerPreprocessor(new ValueResolverProvider() {
 
                     @Override
-                    public Builder preProcessContextBuilder(HandlebarsContext handlebarsContext, Builder builder) {
-                        JsonContext jsonContext = (JsonContext) handlebarsContext.getInterpolrContext().getPluginData(JsonPlugin.this);
-                        return builder.resolver(
-                                new ExtendedMapValueResolver(new ArchiveValueResolverExtension(jsonContext), new InlineWrapperValueResolverExtension(), new ATTRValueResolverExtension()),
-                                MapValueResolver.INSTANCE);
-                    }
-
-                    @Override
-                    public void preProcessData(HandlebarsContext handlebarsContext, Map<String, Object> data) {
+                    public Collection<ValueResolver> provide(HandlebarsContext handlebarsContext) {
+                        JsonContext jsonContext = (JsonContext) handlebarsContext.getInterpolrContext().getPluginData(
+                                JsonPlugin.this);
+                        ArrayList<ValueResolver> list = new ArrayList<>(1);
+                        list.add(new ExtendedMapValueResolver(new ArchiveValueResolverExtension(jsonContext),
+                                new InlineWrapperValueResolverExtension(), new ATTRValueResolverExtension()));
+                        return list;
                     }
 
                 });

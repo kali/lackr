@@ -63,6 +63,7 @@ public class HandlebarsEvalChunk implements Chunk {
             try {
                 result = new ConstantChunk(context.eval(template, data).getBytes("UTF-8"));
             } catch (Throwable e) {
+                e.printStackTrace(System.err);
                 StringBuilder builder = new StringBuilder();
                 builder.append("MustacheException\n");
                 builder.append("url: " + scope + "\n");
