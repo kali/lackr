@@ -160,4 +160,26 @@ DUMP: {
         assertContains(result.trim(), "DAD: darth");        
     }
 
+    @Test
+    public void testInlineWrapperSubstitution() throws Exception {
+        // https://github.com/fotonauts/picor/commit/4efa85aadd81ed2371f9866d214cad60066139bb
+        String page = S(/*
+                <script type="vnd.fotonauts/picordata" id="archive_1">
+                    { "root_id": 1, "objects": {
+                          "1" : { "$ATTR": { "stuff" : "some", "blah": { "junk": { "$$inline_wrapper" : { "items" : [ { "name" : "kali" }] } } } } }
+                    } }
+                </script><!-- END OF ARCHIVE -->
+
+            <!-- lackr:mustache:template name="t" -->
+                expectkali:{{#root.blah.items}}{{name}} {{/root.blah.items}}
+            <!-- /lackr:mustache:template -->
+
+            <!-- lackr:mustache:eval name="t" -->
+                    { "root" : { "$$archive" : "archive_1", "$$id" : 1 } }
+            <!-- /lackr:mustache:eval -->*/);
+        String result = expand(page);
+        System.out.println(result);
+        assertContains(result, "expectkali:kali");
+    }
+    
 }

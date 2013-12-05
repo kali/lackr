@@ -35,6 +35,7 @@ public class Archive {
     @SuppressWarnings("unchecked")
     private void process() {
         simplifyJavascriptObjects(data);
+        ParsedJsonChunk.inlineWrapperJsonEvaluation(data);
         Map<String,Object> objects = (Map<String, Object>) data.get("objects");
         for(Entry<String, Object> entry : objects.entrySet()) {
             straightIndex.put(Integer.parseInt(entry.getKey()), entry.getValue());
