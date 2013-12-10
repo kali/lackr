@@ -639,4 +639,31 @@ public class TestMustache extends BaseTestSubstitution {
             assertContains(result, "/'&-_ -> __slash__q__amp__dash__under_" );
     }
 
+    @Test
+    public void testIsHelper() throws Exception {
+        String page = S(/*
+                <!-- lackr:mustache:template name="t" -->
+                string1 -> {{#is string1 "pouet"}}true{{/is}}
+                string2 -> {{#is string2 "gla"}}true{{else}}false{{/is}}
+                int1 -> {{#is int1 1}}true{{else}}false{{/is}}
+                int2 -> {{#is int2 1}}true{{else}}false{{/is}}
+                bogus param -> {{#is int1}}true{{else}}false{{/is}}
+                bogus context -> {{#is}}true{{else}}false{{/is}}
+            <!-- /lackr:mustache:template -->"
+            <!-- lackr:mustache:eval name="t" -->
+                { "string1": "pouet",
+                  "string2": "glo",
+                  "int1" : 1,
+                  "int2" : 2
+                }
+            <!-- /lackr:mustache:eval -->*/);
+        String result = expand(page).trim();
+        assertContains(result, "string1 -> true");
+        assertContains(result, "string2 -> false");
+        assertContains(result, "int1 -> true");
+        assertContains(result, "int2 -> false");
+        assertContains(result, "int2 -> false");
+        assertContains(result, "bogus param -> false");
+        assertContains(result, "bogus context -> false");
+    }
 }

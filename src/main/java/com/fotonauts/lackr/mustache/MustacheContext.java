@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import com.fotonauts.lackr.LackrFrontendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Document;
+import com.fotonauts.lackr.mustache.helpers.ComparisonHelpers;
 import com.fotonauts.lackr.mustache.helpers.DateTimeFormatterHelpers;
 import com.fotonauts.lackr.mustache.helpers.MediaDerivativesUrlHelper;
 import com.fotonauts.lackr.mustache.helpers.MiscelaneousHelpers;
@@ -67,6 +68,7 @@ public class MustacheContext {
         handlebars.registerHelpers(new DateTimeFormatterHelpers());
         handlebars.registerHelpers(new MediaDerivativesUrlHelper());
         handlebars.registerHelpers(new MiscelaneousHelpers());
+        handlebars.registerHelpers(new ComparisonHelpers());
     }
 
     public void checkAndCompileAll() {
