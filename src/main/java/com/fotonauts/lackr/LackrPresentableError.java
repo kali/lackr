@@ -22,14 +22,18 @@ public class LackrPresentableError extends RuntimeException {
     }
 
     public static LackrPresentableError fromThrowable(Throwable e) {
-    	return fromThrowableAndExchange(e, null);
+    	return fromThrowableAndMessage(e, null);
     }
-
+    
     public static LackrPresentableError fromThrowableAndExchange(Throwable e, LackrBackendExchange exchange) {
+        return fromThrowableAndMessage(e, exchange != null ? "Processing backend request " + exchange.getBackendRequest() : null);
+    }
+    
+    public static LackrPresentableError fromThrowableAndMessage(Throwable e, String message) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
-        if(exchange != null) {
-        	ps.println("While requesting backend for " + exchange.getBackendRequest().getPath());
+        if(message != null) {
+            ps.println(message);
         }
         e.printStackTrace(ps);
         ps.println();

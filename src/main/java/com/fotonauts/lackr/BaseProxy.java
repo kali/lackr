@@ -172,9 +172,11 @@ public class BaseProxy extends AbstractHandler {
 
         response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
         response.setContentType("text/plain");
-        StringBuilder sb = new StringBuilder();// new PrintStream(baos);
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
         for (LackrPresentableError t : req.getErrors()) {
             log.debug("Backend error: ", t);
+            sb.append(String.format("## Error %d/%d #############################################\n", i++, req.getErrors().size()));
             sb.append(t.getMessage());
             sb.append('\n');
         }

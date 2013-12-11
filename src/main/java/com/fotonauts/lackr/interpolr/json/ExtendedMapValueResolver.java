@@ -8,9 +8,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.jknack.handlebars.ValueResolver;
 
 public class ExtendedMapValueResolver implements ValueResolver {
+
+    static Logger log = LoggerFactory.getLogger(ExtendedMapValueResolver.class);
 
     static interface ValueResolverExtension {
         Map<String, Object> getInnerData(Map<String, Object> context);
@@ -42,6 +47,7 @@ public class ExtendedMapValueResolver implements ValueResolver {
                     current.putAll(tmp);
             }
         } while (sizeLastLoop < current.size());
+        log.debug("INNER DATA FOR {} -> {}", context, current);
         return current;
     }
 
