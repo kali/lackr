@@ -1,8 +1,10 @@
 package com.fotonauts.lackr.interpolr.proxy;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,11 +23,10 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     static Logger log = LoggerFactory.getLogger(InterpolrFrontendRequest.class);
 
-    private AtomicInteger pendingCount;
-
     protected InterpolrProxy service;
 
     private ConcurrentHashMap<String, InterpolrScope> backendRequestCache = new ConcurrentHashMap<String, InterpolrScope>();
+    private Set<String> pendingQueries = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     private ProxyInterpolrScope rootScope;
 
@@ -34,7 +35,6 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     protected InterpolrFrontendRequest(final InterpolrProxy baseProxy, HttpServletRequest request) {
         super(baseProxy, request);
         this.service = baseProxy;
-        this.pendingCount = new AtomicInteger(0);
         for (Plugin p : baseProxy.getInterpolr().getPlugins()) {
             pluginData.put(p, p.createContext(this));
         }
@@ -42,7 +42,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     public InterpolrScope getOrCreateSubScope(String url, String format, InterpolrScope dad) {
         log.debug("{} requires {} (as {})", dad, url, format);
-        String key = format + "::" + url;
+        final String key = format + "::" + url;
         InterpolrScope ex = backendRequestCache.get(key);
         if (ex != null)
             return ex;
@@ -56,7 +56,8 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
             public void fail(Throwable t) {
                 addBackendExceptions(t);
                 log.debug("with: ", t);
-                if (pendingCount.decrementAndGet() == 0)
+                pendingQueries.remove(key);
+                if (pendingQueries.isEmpty())
                     service.yieldRootRequestProcessing((InterpolrFrontendRequest) getBackendRequest().getFrontendRequest());
             }
 
@@ -65,13 +66,14 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                 try {
                     getInterpolr().processResult(newBorn);
                 } finally {
-                    if (pendingCount.decrementAndGet() == 0)
+                    pendingQueries.remove(key);
+                    if (pendingQueries.isEmpty())
                         service.yieldRootRequestProcessing((InterpolrFrontendRequest) getBackendRequest().getFrontendRequest());
                 }
             }
         });
         newBorn.setRequest(req);
-        pendingCount.incrementAndGet();
+        pendingQueries.add(key);
         service.scheduleSubBackendRequest(req);
         return newBorn;
     }
@@ -104,6 +106,15 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     }
 
     public int getPendingCount() {
-        return pendingCount.get();
+        return pendingQueries.size();
+    }
+
+    public String dumpCurrentState() {
+        StringBuilder builder = new StringBuilder();
+        for (Entry<String, InterpolrScope> subQuery : backendRequestCache.entrySet()) {
+            builder.append(String.format("- %s %s\n", pendingQueries.contains(subQuery.getKey()) ? "[WAITING]" : "[   ok  ]",
+                    subQuery.getKey()));
+        }
+        return builder.toString();
     }
 }

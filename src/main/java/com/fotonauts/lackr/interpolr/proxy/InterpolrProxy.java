@@ -58,7 +58,8 @@ public class InterpolrProxy extends BaseProxy {
             String format, CompletionListener listener) {
         HashMap<String, Object> attributes = new HashMap<>(1);
         attributes.put("PARENT", dadRequest);
-        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, dadRequest.getFields(), attributes, listener);
+        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, dadRequest.getFields(), attributes,
+                listener);
         return req;
     }
 
@@ -74,12 +75,14 @@ public class InterpolrProxy extends BaseProxy {
     @Override
     protected void writeResponse(BaseFrontendRequest baseFrontendRequest, HttpServletResponse response) throws IOException {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
-        if (frontendRequest.getPendingCount() > 0)
-            frontendRequest.addError(new LackrPresentableError("There is unfinished business with backends..."));
+        if (frontendRequest.getPendingCount() > 0) {
+            frontendRequest.addError(new LackrPresentableError("Unfinished business with backends: \n"
+                    + frontendRequest.dumpCurrentState()));
+        }
 
-        if(frontendRequest.getErrors().isEmpty())
+        if (frontendRequest.getErrors().isEmpty())
             preflightCheck(baseFrontendRequest);
-        
+
         super.writeResponse(baseFrontendRequest, response);
     }
 
