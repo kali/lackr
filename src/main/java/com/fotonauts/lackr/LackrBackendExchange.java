@@ -118,7 +118,7 @@ public abstract class LackrBackendExchange {
             completionListener.run();
         } else
         */
-            log.debug("Enqueue post-processing {} (status: {})", this, getResponse().getStatus());
+            log.debug("Enqueue post-processing {} (status: {})", this, getResponse() != null ? getResponse().getStatus() : null);
             lackrBackendRequest.getFrontendRequest().getProxy().getExecutor().execute(new Runnable() {
 
                 @Override

@@ -5,12 +5,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.util.StringContentProvider;
@@ -18,6 +20,7 @@ import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -34,21 +37,21 @@ public class TestBaseProxy {
     RemoteControlledStub remoteControlledStub;
     Server proxyServer;
     TestClient client;
-    
+
     @Before
     public void setup() throws Exception {
-        remoteControlledStub = new RemoteControlledStub();        
+        remoteControlledStub = new RemoteControlledStub();
         remoteControlledStub.start();
         proxyServer = Factory.buildSimpleProxyServer(remoteControlledStub.getPort());
         proxyServer.start();
         client = new TestClient(proxyServer);
         client.start();
     }
-    
+
     @After
     public void tearDown() throws Exception {
         LifeCycle[] zombies = new LifeCycle[] { client, proxyServer, remoteControlledStub };
-        for(LifeCycle z: zombies)
+        for (LifeCycle z : zombies)
             z.stop();
         assertTrue(Thread.getAllStackTraces().size() < 10);
     }
@@ -113,9 +116,8 @@ public class TestBaseProxy {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                RemoteControlledStub.writeResponse(response,
-                        request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
-                        MimeType.TEXT_PLAIN);
+                RemoteControlledStub.writeResponse(response, request.getHeader("Accept") != null ? request.getHeader("Accept")
+                        .getBytes() : "null".getBytes(), MimeType.TEXT_PLAIN);
             }
         });
 
@@ -131,9 +133,8 @@ public class TestBaseProxy {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                RemoteControlledStub.writeResponse(response,
-                        request.getHeader("Accept") != null ? request.getHeader("Accept").getBytes() : "null".getBytes(),
-                        MimeType.TEXT_PLAIN);
+                RemoteControlledStub.writeResponse(response, request.getHeader("Accept") != null ? request.getHeader("Accept")
+                        .getBytes() : "null".getBytes(), MimeType.TEXT_PLAIN);
             }
         });
 
@@ -186,8 +187,8 @@ public class TestBaseProxy {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                RemoteControlledStub.writeResponse(response, (request.getParameter("par") != null ? request.getParameter("par") : "#null").getBytes(),
-                        MimeType.TEXT_PLAIN);
+                RemoteControlledStub.writeResponse(response, (request.getParameter("par") != null ? request.getParameter("par")
+                        : "#null").getBytes(), MimeType.TEXT_PLAIN);
             }
         });
         Request e = client.createRequest("/?par=toto");
@@ -208,8 +209,8 @@ public class TestBaseProxy {
             @Override
             public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
                     HttpServletResponse response) throws IOException, ServletException {
-                RemoteControlledStub.writeResponse(response, (request.getQueryString() != null ? request.getQueryString().getBytes() : "".getBytes()),
-                        MimeType.TEXT_PLAIN);
+                RemoteControlledStub.writeResponse(response, (request.getQueryString() != null ? request.getQueryString()
+                        .getBytes() : "".getBytes()), MimeType.TEXT_PLAIN);
             }
         });
         Request e = client.createRequest("/queryString?par=toto");
@@ -228,18 +229,17 @@ public class TestBaseProxy {
                     HttpServletResponse response) throws IOException, ServletException {
                 if (target.indexOf("SETIT") > 0)
                     response.addHeader(HttpHeader.SET_COOKIE.asString(), "c=1; Expires=Wed, 09-Jun-2021 10:18:14 GMT");
-                RemoteControlledStub.writeResponse(response,
-                        request.getHeader("Cookie") != null ? request.getHeader("Cookie").getBytes() : "null".getBytes(),
-                        MimeType.TEXT_PLAIN);
+                RemoteControlledStub.writeResponse(response, request.getHeader("Cookie") != null ? request.getHeader("Cookie")
+                        .getBytes() : "null".getBytes(), MimeType.TEXT_PLAIN);
             }
         });
         Request e = client.createRequest("/");
-        client. runRequest(e, "null");
+        client.runRequest(e, "null");
         assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
 
         e = client.createRequest("/SETIT");
         ContentResponse r = client.runRequest(e, "null");
-        System.err.println(r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
+//        System.err.println(r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
         assertTrue("cookie store empty", client.getClient().getCookieStore().getCookies().size() == 0);
         assertTrue("response has set-cookie", r.getHeaders().getStringField(HttpHeader.SET_COOKIE.asString()).contains("c=1"));
 
@@ -274,5 +274,33 @@ public class TestBaseProxy {
             e1.printStackTrace();
         }
         assertEquals(HttpStatus.REQUEST_ENTITY_TOO_LARGE_413, r.getStatus());
+    }
+
+    // here, the backend will emit a java.net.SocketTimeoutException after about one or two seconds.
+    // the proxy should fail immediately after that with a "502 Bad gateway"
+    // I set a 15s timeout on the client to avoid waiting for ages, but it should not trigger anyway.
+    @Test
+    public void testConnectionTimeout() throws Exception {
+        Server brokenProxyServer = null;
+        HttpClient brokenClient = null;
+        // www.google.com port 81 drops packets
+        try {
+            brokenProxyServer = Factory.buildSimpleProxyServer(Factory.buildFullClientBackend("http://www.google.com:81", null));
+            brokenProxyServer.setStopTimeout(1);
+            brokenProxyServer.start();
+            brokenClient = new HttpClient();
+            brokenClient.start();
+            int port = ((ServerConnector) brokenProxyServer.getConnectors()[0]).getLocalPort();
+            ContentResponse response = brokenClient.newRequest("http://localhost:" + port + "/").timeout(3, TimeUnit.SECONDS).send();
+            assertEquals(response.getStatus(), 502);
+        } finally {
+            if (brokenProxyServer != null) {
+                brokenProxyServer.stop();
+            }
+            if(brokenClient != null) {
+                brokenClient.stop();
+            }
+        }
+
     }
 }

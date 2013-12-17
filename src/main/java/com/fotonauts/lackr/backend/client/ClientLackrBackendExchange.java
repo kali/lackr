@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.BufferingResponseListener;
 import org.eclipse.jetty.client.util.BytesContentProvider;
@@ -28,15 +27,16 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     private LackrBackendResponse response;
     private byte[] responseBody;
 
-    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, String prefix,
-            LackrBackendRequest spec) throws NotAvailableException {
+    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, String prefix, LackrBackendRequest spec)
+            throws NotAvailableException {
         super(backend, spec);
         String url = prefix + getBackendRequest().getQuery();
         request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));
         request.getHeaders().add(spec.getFields());
         if (spec.getBody() != null) {
-            request.header(HttpHeader.CONTENT_TYPE.asString(), spec.getFrontendRequest().getIncomingServletRequest().getHeader("Content-Type"));
+            request.header(HttpHeader.CONTENT_TYPE.asString(),
+                    spec.getFrontendRequest().getIncomingServletRequest().getHeader("Content-Type"));
             request.content(new BytesContentProvider(spec.getBody()));
         }
         log.debug("Created {}", this);
@@ -86,21 +86,16 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
         request.send(new BufferingResponseListener(100 * 1024 * 1024) {
 
             @Override
+            // will be called for failure AND success.
             public void onComplete(Result r) {
-                if (r.isSucceeded()) {
-                    lackrExchange.result = r;
-                    lackrExchange.responseBody = getContent();
-                    response = new ResponseAdapter(lackrExchange);
-                    lackrExchange.onComplete();
-                } else {
+                lackrExchange.result = r;
+                lackrExchange.responseBody = getContent();
+                response = new ResponseAdapter(lackrExchange);
+                if (!r.isSucceeded())
                     lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(r.getFailure());
-                }
+                lackrExchange.onComplete();
             }
 
-            @Override
-            public void onFailure(Response arg0, Throwable x) {
-                lackrExchange.getBackendRequest().getFrontendRequest().addBackendExceptions(x);
-            }
         });
     }
 

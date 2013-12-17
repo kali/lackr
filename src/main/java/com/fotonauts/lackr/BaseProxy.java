@@ -103,8 +103,8 @@ public class BaseProxy extends AbstractHandler {
     }
 
     protected void onBackendRequestDone(BaseFrontendRequest frontendRequest) {
-        log.debug("Processing done, re-dispatching http thread.");
-        frontendRequest.getContinuation().dispatch();
+        log.debug("Processing done, consider re-dispatching the http thread.");
+        frontendRequest.reDispatchOnce();
     }
 
     protected void writeResponse(BaseFrontendRequest frontendRequest, HttpServletResponse response) throws IOException {

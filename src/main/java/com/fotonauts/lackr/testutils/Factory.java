@@ -48,7 +48,7 @@ public class Factory {
         HttpClient client = new HttpClient();
         client.setRequestBufferSize(16000);
         client.setFollowRedirects(false);
-        client.setConnectTimeout(15);
+        client.setConnectTimeout(1000);
         client.setCookieStore(new HttpCookieStore.Empty());
         return client;
     }

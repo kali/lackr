@@ -25,6 +25,8 @@ public class BaseFrontendRequest {
 
     private List<LackrPresentableError> backendExceptions = Collections.synchronizedList(new ArrayList<LackrPresentableError>(5));
 
+    private boolean dispatched = false;
+    
     protected BaseFrontendRequest(final BaseProxy baseProxy, HttpServletRequest request) {
         this.proxy = baseProxy;
         this.incomingServletRequest = request;
@@ -95,6 +97,13 @@ public class BaseFrontendRequest {
     
     public void setBackendRequest(LackrBackendRequest rootRequest) {
         this.backendRequest = rootRequest;
+    }
+
+    public synchronized void reDispatchOnce() {
+        if(!dispatched) {
+            dispatched = true;
+            getContinuation().dispatch();
+        }
     }
 
 }
