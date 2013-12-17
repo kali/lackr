@@ -40,6 +40,7 @@ public class TestBaseProxy {
 
     @Before
     public void setup() throws Exception {
+        
         remoteControlledStub = new RemoteControlledStub();
         remoteControlledStub.start();
         proxyServer = Factory.buildSimpleProxyServer(remoteControlledStub.getPort());
@@ -88,6 +89,22 @@ public class TestBaseProxy {
         Request e = client.createRequest("/");
         e.header("User-Agent", "something");
         client.runRequest(e, "something");
+    }
+
+    @Test
+    public void urlWithUtf8EncodedStuff() throws Exception {
+
+        remoteControlledStub.getCurrentHandler().set(new AbstractHandler() {
+
+            @Override
+            public void handle(String target, org.eclipse.jetty.server.Request baseRequest, HttpServletRequest request,
+                    HttpServletResponse response) throws IOException, ServletException {
+                RemoteControlledStub.writeResponse(response, baseRequest.getPathInfo().getBytes("UTF-8"), MimeType.TEXT_HTML);
+            }
+        });
+
+        Request e = client.createRequest("/V%C3%B5ru");
+        client.runRequest(e, "/Võru");
     }
 
     @Test

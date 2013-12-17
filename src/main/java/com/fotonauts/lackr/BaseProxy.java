@@ -3,6 +3,8 @@ package com.fotonauts.lackr;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -15,6 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
@@ -69,7 +72,8 @@ public class BaseProxy extends AbstractHandler {
             body = IO.readBytes(frontendReq.getIncomingServletRequest().getInputStream());
 
         LackrBackendRequest rootRequest = new LackrBackendRequest(frontendReq, frontendReq.getIncomingServletRequest().getMethod(),
-                getPathAndQuery(frontendReq.getIncomingServletRequest()), body, buildHttpFields(frontendReq), null, new CompletionListener() {
+                getPathAndQuery(frontendReq.getIncomingServletRequest()), body, buildHttpFields(frontendReq), null,
+                new CompletionListener() {
 
                     @Override
                     public void fail(Throwable t) {
@@ -292,7 +296,8 @@ public class BaseProxy extends AbstractHandler {
                 fields.add(header, frontendReq.getIncomingServletRequest().getHeader(header));
             }
         }
-        if (frontendReq.getIncomingServletRequest().getContentLength() > 0 && frontendReq.getIncomingServletRequest().getContentType() != null)
+        if (frontendReq.getIncomingServletRequest().getContentLength() > 0
+                && frontendReq.getIncomingServletRequest().getContentType() != null)
             fields.add(HttpHeader.CONTENT_TYPE.toString(), frontendReq.getIncomingServletRequest().getContentType());
 
         return fields;
@@ -353,10 +358,17 @@ public class BaseProxy extends AbstractHandler {
     }
 
     public static String getPathAndQuery(HttpServletRequest request) {
-        String uri = request.getPathInfo();
-        uri = StringUtil.isNotBlank(request.getQueryString()) ? uri + '?' + request.getQueryString() : uri;
-        uri = uri.replace(" ", "%20");
-        return uri;
+
+        URI uri = null;
+        try {
+            uri = new URI(null, null, request.getPathInfo(), null);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("invalid URL");
+        }
+        String url = (request.getQueryString() != null && request.getQueryString() != "") ? uri.toASCIIString() + '?'
+                + request.getQueryString() : uri.toASCIIString();
+        url = url.replace(" ", "%20");
+        return url;
     }
 
 }

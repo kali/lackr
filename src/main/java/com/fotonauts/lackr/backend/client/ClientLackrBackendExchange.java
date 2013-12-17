@@ -1,5 +1,7 @@
 package com.fotonauts.lackr.backend.client;
 
+import java.net.URI;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
