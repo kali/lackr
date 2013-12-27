@@ -17,6 +17,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.HttpField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileCopyUtils;
@@ -380,6 +382,22 @@ public class LackrFrontendRequest {
                 if (response.getHeaders().containsKey(HttpHeader.CACHE_CONTROL.asString()))
                     lackrResponse.setHeader(HttpHeader.CACHE_CONTROL.asString(),
                             response.getHeaders().getStringField(HttpHeader.CACHE_CONTROL));
+
+                try {
+                    if(Integer.parseInt(response.getHeaders().getStringField(HttpHeader.CONTENT_LENGTH), 10) < 100 ) {
+                        System.err.println("Size WARNING");
+                        System.err.println("Fetched " + url + " from S3");
+                        System.err.println("Status: "+response.getStatus());
+                        Iterator<HttpField> hdrs = response.getHeaders().iterator();
+                        while(hdrs.hasNext()) {
+                          HttpField header = hdrs.next();
+                          System.err.println(header.getName() + " = " +  header.getValue());
+                        }
+                        System.err.println("************");
+                    }
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
