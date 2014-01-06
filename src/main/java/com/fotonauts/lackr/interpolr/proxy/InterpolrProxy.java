@@ -54,12 +54,12 @@ public class InterpolrProxy extends BaseProxy {
         }
     }
 
-    LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest, String url,
+    protected LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest, String url,
             String format, CompletionListener listener) {
         HashMap<String, Object> attributes = new HashMap<>(1);
         attributes.put("PARENT", dadRequest);
         attributes.put("FORMAT", format);
-        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, dadRequest.getFields(), attributes,
+        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, buildHttpFields(frontendRequest), attributes,
                 listener);
         return req;
     }
