@@ -58,6 +58,7 @@ public class InterpolrProxy extends BaseProxy {
             String format, CompletionListener listener) {
         HashMap<String, Object> attributes = new HashMap<>(1);
         attributes.put("PARENT", dadRequest);
+        attributes.put("FORMAT", format);
         LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, dadRequest.getFields(), attributes,
                 listener);
         return req;
