@@ -15,7 +15,9 @@ import com.fotonauts.lackr.BaseProxy;
 import com.fotonauts.lackr.CompletionListener;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
+import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class InterpolrProxy extends BaseProxy {
 
@@ -38,7 +40,7 @@ public class InterpolrProxy extends BaseProxy {
         return new InterpolrFrontendRequest(this, request);
     }
 
-    // only called for the main incomingServletRequest, not for esi sub-fragments.
+    // only called for the main request, not for esi sub-fragments.
     @Override
     public void onBackendRequestDone(BaseFrontendRequest baseFrontendRequest) {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
@@ -47,6 +49,7 @@ public class InterpolrProxy extends BaseProxy {
         frontendRequest.setRootScope(scope);
         scope.setRequest(frontendRequest.getBackendRequest());
         getInterpolr().processResult(frontendRequest.getRootScope());
+        frontendRequest.setRootRequestDone();
         log.debug("Interpolation done for root: {}", getPathAndQuery(baseFrontendRequest.getIncomingServletRequest()));
         if (frontendRequest.getPendingCount() == 0) {
             log.debug("No ESI found for {}.", getPathAndQuery(baseFrontendRequest.getIncomingServletRequest()));
@@ -54,13 +57,13 @@ public class InterpolrProxy extends BaseProxy {
         }
     }
 
-    protected LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest, String url,
-            String format, CompletionListener listener) {
+    protected LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest,
+            String url, String format, CompletionListener listener) {
         HashMap<String, Object> attributes = new HashMap<>(1);
         attributes.put("PARENT", dadRequest);
         attributes.put("FORMAT", format);
-        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, buildHttpFields(frontendRequest), attributes,
-                listener);
+        LackrBackendRequest req = new LackrBackendRequest(frontendRequest, "GET", url, null, buildHttpFields(frontendRequest),
+                attributes, listener);
         return req;
     }
 
@@ -99,7 +102,10 @@ public class InterpolrProxy extends BaseProxy {
 
     @Override
     protected void writeContentTo(BaseFrontendRequest req, OutputStream out) throws IOException {
-        ((InterpolrFrontendRequest) req).getRootScope().getParsedDocument().writeTo(out);
+        InterpolrScope scope = ((InterpolrFrontendRequest) req).getRootScope();
+        Document doc = scope.getParsedDocument();
+        log.debug("Doc for {}#{} is {}", scope, scope.hashCode(), doc);
+        doc.writeTo(out);
     }
 
     @Override

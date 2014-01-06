@@ -27,6 +27,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
 
     private ConcurrentHashMap<String, InterpolrScope> backendRequestCache = new ConcurrentHashMap<String, InterpolrScope>();
     private Set<String> pendingQueries = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private String ROOT_QUERY = "<ROOT QUERY>";
 
     private ProxyInterpolrScope rootScope;
 
@@ -38,6 +39,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         for (Plugin p : baseProxy.getInterpolr().getPlugins()) {
             pluginData.put(p, p.createContext(this));
         }
+        pendingQueries.add(ROOT_QUERY);
     }
 
     public InterpolrScope getOrCreateSubScope(String url, String format, InterpolrScope dad) {
@@ -116,5 +118,9 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                     subQuery.getKey()));
         }
         return builder.toString();
+    }
+
+    public void setRootRequestDone() {
+        pendingQueries.remove(ROOT_QUERY);
     }
 }

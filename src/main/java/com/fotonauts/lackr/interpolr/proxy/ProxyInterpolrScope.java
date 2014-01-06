@@ -1,6 +1,8 @@
 package com.fotonauts.lackr.interpolr.proxy;
 
 import org.eclipse.jetty.http.HttpHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.interpolr.Document;
@@ -9,6 +11,8 @@ import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class ProxyInterpolrScope implements InterpolrScope {
+
+    static Logger log = LoggerFactory.getLogger(ProxyInterpolrScope.class);
 
     private InterpolrFrontendRequest context;
     private Document parsedDocument;
@@ -37,6 +41,7 @@ public class ProxyInterpolrScope implements InterpolrScope {
     @Override
     public void setParsedDocument(Document result) {
         parsedDocument = result;
+        log.debug("Set parsed document for {}#{} to {}", request, this.hashCode(), parsedDocument);
     }
 
     @Override
