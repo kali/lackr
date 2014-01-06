@@ -288,7 +288,7 @@ public class BaseProxy extends AbstractHandler {
         return false;
     }
 
-    private HttpFields buildHttpFields(BaseFrontendRequest frontendReq) {
+    protected HttpFields buildHttpFields(BaseFrontendRequest frontendReq) {
         HttpFields fields = new HttpFields();
         for (Enumeration<?> e = frontendReq.getIncomingServletRequest().getHeaderNames(); e.hasMoreElements();) {
             String header = (String) e.nextElement();
