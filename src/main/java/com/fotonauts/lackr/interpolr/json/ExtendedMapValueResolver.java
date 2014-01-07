@@ -27,7 +27,7 @@ public class ExtendedMapValueResolver implements ValueResolver {
     public ExtendedMapValueResolver(ValueResolverExtension... extensions) {
         this.extensions = Arrays.asList(extensions);
     }
-    
+
     public ExtendedMapValueResolver(List<ValueResolverExtension> extensions) {
         this.extensions = extensions;
     }
@@ -37,17 +37,19 @@ public class ExtendedMapValueResolver implements ValueResolver {
     @SuppressWarnings("unchecked")
     protected Map<String, Object> getInnerData(Object context) {
         Map<String, Object> current = new HashMap<String, Object>();
-        current.putAll((Map<? extends String, ? extends Object>) context);
-        int sizeLastLoop;
-        do {
-            sizeLastLoop = current.size();
-            for (ValueResolverExtension ext : extensions) {
-                Map<String,Object> tmp = ext.getInnerData(current); 
-                if(tmp != null) 
-                    current.putAll(tmp);
-            }
-        } while (sizeLastLoop < current.size());
-        log.debug("INNER DATA FOR {} -> {}", context, current);
+        if (context != null && context instanceof Map) {
+            current.putAll((Map<? extends String, ? extends Object>) context);
+            int sizeLastLoop;
+            do {
+                sizeLastLoop = current.size();
+                for (ValueResolverExtension ext : extensions) {
+                    Map<String, Object> tmp = ext.getInnerData(current);
+                    if (tmp != null)
+                        current.putAll(tmp);
+                }
+            } while (sizeLastLoop < current.size());
+            log.debug("INNER DATA FOR {} -> {}", context, current);
+        }
         return current;
     }
 

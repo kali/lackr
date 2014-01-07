@@ -191,6 +191,20 @@ DUMP: {
     }
 
     @Test
+    public void testNullTokenInPath() throws Exception {
+        String result = InterpolrTestUtils.expand(interpolr, TextUtils.S(/*
+                <!-- lackr:handlebars:template name="t" -->
+                    expect empty string: {{ ad_model._id }} :
+                <!-- /lackr:handlebars:template -->
+
+                <!-- lackr:handlebars:eval name="t" -->
+                    { "ad_model": null }
+                <!-- /lackr:handlebars:eval -->
+        */));
+        assertContains(result.trim(), "expect empty string:  :");
+    }
+
+    @Test
     public void testInlineWrapperSubstitution() throws Exception {
         String page = TextUtils.S(/*
             <!-- lackr:handlebars:template name="t" -->
