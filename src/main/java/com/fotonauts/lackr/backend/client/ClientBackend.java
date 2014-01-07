@@ -65,7 +65,7 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
     public boolean probe() {
         if(probeUrl != null) {
             try {
-                ContentResponse resp = actualClient.newRequest(prefix + probeUrl).timeout(500, TimeUnit.MILLISECONDS).send();
+                ContentResponse resp = actualClient.newRequest(prefix + probeUrl).timeout(2000, TimeUnit.MILLISECONDS).send();
                 return resp.getStatus() == HttpStatus.OK_200;
             } catch (Throwable e) {
                 log.info("Error while probing: ", e);
