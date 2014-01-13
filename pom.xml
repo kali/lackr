@@ -8,30 +8,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
 		<!--<jetty-version>9.0.2.v20130417</jetty-version> -->
-		<jetty-version>9.0.4.v20130625</jetty-version>
 		<!--<jetty-version>9.0.3.v20130506</jetty-version> -->
-		<spring-version>3.2.4.RELEASE</spring-version>
+        <jetty-version>9.0.7.v20131107</jetty-version>
 	</properties>
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>add-source</goal>
-						</goals>
-						<configuration>
-							<sources>
-								<source>commons/src/main/java</source>
-							</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
