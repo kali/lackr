@@ -78,7 +78,8 @@ public class InProcessRequest extends HttpServletRequestWrapper {
     protected MultiMap<String> getParams() {
         if (params == null) {
             params = new MultiMap<String>();
-            UrlEncoded.decodeTo(getQueryString(), params, "UTF-8", 100);
+            if(getQueryString() != null)
+                UrlEncoded.decodeTo(getQueryString(), params, "UTF-8", 100);
         }
         return params;
     }
