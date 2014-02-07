@@ -133,6 +133,12 @@ public class TestESI {
     }
 
     @Test
+    public void testFragmentCrash() throws Exception {
+        remoteApp.pageContent.set("before\nhttp://esi.include.virtual/500.html#\nafter\n");
+        client.loadPageAndExpectsCrash();
+    }
+
+    @Test
     @Ignore
     public void testIgnorable500() throws Exception {
         remoteApp.pageContent.set("before\nhttp://esi.include.virtual/500.html#\nafter\n");
@@ -158,6 +164,8 @@ public class TestESI {
         }
     }
 
+    /*
+*/
 //    @Test(timeout = 5000)
 //    public void testInvalidUrl() throws Exception {
 //        String result = expand(TextUtils.S(/*

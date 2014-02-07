@@ -117,6 +117,12 @@ public class Factory {
                     response.setCharacterEncoding("UTF-8");
                     response.getOutputStream().write(app.pageContent.get().getBytes("UTF-8"));
                     response.flushBuffer();
+                } else if (request.getPathInfo().equals("/500.html")) {
+                        response.setContentType(MimeType.TEXT_HTML);
+                        response.setCharacterEncoding("UTF-8");
+                        response.setStatus(500);
+                        response.getWriter().print("I'm an error\n");
+                        response.flushBuffer();
                 } else {
                     InterpolrScope scope = app.getInterpolrScope(null, null, target);
                     response.setContentType(scope.getResultMimeType());

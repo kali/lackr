@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.BaseFrontendRequest;
 import com.fotonauts.lackr.CompletionListener;
 import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
@@ -66,6 +67,9 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
             @Override
             public void complete() {
                 try {
+                    if (newBorn.getRequest().getExchange().getResponse().getStatus() != 200)
+                        addBackendExceptions(new LackrPresentableError("Fragment returned error code: "
+                                + newBorn.getRequest().getExchange().getResponse().getStatus(), newBorn));
                     getInterpolr().processResult(newBorn);
                 } finally {
                     pendingQueries.remove(key);
