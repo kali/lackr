@@ -31,9 +31,13 @@ public class Interpolr extends AbstractLifeCycle {
         }
     }
 
-    public void processResult(InterpolrScope scope) {
+    public boolean shouldProcess(InterpolrScope scope) {
         String mimeType = scope.getResultMimeType();
-        if (MimeType.isML(mimeType) || MimeType.isJS(mimeType))
+        return (MimeType.isML(mimeType) || MimeType.isJS(mimeType));
+    }
+
+    public void processResult(InterpolrScope scope) {
+        if (shouldProcess(scope))
             scope.setParsedDocument(parse(scope.getBodyBytes(), scope));
         else
             scope.setParsedDocument(new Document(new DataChunk(scope.getBodyBytes())));
