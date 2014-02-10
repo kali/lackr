@@ -61,7 +61,7 @@ public class BaseFrontendRequest {
     }
 
     public void addError(LackrPresentableError x) {
-        log.debug("Registering error:", x);
+        log.debug("Request {}, registering error: {}", this, x);
         backendExceptions.add(x);
     }
 

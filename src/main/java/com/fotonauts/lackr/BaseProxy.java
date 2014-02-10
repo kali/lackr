@@ -112,11 +112,12 @@ public class BaseProxy extends AbstractHandler {
     }
 
     protected void writeResponse(BaseFrontendRequest frontendRequest, HttpServletResponse response) throws IOException {
-
         try {
             if (!frontendRequest.getErrors().isEmpty()) {
+                log.debug("Writting error response for {}", frontendRequest);
                 writeErrorResponse(frontendRequest, response);
             } else {
+                log.debug("Writting success response for {}", frontendRequest);
                 writeSuccessResponse(frontendRequest, response);
             }
         } catch (IOException writeResponseException) {
@@ -180,14 +181,16 @@ public class BaseProxy extends AbstractHandler {
         int i = 0;
         for (LackrPresentableError t : req.getErrors()) {
             log.debug("Backend error: ", t);
-            sb.append(String.format("## Error %d/%d #############################################\n", i++, req.getErrors().size()));
+                sb.append(String.format("Error #%d/%d\n", ++i, req.getErrors().size()));
             sb.append(t.getMessage());
-            sb.append('\n');
+            sb.append("\n\n\n");
         }
         String s = sb.toString();
         byte[] ba = s.getBytes("UTF-8");
         response.setContentLength(ba.length);
         response.getOutputStream().write(ba);
+
+        req.getIncomingServletRequest().setAttribute("LACKR_ERROR_MESSAGE", s);
 
         String message;
         try {
