@@ -31,6 +31,12 @@ public class ServletFilterDummyStub implements Filter {
         log.debug("filtering: {}", hr);
 		if(hr.getPathInfo().startsWith("/sfds/crash/servlet")) {
 			throw new ServletException("catch me or you're dead.");
+        } else if (hr.getPathInfo().equals("/wait")) {
+            try {
+                Thread.sleep(60*1000);
+            } catch (InterruptedException e) {
+                throw new ServletException(e);
+            }
 		} else if(hr.getPathInfo().startsWith("/sfds/crash/re")) {
             throw new RuntimeException("catch me or you're dead.");
         } else if(hr.getPathInfo().startsWith("/sfds/crash/error")) {

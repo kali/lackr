@@ -54,6 +54,7 @@ public class TestBackends {
     public void setup() throws Exception {
         if (inProcess) {
             InProcessBackend inprocess = new InProcessBackend(new ServletFilterDummyStub());
+            inprocess.setTimeout(500);
             proxyServer = Factory.buildSimpleProxyServer(inprocess);
         } else {
             remote = new Server();
@@ -100,7 +101,6 @@ public class TestBackends {
         Request r = client.createRequest("/sfds/crash/servlet");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
-        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
     }
 
     @Test(timeout = 500)
@@ -108,7 +108,6 @@ public class TestBackends {
         Request r = client.createRequest("/sfds/crash/re");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
-        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
     }
 
     @Test(timeout = 500)
@@ -116,7 +115,6 @@ public class TestBackends {
         Request r = client.createRequest("/sfds/crash/error");
         ContentResponse e = r.send();
         assertEquals(50, e.getStatus() / 10); // expect 50x
-        assertTrue(e.getContentAsString().contains("catch me or you're dead."));
     }
 
     @Test
@@ -148,6 +146,14 @@ public class TestBackends {
         assertEquals("yop yop yop", e.getContentAsString());
     }
 
+    @Test(timeout = 1000)
+    public void testTimeoutInProcess() throws Exception {
+        if(!inProcess)
+            return;
+        Request r = client.createRequest("/wait");
+        assertEquals(50, r.send().getStatus() / 10);
+    }
+    
     @Ignore
     // ESI + backends
     @Test(timeout = 500)
