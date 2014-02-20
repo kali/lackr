@@ -1,5 +1,6 @@
 package com.fotonauts.lackr.interpolr.proxy;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -67,10 +68,19 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
             @Override
             public void complete() {
                 try {
-                    if (newBorn.getRequest().getExchange().getResponse().getStatus() != 200)
-                        addBackendExceptions(new LackrPresentableError("Fragment returned error code: "
-                                + newBorn.getRequest().getExchange().getResponse().getStatus(), newBorn));
+                    if (newBorn.getRequest().getExchange().getResponse().getStatus() != 200) {
+                        String body = "";
+                        if(newBorn.getRequest().getExchange().getResponse().getBodyBytes() != null &&
+                                newBorn.getRequest().getExchange().getResponse().getBodyBytes().length > 0)
+                            try {
+                                body = new String(newBorn.getRequest().getExchange().getResponse().getBodyBytes(), "UTF-8");
+                            } catch (UnsupportedEncodingException e) {
+                                // nope. won't happen.
+                            }
+                        addBackendExceptions(new LackrPresentableError("Fragment returned error code "
+                                + newBorn.getRequest().getExchange().getResponse().getStatus() + " : " + body, newBorn));
                     getInterpolr().processResult(newBorn);
+                    }
                 } finally {
                     pendingQueries.remove(key);
                     if (pendingQueries.isEmpty())
