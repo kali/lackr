@@ -2,6 +2,7 @@ package com.fotonauts.lackr.backend.inprocess;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -54,13 +55,18 @@ public class InProcessBackend extends AbstractLifeCycle implements Backend {
             public void run() {
                 while (isStarting() || isRunning()) {
                     try {
+                        HashSet<InProcessExchange> toKill = new HashSet<InProcessExchange>();
                         for (Entry<InProcessExchange, Long> timeout : registeredTimeouts.entrySet()) {
                             if (timeout.getValue() < System.currentTimeMillis()) {
-                                log.warn("Interrupting on timeout: {}", timeout.getKey().getBackendRequest());
-                                Thread t = timeout.getKey().thread.get();
-                                if (t != null)
-                                    t.interrupt();
+                                log.warn("About to interrupt on timeout: {}", timeout.getKey().getBackendRequest());
+                                toKill.add(timeout.getKey());
                             }
+                        }
+                        for (InProcessExchange timeout : toKill) {
+                            Thread t = timeout.thread.get();
+                            log.warn("Interrupting on timeout: {}", timeout.getBackendRequest());
+                            if (t != null)
+                                t.interrupt();
                         }
                     } finally {
                         try {
