@@ -169,6 +169,12 @@ public class BaseProxy extends AbstractHandler {
         // CONTENT
         if (!state.getIncomingServletRequest().getMethod().equals("HEAD"))
             writeContentTo(state, response.getOutputStream());
+
+        if (rootExchange.getResponse().getStatus() >= 500 && rootExchange.getResponse().getBodyBytes() != null) {
+            state.getIncomingServletRequest().setAttribute("LACKR_ERROR_MESSAGE",
+                    new String(rootExchange.getResponse().getBodyBytes()));
+        }
+
         response.flushBuffer(); // force commiting
     }
 
@@ -181,6 +187,7 @@ public class BaseProxy extends AbstractHandler {
         int i = 0;
         for (LackrPresentableError t : req.getErrors()) {
             log.debug("Backend error: ", t);
+            if(req.getErrors().size() > 1)
                 sb.append(String.format("Error #%d/%d\n", ++i, req.getErrors().size()));
             sb.append(t.getMessage());
             sb.append("\n\n\n");
