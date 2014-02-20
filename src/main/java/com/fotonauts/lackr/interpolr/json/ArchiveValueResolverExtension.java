@@ -16,6 +16,8 @@ class ArchiveValueResolverExtension implements ExtendedMapValueResolver.ValueRes
                 && ((Map<String, Object>) context).containsKey("$$id")) {
             Map<String, Object> datumAsMap = (Map<String, Object>) context;
             Archive arch = jsonContext.getArchive((String) datumAsMap.get("$$archive"));
+            if(arch == null)
+                return null;
             Object target = arch.getObject((Integer) datumAsMap.get("$$id"));
             if (target instanceof Map<?, ?>)
                 return (Map<String, Object>) target;
