@@ -79,8 +79,8 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                             }
                         addBackendExceptions(new LackrPresentableError("Fragment returned error code "
                                 + newBorn.getRequest().getExchange().getResponse().getStatus() + " : " + body, newBorn));
-                    getInterpolr().processResult(newBorn);
                     }
+                    getInterpolr().processResult(newBorn);
                 } finally {
                     pendingQueries.remove(key);
                     if (pendingQueries.isEmpty())
