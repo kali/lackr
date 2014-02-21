@@ -188,7 +188,7 @@ public class BaseProxy extends AbstractHandler {
         for (LackrPresentableError t : req.getErrors()) {
             log.debug("Backend error: ", t);
             if(req.getErrors().size() > 1)
-                sb.append(String.format("Error #%d/%d\n", ++i, req.getErrors().size()));
+                sb.append(String.format("Error #%d/%d: ", ++i, req.getErrors().size()));
             sb.append(t.getMessage());
             sb.append("\n\n\n");
         }
