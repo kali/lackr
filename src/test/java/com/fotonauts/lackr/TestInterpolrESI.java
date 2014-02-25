@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.testutils.AppStubForESI;
 import com.fotonauts.lackr.testutils.Factory;
@@ -35,7 +36,7 @@ public class TestInterpolrESI {
     }
 
     public String quoteJson(String text) {
-        return new String(org.codehaus.jackson.io.JsonStringEncoder.getInstance().quoteAsUTF8(text)).replaceAll("\\/", "\\\\/");
+        return new String(JsonStringEncoder.getInstance().quoteAsUTF8(text)).replaceAll("\\/", "\\\\/");
     }
 
     @Test

@@ -4,13 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fotonauts.lackr.LackrPresentableError;
 
 public class JsonParseUtils {
@@ -84,18 +82,12 @@ public class JsonParseUtils {
 
     public static String prettyPrint(Map<String, Object> data) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            jacksonObjectMapper.defaultPrettyPrintingWriter().writeValue(baos, data);
-        } catch (JsonGenerationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+            try {
+                jacksonObjectMapper.writer().withDefaultPrettyPrinter().writeValue(baos, data);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         return baos.toString();
     }
 

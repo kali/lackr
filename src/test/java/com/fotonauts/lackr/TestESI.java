@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import com.fotonauts.lackr.testutils.AppStubForESI;
 import com.fotonauts.lackr.testutils.Factory;
 import com.fotonauts.lackr.testutils.RemoteControlledStub;
@@ -49,7 +50,7 @@ public class TestESI {
     }
 
     public String quoteJson(String text) {
-        return new String(org.codehaus.jackson.io.JsonStringEncoder.getInstance().quoteAsUTF8(text)).replaceAll("\\/", "\\\\/");
+        return new String(JsonStringEncoder.getInstance().quoteAsUTF8(text)).replaceAll("\\/", "\\\\/");
     }
 
     @Test
