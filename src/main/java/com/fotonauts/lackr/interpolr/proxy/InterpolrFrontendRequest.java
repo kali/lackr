@@ -70,8 +70,8 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
                 try {
                     if (newBorn.getRequest().getExchange().getResponse().getStatus() != 200) {
                         String body = "";
-                        if(newBorn.getRequest().getExchange().getResponse().getBodyBytes() != null &&
-                                newBorn.getRequest().getExchange().getResponse().getBodyBytes().length > 0)
+                        if (newBorn.getRequest().getExchange().getResponse().getBodyBytes() != null
+                                && newBorn.getRequest().getExchange().getResponse().getBodyBytes().length > 0)
                             try {
                                 body = new String(newBorn.getRequest().getExchange().getResponse().getBodyBytes(), "UTF-8");
                             } catch (UnsupportedEncodingException e) {

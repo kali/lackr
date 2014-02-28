@@ -140,6 +140,17 @@ public class TestESI {
     }
 
     @Test
+    public void testESITimeout() throws Exception {
+        remoteApp.pageContent.set("before\nhttp://esi.include.virtual/wait#\nafter\n");
+        long before = System.currentTimeMillis();
+        client.loadPageAndExpectsCrash();
+        long after = System.currentTimeMillis();
+        // /wait stub server runs is 5000ms, but the backend client should timeout at 3000ms
+        assertTrue("wait for more than 3000ms", after-before > 2900);
+        assertTrue("wait for less than 3000ms", after-before < 5100);
+    }
+
+    @Test
     @Ignore
     public void testIgnorable500() throws Exception {
         remoteApp.pageContent.set("before\nhttp://esi.include.virtual/500.html#\nafter\n");

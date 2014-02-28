@@ -17,14 +17,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.IO;
-import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -179,14 +177,13 @@ public class BaseProxy extends AbstractHandler {
     }
 
     protected void writeErrorResponse(BaseFrontendRequest req, HttpServletResponse response) throws IOException {
-        log.debug("writing error response for " + req.getBackendRequest().getQuery());
+        log.debug("Writing error response for " + req.getBackendRequest().getQuery());
 
         response.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
         response.setContentType("text/plain");
         StringBuilder sb = new StringBuilder();
         int i = 0;
         for (LackrPresentableError t : req.getErrors()) {
-            log.debug("Backend error: ", t);
             if(req.getErrors().size() > 1)
                 sb.append(String.format("Error #%d/%d: ", ++i, req.getErrors().size()));
             sb.append(t.getMessage());
@@ -196,17 +193,9 @@ public class BaseProxy extends AbstractHandler {
         byte[] ba = s.getBytes("UTF-8");
         response.setContentLength(ba.length);
         response.getOutputStream().write(ba);
-
         req.getIncomingServletRequest().setAttribute("LACKR_ERROR_MESSAGE", s);
 
-        String message;
-        try {
-            message = req.getErrors().get(0).getMessage().split("\n")[0];
-            if (req.getErrors().size() > 1)
-                message = message + " — and friends.";
-        } catch (Throwable e) {
-            message = "Failed to extract a nice message from this mess";
-        }
+        response.flushBuffer();
     }
 
     //--------------------------------------------------------------------------------------

@@ -1,6 +1,5 @@
 package com.fotonauts.lackr.backend.inprocess;
 
-import java.nio.channels.InterruptedByTimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;

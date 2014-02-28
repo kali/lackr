@@ -35,13 +35,21 @@ public class AppStubForESI {
             return new InterpolrScopeStub(context, ESI_JSON.getBytes(), MimeType.APPLICATION_JSON);
         } else if (url.endsWith("html")) {
             return new InterpolrScopeStub(context, ESI_HTML.getBytes(), MimeType.TEXT_HTML);
+        } else if (url.equals("/wait")) {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("stopped!");
+            }
+            // should not matter
+            return new InterpolrScopeStub(context, ESI_HTML.getBytes(), MimeType.TEXT_HTML);
         }
         throw new RuntimeException("not handled :/");
     }
 
     public InterpolrContext createInterpolrContext(Interpolr interpolr) {
         return new InterpolrContextStub(interpolr) {
-            
+
             public InterpolrScope getOrCreateSubScope(String url, String syntaxIdentifier, InterpolrScope scope) {
                 return getInterpolrScope(this, syntaxIdentifier, url);
             }

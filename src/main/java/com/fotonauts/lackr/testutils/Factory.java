@@ -41,6 +41,7 @@ public class Factory {
         backend.setPrefix(prefix);
         backend.setActualClient(buildFullClient());
         backend.setProbeUrl(probe);
+        backend.setRequestTimeoutMs(3000);
         return backend;
     }
 

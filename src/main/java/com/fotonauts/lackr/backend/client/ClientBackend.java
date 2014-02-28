@@ -24,6 +24,7 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
 
     private String probeUrl;
     private long probeTimeoutMs = 500;
+    private long requestTimeoutMs = 45*1000;
 
     public long getProbeTimeoutMs() {
         return probeTimeoutMs;
@@ -83,5 +84,13 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
             
         }
         return true;
+    }
+
+    public long getRequestTimeoutMs() {
+        return requestTimeoutMs;
+    }
+
+    public void setRequestTimeoutMs(long requestTimeoutMs) {
+        this.requestTimeoutMs = requestTimeoutMs;
     }
 }

@@ -1,9 +1,8 @@
 package com.fotonauts.lackr.backend.client;
 
-import java.net.URI;
-import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
@@ -36,6 +35,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
         request = jettyClient.newRequest(url);
         request.method(HttpMethod.fromString(spec.getMethod()));
         request.getHeaders().add(spec.getFields());
+        request.timeout(backend.getRequestTimeoutMs(), TimeUnit.MILLISECONDS);
         if (spec.getBody() != null) {
             request.header(HttpHeader.CONTENT_TYPE.asString(),
                     spec.getFrontendRequest().getIncomingServletRequest().getHeader("Content-Type"));
