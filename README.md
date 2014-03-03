@@ -25,8 +25,7 @@ resources represented by a card:
 The user interface, both rich client and web, was focusing heavily on link creation, in order to incitate users to
 create a very dense network of albums and pictures.
 
-First performance difficulties and page-level caching
------------------------------------------------------
+First performance difficulties and page-level caching -----------------------------------------------------
 
 Even without a significant load on a sensible size server, it quickly became obvious that the MySQL/RoR stack was
 not up to the task of generating pages of such a complexity with acceptable performance.
@@ -50,4 +49,35 @@ It was time for a bigger hammer.
 
 Edge Side Include
 -----------------
+
+As an alternative to full page caching, we briefly considered html fragment caching inside the Rails application
+itself. Each card, for instance, could have been cached as a separate html fragment in memcache, replacing
+each time expensive database queries by a single memcache request. We had to discard this approach as it was
+not allowing us to cache the top content of the page (without expanding the card) thus solving only half our
+problem.
+
+We preferred to leverage a nifty feature that Varnish was including: edge-side include support. Edge Side Include
+main feature is the availibility of a cached delivered page to contain placeholder in the HTML text to be resolved
+at service time.
+
+One of the simplest usage of ESI with varnish is to extract from a common page the infamous log-in/logged-as html
+fragment, so one single cached page can be served to all users, the backend being hit only to fetch a login box
+or a label in a very simple — so hopefully fast — query.
+
+But we chose to use much more of it. By isolating each of our "cards" in its own backend endpoint, we hit several
+birds:
+- ability to cache the "page"
+- ability to invalidate a resource cards without invalidating the page
+- an order of magnitude faster page composition
+
+After a few monthes on this regimen, we actually switched from Varnish ESI to nginx Server Side Include. We already
+had a nginx layer on top of Varnish for SSL and zipping support, so it was merely a matter of changing syntax. The
+purpose of this change was the fact nginx SSI expansion is performed in parallel if there are more than one
+fragment inclusion in the page, whereas Varnish performs the sub-queries one after the other.
+
+At this point our stack was
+
+Introducing Lackr
+-----------------
+
 
