@@ -25,7 +25,7 @@ resources represented by a card:
 The user interface, both rich client and web, was focusing heavily on link creation, in order to incitate users to
 create a very dense network of albums and pictures.
 
-First performance difficulties and page-level caching 
+First performance difficulties and page-level caching
 -----------------------------------------------------
 
 Even without a significant load on a sensible size server, it quickly became obvious that the MySQL/RoR stack was
@@ -79,29 +79,29 @@ fragment inclusion in the page, whereas Varnish performs the sub-queries one aft
 So at this point our stack is looking like that:
 
 ```
-                            *************      
-                         ***             ***   
-                       **     Internet      ** 
-                         ***             ***   
-                            *************      
-                                  |            
-                                  |            
-                                  v            
-                        +--------------------+ 
-                        |       Nginx        | 
-                        +--------------------+ 
-                            | | | | | | |      
-                            | | | | | | |      
-                            v v v v v v v      
-                        +--------------------+ 
-                        |      Varnish       | 
-                        +--------------------+ 
-                               |   |           
-                               |   |           
-                               v   v           
-                        +--------------------+ 
-                        |   Ruby on Rails    | 
-                        +--------------------+ 
+                            *************
+                         ***             ***
+                       **     Internet      **
+                         ***             ***
+                            *************
+                                  |
+                                  |
+                                  v
+                        +--------------------+
+                        |       Nginx        |
+                        +--------------------+
+                            | | | | | | |
+                            | | | | | | |
+                            v v v v v v v
+                        +--------------------+
+                        |      Varnish       |
+                        +--------------------+
+                               |   |
+                               |   |
+                               v   v
+                        +--------------------+
+                        |   Ruby on Rails    |
+                        +--------------------+
 
 ```
 
@@ -149,35 +149,35 @@ The support for consistent backend hashing was to come soon after.
 Our stack became:
 
 ```
-                            *************      
-                         ***             ***   
-                       **     Internet      ** 
-                         ***             ***   
-                            *************      
-                                  |            
-                                  |            
-                                  v            
-                        +--------------------+ 
-                        |       Nginx        | 
-                        +--------------------+ 
-                                  |            
-                                  |            
-                                  v            
-                        +--------------------+ 
-                        |       Lackr        | 
-                        +--------------------+ 
-                            | | | | | | |      
-                            | | | | | | |      
-                            v v v v v v v      
-                        +--------------------+ 
-                        |      Varnish       | 
-                        +--------------------+ 
-                               |   |           
-                               |   |           
-                               v   v           
-                        +--------------------+ 
-                        |   Ruby on Rails    | 
-                        +--------------------+ 
+                            *************
+                         ***             ***
+                       **     Internet      **
+                         ***             ***
+                            *************
+                                  |
+                                  |
+                                  v
+                        +--------------------+
+                        |       Nginx        |
+                        +--------------------+
+                                  |
+                                  |
+                                  v
+                        +--------------------+
+                        |       Lackr        |
+                        +--------------------+
+                            | | | | | | |
+                            | | | | | | |
+                            v v v v v v v
+                        +--------------------+
+                        |      Varnish       |
+                        +--------------------+
+                               |   |
+                               |   |
+                               v   v
+                        +--------------------+
+                        |   Ruby on Rails    |
+                        +--------------------+
 
 ```
 
@@ -196,7 +196,7 @@ uncacheable, application-level, request-time processing:
 - ad targetting: depending on the geolocalisation, language, device kind and another dozen other parameter,
   one ad or another must be shown in a given placeholder
 - ad tracking: a given ad insertion has a unique id for performance evaluation
-- customized views: new mosaic views must be tailored to the device size of the user, while enforcing a consistent 
+- customized views: new mosaic views must be tailored to the device size of the user, while enforcing a consistent
   pagination on updatable collections
 
 If having a Java server was a great improvement to application flexibility compared to Nginx or Varnish code,
@@ -211,35 +211,35 @@ The new stack was to have its own server process, but lives in the same github r
 app, to simplify deployments with cross-dependencies between the Rails and Scala apps.
 
 ```
-                              *************      
-                           ***             ***   
-                         **     Internet      ** 
-                           ***             ***   
-                              *************      
-                                    |            
-                                    |            
-                                    v            
-                          +--------------------+ 
-                          |       Nginx        | 
-                          +--------------------+ 
-                                    |            
-                                    |            
-                                    v            
-                      +---------------------------+ 
-                      |           Lackr           | 
-                      +---------------------------+ 
+                              *************
+                           ***             ***
+                         **     Internet      **
+                           ***             ***
+                              *************
+                                    |
+                                    |
+                                    v
+                          +--------------------+
+                          |       Nginx        |
+                          +--------------------+
+                                    |
+                                    |
+                                    v
+                      +---------------------------+
+                      |           Lackr           |
+                      +---------------------------+
                       / / / / / / /      \
                      / / / / / / /         \
                     v v v v v v v           v
             +--------------------+       +--------------------+
             |      Varnish       |       |    Scala stack     |
             +--------------------+       +--------------------+
-                   |   |           
-                   |   |           
-                   v   v           
-            +--------------------+ 
-            |   Ruby on Rails    | 
-            +--------------------+ 
+                   |   |
+                   |   |
+                   v   v
+            +--------------------+
+            |   Ruby on Rails    |
+            +--------------------+
 
 ```
 
