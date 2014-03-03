@@ -253,16 +253,17 @@ try to call varnish when the Scala app did not show interest.
 Both stack, the Scala and the ruby one, were accessing the same MongoDB databases where most stuff had been migrated to
 from MySQL. To date, we are quite happy with the combination of sluggish but very developper friendly Rails stack,
 which is still the workhouse of our app, still containing all views templates with the more webservice-oriented Scala
-stack producing fresh JSON data to the empty web views, or XML data to our rich-client IOS applications.
+stack producing fresh JSON data to the empty web views, or XML data to our rich-client iOS applications.
 
 Lackr get handlebars
 --------------------
 
 On the application side, we found out that use of Handlebars (both .js and .rb implementations) was helping a lot
-with content/format separation. In order to provide static HTML views for Javascript-less browser (including crawlers)
+with content vs format separation. In order to provide static HTML views for Javascript-less browser
+(including crawlers)
 as well as improving the rendering performance of rich web page, we decided to add handlebars support to Lackr too.
 
-It worked very well, so well we also wanted handlebars support in our IOS applications. The price of it was that more
+It worked very well, so well we also wanted handlebars support in our iOS applications. The price of it was that more
 and more really application level stuff (handlebars handlers for instance) was migrating to the Lackr codebase making
 occasionally deployments a bit difficult to manage, by binding Lackr versions to the app versions.
 
