@@ -3,7 +3,7 @@ Lackr is a java jetty-based library for building high performance web sites.
 Rationale and history
 =====================
 
-The need for Lackr emerged from the organic — but rationale — way Fotonauts stack has evolved over a few years. This is
+The need for Lackr emerged from the organic — but rational — way Fotonauts stack has evolved over a few years. This is
 the edifying tale of our long way towards modern architecture and good web performance.
 
 Once upon a time, something like 2008, there was a Ruby on Rails application, a relational database, a rich client,
@@ -29,9 +29,9 @@ First performance difficulties and page-level caching
 -----------------------------------------------------
 
 Even without a significant load on a sensible size server, it quickly became obvious that the MySQL/RoR stack was
-not up to the task of generating pages of such a complexity with acceptable performance.
+not up to the task of generating such complex pages with acceptable performance.
 During these dark ages, the general feeling shared by both our team and the overall web development community could be
-summarize by: "No matter how bad the backend performance is, the cache layer will save the day."
+summarized by: "No matter how bad the backend performance is, the cache layer will save the day."
 
 At that point, we introduced Varnish and start caching whole pages. Just for unlogged traffic at the beginning, the
 ruby codebase being entirely permeated with pages where the content had to be tailored to the logged-in user:
@@ -41,8 +41,8 @@ ruby codebase being entirely permeated with pages where the content had to be ta
 If the first could easily be worked out with an Ajax query, the second was way more tricky.
 
 Even so, we started to worry about our users not understanding what was happening with the website: "I changed the
-album title, still when I share it to my friend, they see the old name" and the like. Cache staleness was getting
-seriously in the way of the editing features. On the other hand, due to a "long-tail" shaped read traffic,
+album title, still when I share with to my friend, they see the old name" and the like. Cache staleness was getting
+seriously in the way of editing features. On the other hand, due to a "long-tail" shaped reading traffic,
 invalidating all pages including a "card" whenever it was altered was impacting our hit ratio enough to make our
 caching layer next to useless.
 
@@ -54,14 +54,14 @@ Edge Side Include
 As an alternative to full page caching, we briefly considered html fragment caching inside the Rails application
 itself. Each card, for instance, could have been cached as a separate html fragment in memcache, replacing
 each time expensive database queries by a single memcache request. We had to discard this approach as it was
-not allowing us to cache the top content of the page (without expanding the card) thus solving only half our
+not allowing us to cache the top content of the page (without expanding the card) thus solving only half of our
 problem.
 
-We preferred to leverage a nifty feature that Varnish was including: edge-side include support. Edge Side Include
+We preferred to leverage a nifty feature that Varnish was including: Edge Side Include support. ESI
 main feature is the availibility of a cached delivered page to contain placeholder in the HTML text to be resolved
 at service time.
 
-One of the simplest usage of ESI with Varnish is to extract from a common page the infamous log-in/logged-as html
+One of the simplest usages of ESI with Varnish is to extract from a common page the infamous log-in/logged-as html
 fragment, so one single cached page can be served to all users, the backend being hit only to fetch a login box
 or a label in a very simple — so hopefully fast — query.
 
@@ -69,7 +69,7 @@ But we chose to use much more of it. By isolating each of our *cards* in its own
 birds:
 - ability to cache the root "page" itself
 - ability to invalidate a resource *cards* without invalidating the page
-- an order of magnitude faster page composition.
+- a one-order-of-magnitude-faster page composition.
 
 After a few months on this regimen, we actually switched from Varnish ESI to nginx Server Side Include. We already
 had a nginx layer on top of Varnish for SSL and zipping support, so it was merely a matter of changing syntax. The
@@ -107,7 +107,7 @@ So at this point our stack was looking like that:
 
 For one single Internet query, nginx performed one "root" request, then several SSI fragment requests to
 Varnish. Varnish only let a few simple and fast queries trickle down to the Ruby on Rails application. A
-non-represented invalidation loop, triggered by write operations on the the Rails backend, takes care of PURGE-ing
+non-represented invalidation loop, triggered by write operations on the Rails backend, takes care of PURGE-ing
 impacted fragments from Varnish.
 
 Introducing Lackr
@@ -122,10 +122,10 @@ the nginx-Varnish interaction:
 - better control over caching: we needed a robust and efficient way of using Varnish servers RAM. We wanted a
   consistent hash ring.
 - error management: when something wrong was happening deep inside the Ruby on Rails, the page being composed in an
-  unbuffered way lead to really ugly error pages
+  unbuffered way lead to really ugly error pages.
 
-We also wanted to be able to solve efficiently, without jumping though dozens of hoops, some of the key issues in the
-application. We were thinking about things like generating signed urls for our images, verifying sessions tokens, ...
+We also wanted to be able to solve efficiently, without jumping through dozens of hoops, some of the key issues in the
+application. We were thinking about things like generating signed urls for our images, verifying sessions tokens, etc.
 As writing application code in Varnish or nginx, both in C with complex concurrency approaches, was not appealing to
 us, we started thinking about a more developper friendly java layer somewhere in between the internet and Varnish.
 
@@ -204,7 +204,7 @@ If having a Java server was a great improvement to application flexibility compa
 plugging extension in Lackr was still a bit awkward. Its asynchronous nature made the code trickier to write
 than necessary, while Java felt like assembly with our Ruby bad habits.
 
-But being in control of the stack allowed us to introduced another language and framework in the mix. We picked
+But being in control of the stack allowed us to introduce another language and framework in the mix. We picked
 Scala and Unfiltered to implement a "fast stack" alongside the Varnish/Rails one. That way we could pick a few
 expensive rails endpoints and move them to the new stack to improve the general performance.
 
