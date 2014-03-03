@@ -75,9 +75,72 @@ had a nginx layer on top of Varnish for SSL and zipping support, so it was merel
 purpose of this change was the fact nginx SSI expansion is performed in parallel if there are more than one
 fragment inclusion in the page, whereas Varnish performs the sub-queries one after the other.
 
-At this point our stack was
+So at this point our stack is looking like that:
+
+```
+                            *************      
+                         ***             ***   
+                       **     Internet      ** 
+                         ***             ***   
+                            *************      
+                                  |            
+                                  |            
+                                  v            
+                        +--------------------+ 
+                        |       Nginx        | 
+                        +--------------------+ 
+                            | | | | | | |      
+                            | | | | | | |      
+                            v v v v v v v      
+                        +--------------------+ 
+                        |      Varnish       | 
+                        +--------------------+ 
+                               |   |           
+                               |   |           
+                               v   v           
+                        +--------------------+ 
+                        |   Ruby on Rails    | 
+                        +--------------------+ 
+
+```
+
+For one single Internet query, Nginx performs one "root" request, then several SSI fragment request to
+Varnish. Varnish only lets a few simple and fast queries trickle down to the Ruby On Rails application. A
+non-represented invalidation loop, triggered by write operations on the the Rails backend, takes care of PURGE-ing
+impacted fragments from Varnish.
 
 Introducing Lackr
 -----------------
 
+Even if this architecture allowed us to get serious performance improvements without redesigning the whole app and
+database, we were still not fully satisfied with it. We had a serious feel of lack of control on what was going in
+the Nginx-Varnish interaction:
+- esi support for ajax queries: as we were expanding the web application design to get it more interactive, the need
+  arose for fragment expansion inside a json document: the same performance issues we had in the backend were starting
+  to show
+- better control over caching: we need a robust and efficient way of using Varnish servers RAM. We wanted a consistent
+  hash ring.
+- error management: when something wrong is happening deep inside the Ruby on Rails, the page being composed in an
+  unbuffered way lead to really ugly error pages
 
+We also wanted to be able to solve efficiently, without jumping though dozen of loops, some of the key issues in the
+application. We were thinking about things like generating signed urls for our images, verifying sessions tokens, ...
+As writting application code in varnish or nginx, both in C with complex concurrency approaches, was not appealing to
+us, we started thinking about a more developper friendly java layer somewhere in between the internet and varnish.
+
+And, ho yeah. Also. We, at Fotonauts, do love developping stuff. Much more fun than integrating.
+
+Lackr first baby steps
+----------------------
+
+So, on a cold and rainy november weekend, lackr was born and baptized by the name being a far-fetched pun on
+Varnish name.
+
+The core was basically a buffered extensible ESI-like engine. The focus was on performance and scalability, so
+everything was written to run in asynchronous fashion.
+The ESI engine, called "Interpolr", was able to detect include-like patterns in HTML, XML, JS and JSON documents,
+grab them from the backend, and re-encode them on the fly to accomodate the layers of escaping required by the
+originating document. For instance a JS chunk from an HTML document may require an HTML fragment, in which case
+double quotes, line feeds, but also less than sign have to be dealt with not to break the main document syntax.
+
+The support for consistent backend hashing was to come soon after.
