@@ -185,4 +185,72 @@ Not a huge change in terms of architecture. Nginx was kept as an efficient way t
 non-represented static resources, implementing a few redirects and protecting against various internet
 hazards.
 
+More application needs
+----------------------
 
+Now that we feel again in control of the top levels of our stack, we could move on to solve various issues
+that had been bugging us for monthes. Both old and new application requirements were calling for
+uncacheable, application-level, request-time processing:
+- vote information: when a user is shown an album, the webpage needs to know whether the user has already
+  cast a vote on the current resource
+- ad targetting: depending on the geolocalisation, language, device kind and another dozen other parameter,
+  one ad or another must be shown in a given placeholder
+- ad tracking: a given ad insertion has a unique id for performance evaluation
+- customized views: new mosaic views must be tailored to the device size of the user, while enforcing a consistent 
+  pagination on updatable collections
+
+If having a Java server was a great improvement to application flexibility compared to Nginx or Varnish code,
+plugging extension in Lackr was still a bit awkward. Its asynchronous nature make the code trickier to write
+than necessary, while Java felt like assembly with our Ruby bad habits.
+
+But being in control of the stack allowed us to introduced another language and framework in the mix. We picked
+Scala and Unfiltered to implement a "fast stack" alongside the Varnish/Rails one. That way we could pick a few
+expensive rails endpoints and moving them to the new stack to improve the general performance.
+
+The new stack was to have its own server process, but lives in the same github repository as the Rails
+app, to simplify deployments with cross-dependencies between the Rails and Scala apps.
+
+```
+                              *************      
+                           ***             ***   
+                         **     Internet      ** 
+                           ***             ***   
+                              *************      
+                                    |            
+                                    |            
+                                    v            
+                          +--------------------+ 
+                          |       Nginx        | 
+                          +--------------------+ 
+                                    |            
+                                    |            
+                                    v            
+                      +---------------------------+ 
+                      |           Lackr           | 
+                      +---------------------------+ 
+                      / / / / / / /      \
+                     / / / / / / /         \
+                    v v v v v v v           v
+            +--------------------+       +--------------------+
+            |      Varnish       |       |    Scala stack     |
+            +--------------------+       +--------------------+
+                   |   |           
+                   |   |           
+                   v   v           
+            +--------------------+ 
+            |   Ruby on Rails    | 
+            +--------------------+ 
+
+```
+
+We experimented with several ways of implementing the actual dispatching between the Varnish/Rails and
+the Scala stacks. After a few monthes, the best solution we found was to actually run the Scala app in the same
+JVM than lackr, by-passing the whole HTTP network interaction, to the price of some tricky black magic.
+
+The scala stack was called first and offered a chance to process every query lackr was emitting, and lackr would then
+try to call varnish when the scala app did not show interest.
+
+Both stack, the scala and the ruby one, were accessing the same MongoDB databases where most stuff had been migrated to
+from mysql. To date, we are quite happy with the combination of sluggish but very developper friendly rails stack,
+which is still the workhouse of our app, still containing all views templates with the more webservice-oriented scala
+stack producing fresh JSON data to the empty web views, or XML data to our rich-client IOS applications.
