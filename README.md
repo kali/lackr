@@ -25,7 +25,8 @@ resources represented by a card:
 The user interface, both rich client and web, was focusing heavily on link creation, in order to incitate users to
 create a very dense network of albums and pictures.
 
-First performance difficulties and page-level caching -----------------------------------------------------
+First performance difficulties and page-level caching 
+-----------------------------------------------------
 
 Even without a significant load on a sensible size server, it quickly became obvious that the MySQL/RoR stack was
 not up to the task of generating pages of such a complexity with acceptable performance.
