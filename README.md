@@ -144,3 +144,44 @@ originating document. For instance a JS chunk from an HTML document may require 
 double quotes, line feeds, but also less than sign have to be dealt with not to break the main document syntax.
 
 The support for consistent backend hashing was to come soon after.
+
+Our stack became:
+
+```
+                            *************      
+                         ***             ***   
+                       **     Internet      ** 
+                         ***             ***   
+                            *************      
+                                  |            
+                                  |            
+                                  v            
+                        +--------------------+ 
+                        |       Nginx        | 
+                        +--------------------+ 
+                                  |            
+                                  |            
+                                  v            
+                        +--------------------+ 
+                        |       Lackr        | 
+                        +--------------------+ 
+                            | | | | | | |      
+                            | | | | | | |      
+                            v v v v v v v      
+                        +--------------------+ 
+                        |      Varnish       | 
+                        +--------------------+ 
+                               |   |           
+                               |   |           
+                               v   v           
+                        +--------------------+ 
+                        |   Ruby on Rails    | 
+                        +--------------------+ 
+
+```
+
+Not a huge change in terms of architecture. Nginx was kept as an efficient way to directs queries to
+non-represented static resources, implementing a few redirects and protecting against various internet
+hazards.
+
+
