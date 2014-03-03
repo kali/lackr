@@ -6,7 +6,7 @@ Rationale and history
 The need for Lackr emerged from the organic — but rationale — way Fotonauts stack has evolved over a few years. This is
 the edifying tale of our long way towards modern architecture and good web performance.
 
-Once uppon a time, something like 2008, there was a Ruby on Rails application, a relational database and
+Once upon a time, something like 2008, there was a Ruby on Rails application, a relational database and
 demanding data and application specification.
 We were dealing mostly with hierarchical photo albums, each page containing an ordered photo collection,
 children pages, and links of various types to other albums and pages of other albums.
@@ -134,7 +134,7 @@ And, ho yeah. Also. We, at Fotonauts, do love developping stuff. Much more fun t
 Lackr first baby steps
 ----------------------
 
-So, on a cold and rainy november weekend, lackr was born and baptized by the name being a far-fetched pun on
+So, on a cold and rainy november weekend, Lackr was born and baptized by the name being a far-fetched pun on
 Varnish name.
 
 The core was basically a buffered extensible ESI-like engine. The focus was on performance and scalability, so
@@ -245,14 +245,14 @@ app, to simplify deployments with cross-dependencies between the Rails and Scala
 
 We experimented with several ways of implementing the actual dispatching between the Varnish/Rails and
 the Scala stacks. After a few monthes, the best solution we found was to actually run the Scala app in the same
-JVM than lackr, by-passing the whole HTTP network interaction, to the price of some tricky black magic.
+JVM than Lackr, by-passing the whole HTTP network interaction, to the price of some tricky black magic.
 
-The scala stack was called first and offered a chance to process every query lackr was emitting, and lackr would then
-try to call varnish when the scala app did not show interest.
+The Scala stack was called first and offered a chance to process every query Lackr was emitting, and Lackr would then
+try to call varnish when the Scala app did not show interest.
 
-Both stack, the scala and the ruby one, were accessing the same MongoDB databases where most stuff had been migrated to
+Both stack, the Scala and the ruby one, were accessing the same MongoDB databases where most stuff had been migrated to
 from MySQL. To date, we are quite happy with the combination of sluggish but very developper friendly Rails stack,
-which is still the workhouse of our app, still containing all views templates with the more webservice-oriented scala
+which is still the workhouse of our app, still containing all views templates with the more webservice-oriented Scala
 stack producing fresh JSON data to the empty web views, or XML data to our rich-client IOS applications.
 
 Lackr get handlebars
@@ -263,21 +263,21 @@ with content/format separation. In order to provide static HTML views for Javasc
 as well as improving the rendering performance of rich web page, we decided to add handlebars support to Lackr too.
 
 It worked very well, so well we also wanted handlebars support in our IOS applications. The price of it was that more
-and more really application level stuff (handlebars handlers for instance) was migrating to the lackr codebase making
-occasionally deployments a bit difficult to manage, by binding lackr versions to the app versions.
+and more really application level stuff (handlebars handlers for instance) was migrating to the Lackr codebase making
+occasionally deployments a bit difficult to manage, by binding Lackr versions to the app versions.
 
 Time for a refactoring
 ----------------------
 
-And there was still the issue of the ugly "unfiltered stack loaded in lackr" hack. Definitely a good time to rethink
+And there was still the issue of the ugly "unfiltered stack loaded in Lackr" hack. Definitely a good time to rethink
 a few things on the black board.
 
 We decided to switch roles: the unfiltered stack would be the container, and Lackr was to become a library.
 Jetty, heavily used by both components, provided most structural interfaces to build upon.
 
-Swapping roles would also solve most of the boring configuration issues: the scala app becoming the container, it had
-all the necessary knowledge to setup lackr components the right way, without duplicating information in
+Swapping roles would also solve most of the boring configuration issues: the Scala app becoming the container, it had
+all the necessary knowledge to setup Lackr components the right way, without duplicating information in
 pseudo-generic configuration files all over the place.
 
-Also, that way lackr becoms something other people might have interest in instead of a ugly cludge at the core of 
+Also, that way Lackr becomes something other people might have interest in instead of a ugly kludge at the core of 
 our web stack...
