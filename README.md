@@ -251,6 +251,33 @@ The scala stack was called first and offered a chance to process every query lac
 try to call varnish when the scala app did not show interest.
 
 Both stack, the scala and the ruby one, were accessing the same MongoDB databases where most stuff had been migrated to
-from mysql. To date, we are quite happy with the combination of sluggish but very developper friendly rails stack,
+from MySQL. To date, we are quite happy with the combination of sluggish but very developper friendly Rails stack,
 which is still the workhouse of our app, still containing all views templates with the more webservice-oriented scala
 stack producing fresh JSON data to the empty web views, or XML data to our rich-client IOS applications.
+
+Lackr get handlebars
+--------------------
+
+On the application side, we found out that use of Handlebars (both .js and .rb implementations) was helping a lot
+with content/format separation. In order to provide static HTML views for Javascript-less browser (including crawlers)
+as well as improving the rendering performance of rich web page, we decided to add handlebars support to Lackr too.
+
+It worked very well, so well we also wanted handlebars support in our IOS applications. The price of it was that more
+and more really application level stuff (handlebars handlers for instance) was migrating to the lackr codebase making
+occasionally deployments a bit difficult to manage, by binding lackr versions to the app versions.
+
+Time for a refactoring
+----------------------
+
+And there was still the issue of the ugly "unfiltered stack loaded in lackr" hack. Definitely a good time to rethink
+a few things on the black board.
+
+We decided to switch roles: the unfiltered stack would be the container, and Lackr was to become a library.
+Jetty, heavily used by both components, provided most structural interfaces to build upon.
+
+Swapping roles would also solve most of the boring configuration issues: the scala app becoming the container, it had
+all the necessary knowledge to setup lackr components the right way, without duplicating information in
+pseudo-generic configuration files all over the place.
+
+Also, that way lackr becoms something other people might have interest in instead of a ugly cludge at the core of 
+our web stack...
