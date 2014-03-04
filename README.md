@@ -264,9 +264,9 @@ with content vs format separation. In order to provide static HTML views for Jav
 (including crawlers)
 as well as improving the rendering performance of rich web pages, we decided to add Handlebars support to Lackr too.
 
-It worked very well, so well we also wanted Handlebars support in our iOS applications. The price of it was that more
-and more really application level stuff (Handlebars handlers for instance) was migrating to the Lackr codebase making
-occasionally deployments a bit difficult to manage, by binding Lackr versions to the Rails app versions.
+It worked very well, so well that we also wanted Handlebars support in our iOS applications. The price of it was that
+more and more really application-level stuff (Handlebars handlers for instance) was migrating to the Lackr codebase
+occasionally making deployments a bit difficult to manage, by binding Lackr versions to the Rails app versions.
 
 Time for a refactoring
 ----------------------
