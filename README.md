@@ -256,17 +256,17 @@ from MySQL. To date, we are quite happy with the combination of sluggish but ver
 still the workhouse of our app, containing all views templates and, on the other side, the more webservice-oriented 
 Scala stack producing fresh JSON data to the empty web views, or XML data to our rich-client iOS applications.
 
-Lackr get handlebars
---------------------
+Lackr gets Handlebars
+---------------------
 
-On the application side, we found out that use of Handlebars (both .js and .rb implementations) was helping a lot
+On the application side, we found out that the use of Handlebars (both .js and .rb implementations) was helping a lot
 with content vs format separation. In order to provide static HTML views for Javascript-less browser
 (including crawlers)
-as well as improving the rendering performance of rich web page, we decided to add handlebars support to Lackr too.
+as well as improving the rendering performance of rich web pages, we decided to add Handlebars support to Lackr too.
 
-It worked very well, so well we also wanted handlebars support in our iOS applications. The price of it was that more
-and more really application level stuff (handlebars handlers for instance) was migrating to the Lackr codebase making
-occasionally deployments a bit difficult to manage, by binding Lackr versions to the app versions.
+It worked very well, so well we also wanted Handlebars support in our iOS applications. The price of it was that more
+and more really application level stuff (Handlebars handlers for instance) was migrating to the Lackr codebase making
+occasionally deployments a bit difficult to manage, by binding Lackr versions to the Rails app versions.
 
 Time for a refactoring
 ----------------------
