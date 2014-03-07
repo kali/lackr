@@ -19,6 +19,12 @@ import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 
+/**
+ * Extends {@link BaseProxy} with {@link Interpolr} support, the gist of it being ESI expansion.
+ * 
+ * @author kali
+ *
+ */
 public class InterpolrProxy extends BaseProxy {
 
     static Logger log = LoggerFactory.getLogger(InterpolrProxy.class);
@@ -28,19 +34,40 @@ public class InterpolrProxy extends BaseProxy {
     public InterpolrProxy() {
     }
 
+    /**
+     * Get the interpolr processor.
+     * 
+     * @return the interpolr processor.
+     */
     public Interpolr getInterpolr() {
         return interpolr;
     }
 
+    /**
+     * Set the interpolr processor.
+     * 
+     * @param interpolr the interpolr processor
+     */
     public void setInterpolr(Interpolr interpolr) {
         this.interpolr = interpolr;
     }
 
+    /**
+     * Creates an {@link InterpolrFrontendRequest}, instead of a plain {@link BaseFrontendRequest}.
+     * 
+     * @return a {@link InterpolrFrontendRequest}
+     */
     protected BaseFrontendRequest createFrontendRequest(HttpServletRequest request) {
         return new InterpolrFrontendRequest(this, request);
     }
 
-    // only called for the main request, not for esi sub-fragments.
+    /**
+     * Start interpolr processing of the main request.
+     * 
+     * <p>Replace the {@link BaseProxy} callback that was only triggering a new container dispatch.
+     * 
+     * <p>It is not called for the inner queries.
+     */
     @Override
     public void onBackendRequestDone(BaseFrontendRequest baseFrontendRequest) {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
@@ -57,6 +84,18 @@ public class InterpolrProxy extends BaseProxy {
         }
     }
 
+    /**
+     * Create a sub request for fragment processing.
+     * 
+     * <p>it is possible to override to set headers to the fragment request.
+     * 
+     * @param frontendRequest
+     * @param dadRequest
+     * @param url
+     * @param format
+     * @param listener
+     * @return
+     */
     protected LackrBackendRequest createSubRequest(InterpolrFrontendRequest frontendRequest, LackrBackendRequest dadRequest,
             String url, String format, CompletionListener listener) {
         HashMap<String, Object> attributes = new HashMap<>(1);
@@ -71,11 +110,22 @@ public class InterpolrProxy extends BaseProxy {
         scheduleBackendRequest(req);
     }
 
+    /**
+     * Called when all sub-fragments of the request have been processed.
+     * 
+     * <p>Just forward call to BaseProxy.onBackendRequestDone to come back to the 
+     *    base cycle.
+     * 
+     * @param frontendRequest 
+     */
     protected void yieldRootRequestProcessing(InterpolrFrontendRequest frontendRequest) {
         log.debug("Yield root incomingServletRequest.");
         super.onBackendRequestDone(frontendRequest);
     }
 
+    /**
+     * Run a preflight check on the query before yielding to the base implementation.
+     */
     @Override
     protected void writeResponse(BaseFrontendRequest baseFrontendRequest, HttpServletResponse response) throws IOException {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
@@ -90,6 +140,13 @@ public class InterpolrProxy extends BaseProxy {
         super.writeResponse(baseFrontendRequest, response);
     }
 
+    /**
+     * Performs the preflight check on the request.
+     * 
+     * <p>Called in the container thread, just before writing the response.
+     * 
+     * @param baseFrontendRequest
+     */
     protected void preflightCheck(BaseFrontendRequest baseFrontendRequest) {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
         log.debug("Entering preflight check for {}", frontendRequest);
@@ -100,6 +157,9 @@ public class InterpolrProxy extends BaseProxy {
         }
     }
 
+    /**
+     * Instead of using the root request raw body, use the Interpolr-expanded one.
+     */
     @Override
     protected void writeContentTo(BaseFrontendRequest req, OutputStream out) throws IOException {
         InterpolrScope scope = ((InterpolrFrontendRequest) req).getRootScope();
