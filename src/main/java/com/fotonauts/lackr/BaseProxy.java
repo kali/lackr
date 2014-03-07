@@ -21,8 +21,8 @@ import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.IO;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
  * @author kali
  *
  */
-public class BaseProxy extends AbstractHandler {
+public class BaseProxy extends AbstractLifeCycle {
 
     static Logger log = LoggerFactory.getLogger(BaseProxy.class);
 
@@ -348,16 +348,13 @@ public class BaseProxy extends AbstractHandler {
         return null;
     }
 
-    //--------------------------------------------------------------------------------------
-    // jetty Handler
     /**
-     * Entry point for jetty container.
+     * Entry point for requests.
      * 
      * <p>Will typically be called twice for each query to support asynchronous mode.
      * 
      */
-    @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+    public void handle(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
 
         BaseFrontendRequest state = (BaseFrontendRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);

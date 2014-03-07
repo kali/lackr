@@ -16,6 +16,7 @@ import org.eclipse.jetty.util.HttpCookieStore;
 
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BaseProxy;
+import com.fotonauts.lackr.JettyHandler;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.client.ClientBackend;
 import com.fotonauts.lackr.interpolr.Interpolr;
@@ -98,7 +99,9 @@ public class Factory {
 
     public static Server buildProxyServer(BaseProxy proxy) throws Exception {
         Server proxyServer = new Server();
-        proxyServer.setHandler(proxy);
+        JettyHandler handler = new JettyHandler();
+        handler.setProxy(proxy);
+        proxyServer.setHandler(handler);
         proxyServer.addConnector(new ServerConnector(proxyServer));
         return proxyServer;
     }
