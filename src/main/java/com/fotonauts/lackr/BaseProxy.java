@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * <p>Asynchronously accepts incoming requests, sends them to its mandatory {@link Backend},
  * then send it back.
  * 
- * <p>Lackr "payload" feature being Interpolr, it's unlikely there is a real-world use case for
+ * <p>Demo "payload" feature being Interpolr, it's unlikely there is a real-world use case for
  * this {@link BaseProxy}, but it is helpful to have this seggregated for testing purposes.
  * 
  * 

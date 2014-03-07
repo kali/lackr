@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.fotonauts</groupId>
 	<artifactId>lackr</artifactId>
@@ -9,7 +10,7 @@
 		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
 		<!--<jetty-version>9.0.2.v20130417</jetty-version> -->
 		<!--<jetty-version>9.0.3.v20130506</jetty-version> -->
-        <jetty-version>9.0.7.v20131107</jetty-version>
+		<jetty-version>9.0.7.v20131107</jetty-version>
 	</properties>
 	<build>
 		<plugins>
@@ -22,12 +23,6 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-			<!-- <plugin> <artifactId>maven-assembly-plugin</artifactId> <version>2.2.1</version> 
-				<configuration> <descriptors> <descriptor>assembly.xml</descriptor> </descriptors> 
-				<archive> <manifest> <mainClass>com.fotonauts.lackr.Lackr</mainClass> </manifest> 
-				</archive> </configuration> <executions> <execution> <id>make-assembly</id> 
-				<phase>package</phase> <goals> <goal>single</goal> </goals> </execution> 
-				</executions> </plugin> -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -37,6 +32,14 @@
 					<additionalClasspathElements>
 						<additionalClasspathElement>src/test/java</additionalClasspathElement>
 					</additionalClasspathElements>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<mainClass>com.fotonauts.lackr.Demo</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -51,7 +54,7 @@
 	<scm>
 		<connection>scm:git:ssh://git@github.com/fotonauts/lackr.git</connection>
 	</scm>
-    <repositories>
+	<repositories>
 		<repository>
 			<id>central</id>
 			<url>http://repo1.maven.org/maven2/</url>
@@ -83,13 +86,6 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-http</artifactId>
 			<version>${jetty-version}</version>
@@ -98,11 +94,6 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 			<version>${jetty-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>args4j</groupId>
-			<artifactId>args4j</artifactId>
-			<version>2.0.12</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mongodb</groupId>
@@ -138,16 +129,6 @@
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
 			<version>${jetty-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.yammer.metrics</groupId>
-			<artifactId>metrics-core</artifactId>
-			<version>2.2.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.yammer.metrics</groupId>
-			<artifactId>metrics-graphite</artifactId>
-			<version>2.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.ibm.icu</groupId>

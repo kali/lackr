@@ -16,7 +16,7 @@ import org.eclipse.jetty.util.HttpCookieStore;
 
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.BaseProxy;
-import com.fotonauts.lackr.JettyHandler;
+import com.fotonauts.lackr.LackrProxyJettyHandler;
 import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.client.ClientBackend;
 import com.fotonauts.lackr.interpolr.Interpolr;
@@ -63,8 +63,8 @@ public class Factory {
         Interpolr interpolr = new Interpolr();
         ArrayList<Plugin> plugins = new ArrayList<>();
         HandlebarsPlugin handlebarsPlugin = new HandlebarsPlugin();
-        for(String cap: capabilities.split(" ")) {
-            switch(cap) {
+        for (String cap : capabilities.split(" ")) {
+            switch (cap) {
             case "esi":
                 plugins.add(new ESIPlugin());
                 break;
@@ -74,11 +74,11 @@ public class Factory {
             case "json":
                 plugins.add(new JsonPlugin());
                 break;
-                /*
+            /*
             case "$$inline_wrapper":
-                handlebarsPlugin.registerPreprocessor(new WrapperFlattener());
-                break;
-                */
+            handlebarsPlugin.registerPreprocessor(new WrapperFlattener());
+            break;
+            */
             }
         }
         interpolr.setPlugins(plugins.toArray(new Plugin[plugins.size()]));
@@ -98,16 +98,27 @@ public class Factory {
     }
 
     public static Server buildProxyServer(BaseProxy proxy) throws Exception {
+        return buildProxyServer(proxy, 0);
+    }
+    
+    public static Server buildProxyServer(BaseProxy proxy, int port) throws Exception {
         Server proxyServer = new Server();
-        JettyHandler handler = new JettyHandler();
+        LackrProxyJettyHandler handler = new LackrProxyJettyHandler();
         handler.setProxy(proxy);
         proxyServer.setHandler(handler);
-        proxyServer.addConnector(new ServerConnector(proxyServer));
+        ServerConnector connector = new ServerConnector(proxyServer);
+        if(port != 0)
+            connector.setPort(port);
+        proxyServer.addConnector(connector);
         return proxyServer;
     }
 
     public static Server buildInterpolrProxyServer(Interpolr interpolr, Backend backend) throws Exception {
-        return buildProxyServer(buildInterpolrProxy(interpolr, backend));
+        return buildInterpolrProxyServer(interpolr, backend, 0);
+    }
+
+    public static Server buildInterpolrProxyServer(Interpolr interpolr, Backend backend, int port) throws Exception {
+        return buildProxyServer(buildInterpolrProxy(interpolr, backend), port);
     }
 
     public static RemoteControlledStub buildServerForESI(final AppStubForESI app) {
@@ -122,11 +133,11 @@ public class Factory {
                     response.getOutputStream().write(app.pageContent.get().getBytes("UTF-8"));
                     response.flushBuffer();
                 } else if (request.getPathInfo().equals("/500.html")) {
-                        response.setContentType(MimeType.TEXT_HTML);
-                        response.setCharacterEncoding("UTF-8");
-                        response.setStatus(500);
-                        response.getWriter().print("I'm an error\n");
-                        response.flushBuffer();
+                    response.setContentType(MimeType.TEXT_HTML);
+                    response.setCharacterEncoding("UTF-8");
+                    response.setStatus(500);
+                    response.getWriter().print("I'm an error\n");
+                    response.flushBuffer();
                 } else {
                     InterpolrScope scope = app.getInterpolrScope(null, null, target);
                     response.setContentType(scope.getResultMimeType());
