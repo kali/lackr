@@ -10,7 +10,19 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+/**
+ * State object holding the progression of a request.
+ * 
+ * <p>Of particular notice, the asynchronous context from the container,
+ * the incoming request, and a list of errors.
+ * 
+ * <p>Presents the reDispatchOnce() method, outcome of the asynchronous processing.
+ * 
+ * <p>Will be extended as Interpolr needs more variables to keep track of things.
+ * 
+ * @author kali
+ *
+ */
 public class BaseFrontendRequest {
 
     static Logger log = LoggerFactory.getLogger(BaseFrontendRequest.class);
@@ -32,32 +44,6 @@ public class BaseFrontendRequest {
         this.incomingServletRequest = request;
         this.continuation = request.startAsync();
         this.continuation.setTimeout(getProxy().getTimeout() * 1000);
-        /*
-        this.continuation.addListener(new AsyncListener() {
-
-            @Override
-            public void onComplete(AsyncEvent event) throws IOException {
-            }
-
-            @Override
-            public void onTimeout(AsyncEvent event) throws IOException {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void onError(AsyncEvent event) throws IOException {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void onStartAsync(AsyncEvent event) throws IOException {
-                // TODO Auto-generated method stub
-
-            }
-        });
-        */
     }
 
     public void addError(LackrPresentableError x) {
