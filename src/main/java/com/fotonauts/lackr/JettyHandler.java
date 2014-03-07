@@ -9,6 +9,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+/**
+ * Jetty handler adapter for Lackr Proxies.
+ * 
+ * @author kali
+ *
+ */
 public class JettyHandler extends AbstractHandler {
 
     private BaseProxy proxy;
