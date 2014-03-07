@@ -26,6 +26,41 @@ import org.eclipse.jetty.util.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Jetty handler implementing lackr core http proxy features.
+ * 
+ * <p>Asynchronously accepts incoming requests, sends them to its mandatory {@link Backend},
+ * then send it back.
+ * 
+ * <p>Lackr "payload" feature being Interpolr, it's unlikely there is a real-world use case for
+ * this {@link BaseProxy}, but it is helpful to have this seggregated for testing purposes.
+ * 
+ * 
+ * <h2>query workflow</h2>
+ * 
+ * <h3>incoming request</h3>
+ * <li>{@link #handle(String, Request, HttpServletRequest, HttpServletResponse)} receive jetty request 
+ *      a first time and {@link #createFrontendRequest(HttpServletRequest)}. The FrontendRequest is the
+ *      lackr object that hold all intermediary state of a request being processed. It is set as an
+ *      attribute of the jetty request({@link #LACKR_STATE_ATTRIBUTE}), and 
+ *      {@link #handleInitial(BaseFrontendRequest)} is called.
+ * <li>{@link #handleInitial(BaseFrontendRequest)} creates a backend request matching the incoming request
+ *     and calls ({@link #scheduleBackendRequest(LackrBackendRequest)} on it
+ * <li>{@link #scheduleBackendRequest(LackrBackendRequest)} enqueue a task in the executor that will basically
+ *     call {@link LackrBackendRequest#start()}
+ * 
+ * <h3>asynchronous workflow</h3>
+ * <li>the executor threads starts executing code from {@link Backend} and {@link LackrBackendRequest} that will
+ *     eventually reach the {@link CompletionListener} set in the {@link LackrBackendRequest}.
+ * <li>{@link #onBackendRequestDone(BaseFrontendRequest)} is called, bouncing to {@link BaseFrontendRequest#reDispatchOnce()}
+ * <li>the container is signaled that the request is ready to be handled again
+ * 
+ * <h3>writing response</h3>
+ * <li>
+ * 
+ * @author kali
+ *
+ */
 public class BaseProxy extends AbstractHandler {
 
     static Logger log = LoggerFactory.getLogger(BaseProxy.class);
@@ -49,10 +84,24 @@ public class BaseProxy extends AbstractHandler {
     public BaseProxy() {
     }
 
+    /**
+     * BaseProxy implementation creates a {@link BaseFrontendRequest}.
+     * 
+     * @param request incoming request
+     * @return a BaseFrontendRequest
+     */
     protected BaseFrontendRequest createFrontendRequest(HttpServletRequest request) {
         return new BaseFrontendRequest(this, request);
     }
 
+    /**
+     * Initial handling of the {@link BaseFrontendRequest}.
+     * 
+     * Creates a matching {@link LackrBackendRequest}, and call 
+     * {@link #scheduleBackendRequest(LackrBackendRequest)} to enqueue it to the executor.
+     * 
+     * @param frontendReq the request to start processing
+     */
     protected void handleInitial(final BaseFrontendRequest frontendReq) {
         try {
             LackrBackendRequest rootRequest = createBackendRequest(frontendReq);
@@ -64,6 +113,15 @@ public class BaseProxy extends AbstractHandler {
         }
     }
 
+    /**
+     * Creates a {@link LackrBackendRequest} representing a {@link BaseFrontendRequest}.
+     * 
+     * <p>A completion listener is set to trampoline to {@link #onBackendRequestDone(BaseFrontendRequest)}.
+     * 
+     * @param frontendReq the recently created {@link BaseFrontendRequest}.
+     * @return a new {@link LackrBackendRequest}.
+     * @throws IOException
+     */
     protected LackrBackendRequest createBackendRequest(final BaseFrontendRequest frontendReq) throws IOException {
         byte[] body = null;
         if (frontendReq.getIncomingServletRequest().getContentLength() > 0)
@@ -88,6 +146,13 @@ public class BaseProxy extends AbstractHandler {
         return rootRequest;
     }
 
+    /**
+     * Enqueue a backend request in the executor.
+     * 
+     * The enqueued task will call {@link LackrBackendRequest#start()}.
+     * 
+     * @param request the {@link LackrBackendRequest} to enqueue.
+     */
     protected void scheduleBackendRequest(final LackrBackendRequest request) {
         getExecutor().execute(new Runnable() {
 
@@ -104,11 +169,30 @@ public class BaseProxy extends AbstractHandler {
         });
     }
 
+    /**
+     * Called in the executor thread when the asynchronous part is over.
+     * 
+     * Default implementation signals the container for re-scheduling of the request, in the
+     * form of another call on {@link #handle(String, Request, HttpServletRequest, HttpServletResponse)}.
+     * 
+     * @param frontendRequest
+     */
     protected void onBackendRequestDone(BaseFrontendRequest frontendRequest) {
         log.debug("Processing done, consider re-dispatching the http thread.");
         frontendRequest.reDispatchOnce();
     }
 
+    /**
+     * Called on second handling of the request.
+     * 
+     * <p>Choose between {@link #writeErrorResponse(BaseFrontendRequest, HttpServletResponse)}
+     * and {@link #writeSuccessResponse(BaseFrontendRequest, HttpServletResponse)} based on the emptyness of
+     * {@link BaseFrontendRequest#getErrors()}.
+     * 
+     * @param frontendRequest the lackr representation of the request
+     * @param response the response object from the container
+     * @throws IOException 
+     */
     protected void writeResponse(BaseFrontendRequest frontendRequest, HttpServletResponse response) throws IOException {
         try {
             if (!frontendRequest.getErrors().isEmpty()) {
@@ -124,10 +208,28 @@ public class BaseProxy extends AbstractHandler {
         }
     }
 
+    /**
+     * Writes the body of the request response to a stream.
+     * 
+     * <p>This implementation just grab the buffer from the main request and writes it to the request.
+     * 
+     * <p>Can (and will) be called more than once.
+     * 
+     * @param req
+     * @param out
+     * @throws IOException
+     */
     protected void writeContentTo(BaseFrontendRequest req, OutputStream out) throws IOException {
         out.write(req.getBackendRequest().getExchange().getResponse().getBodyBytes());
     }
 
+    /**
+     * Write a success response, dealing with ETAG/ifNoneMatch support.
+     * 
+     * @param state
+     * @param response
+     * @throws IOException
+     */
     protected void writeSuccessResponse(BaseFrontendRequest state, HttpServletResponse response) throws IOException {
         LackrBackendExchange rootExchange = state.getBackendRequest().getExchange();
 
@@ -176,6 +278,15 @@ public class BaseProxy extends AbstractHandler {
         response.flushBuffer(); // force commiting
     }
 
+    /**
+     * Formats the errors accumulated in the {@link BaseFrontendRequest}.
+     * 
+     * Will also set the plain text error message in the "LACKR_ERROR_MESSAGE" attribute of the request.
+     * 
+     * @param req
+     * @param response
+     * @throws IOException
+     */
     protected void writeErrorResponse(BaseFrontendRequest req, HttpServletResponse response) throws IOException {
         log.debug("Writing error response for " + req.getBackendRequest().getQuery());
 
@@ -239,6 +350,12 @@ public class BaseProxy extends AbstractHandler {
 
     //--------------------------------------------------------------------------------------
     // jetty Handler
+    /**
+     * Entry point for jetty container.
+     * 
+     * <p>Will typically be called twice for each query to support asynchronous mode.
+     * 
+     */
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {

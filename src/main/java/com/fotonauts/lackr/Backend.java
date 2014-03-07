@@ -26,5 +26,10 @@ public interface Backend extends LifeCycle {
 	 */
 	public String getName();
 	
+	/**
+	 * Check the current status of the backend stack.
+	 * 
+	 * @return true if the backend is in a good state
+	 */
 	public boolean probe();
 }
