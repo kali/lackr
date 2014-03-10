@@ -1,0 +1,1 @@
+{ "some" : "wrapper", "content" : "ssi:include:virtual:/ex2-shared-esi2.html" }
