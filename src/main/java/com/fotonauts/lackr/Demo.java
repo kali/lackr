@@ -34,7 +34,7 @@ public class Demo {
     }
 
     public static void main(String[] args) throws Exception {
-        String backendUrl = "http://localhost/~" + System.getProperty("user.name") + "/";
+        String backendUrl = "http://localhost/~" + System.getProperty("user.name") + "/lackr-examples/";
         if (args.length > 0 && args[0] != null && !"".equals(args[0]))
             backendUrl = args[0];
 
@@ -45,8 +45,8 @@ public class Demo {
         Server server = Factory.buildInterpolrProxyServer(interpolr, backend, port);
 
         server.start();
-        System.out.println("Backend is: " + backendUrl);
-        System.out.println("Proxy Server listenning on http://localhost:"
+        System.out.println("export BACKEND=" + backendUrl);
+        System.out.println("export PROXY=http://localhost:"
                 + ((ServerConnector) (server.getConnectors()[0])).getLocalPort() + "/");
         server.join();
     }
