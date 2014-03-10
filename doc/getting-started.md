@@ -9,9 +9,9 @@ will be required too. The built-in OSX support for http sharing will do, or a us
 server on linux.
 
 ```
-git clone git@github.com:fotonauts/lackr.git
-cd lackr
-mvn compile exec:java
+% git clone git@github.com:fotonauts/lackr.git
+% cd lackr
+% mvn compile exec:java
 ```
 
 When maven is down downloading half the Internet, you should get:
@@ -26,7 +26,7 @@ The Demo server does its best to find an available TCP prot above 8000, and to
 guess a "backend" url. If the backend url does not work for you, you can override it by running instead:
 
 ```
-mvn exec:java -Dexec.args=http://whatever.suits/you/
+% mvn exec:java -Dexec.args=http://whatever.suits/you/
 ```
 
 If you want to run the snippets below, I suggest you cut and paste the two last
