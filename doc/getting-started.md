@@ -66,9 +66,11 @@ There is obviously some exotic markup on the second line that lackr will catch, 
 replace with the result of another request:
 
 ```
-% curl ${BACKEND}ex2-shared-esi.html                                                  :master
+% curl ${BACKEND}ex2-shared-esi.html
 I'm the content of ex2-shared-esi.html.
 ```
+
+Let's check out the result:
 
 ```
 % curl ${PROXY}ex2-esi1.html
