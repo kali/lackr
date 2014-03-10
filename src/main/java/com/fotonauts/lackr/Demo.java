@@ -45,6 +45,7 @@ public class Demo {
         Server server = Factory.buildInterpolrProxyServer(interpolr, backend, port);
 
         server.start();
+        System.out.println("");
         System.out.println("export BACKEND=" + backendUrl);
         System.out.println("export PROXY=http://localhost:"
                 + ((ServerConnector) (server.getConnectors()[0])).getLocalPort() + "/");

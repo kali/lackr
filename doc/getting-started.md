@@ -50,8 +50,8 @@ Hello world!
 
 Ok!
 
-Edge Side Include
------------------
+Basic Edge Side Include
+-----------------------
 
 Let's have a look at ex2-esi.html.
 
@@ -82,3 +82,50 @@ I'm some text at the bottom of the main document after an ESI call.
 
 Here we go. That's probably the most basic feature of lackr. At this point this is roughly
 equivalent of what Varnish and nginx (or apache respectable mod_ssi) do out of the box.
+
+ESI and JSON
+------------
+
+But we can go a bit further. Lackr detects other variants of ESI markup...
+
+```
+% curl ${BACKEND}ex2-esi2.html
+<script> var esi = "ssi:include:virtual:/ex2-shared-esi.json"; </script>
+% curl ${BACKEND}/ex2-shared-esi.json
+{ "foo" : "bar", "bar": "baz" }
+% curl ${PROXY}ex2-esi2.html
+<script> var esi = { "foo" : "bar", "bar": "baz" }
+; </script>
+```
+
+And as lackr also look for markup in JSON files...
+
+```
+% curl ${BACKEND}ex2-esi2.json
+{ "some" : "wrapper", "content" : "ssi:include:virtual:/ex2-shared-esi.json" }
+% curl ${PROXY}ex2-esi2.json
+{ "some" : "wrapper", "content" : { "foo" : "bar", "bar": "baz" }
+ }
+```
+
+Note that _some_ provision is made for escaping combination like html included in json:
+
+```
+% curl ${BACKEND}ex2-esi3.json
+{ "some" : "wrapper", "content" : "ssi:include:virtual:/ex2-shared-esi2.html" }
+% curl ${BACKEND}ex2-shared-esi2.html
+I'm some "complicated" html to be <i>included</i> in JSON.
+% curl ${PROXY}ex2-esi3.json
+{ "some" : "wrapper", "content" : "I'm some \"complicated\" html to be <i>included<\/i> in JSON.\n" }
+```
+
+Note how the html is transformed in a json string, with its double-quote escaped.
+
+All escaping scenario are not covered here (and some would be very difficult to do), 
+so if you plan on doing some very tricky inclusion, you may encounter some issues.
+Test thoroughly your use cases. But HTML in HTML works, and JSON in JSON works.
+
+Handlebars
+----------
+
+
