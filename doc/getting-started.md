@@ -128,4 +128,43 @@ Test thoroughly your use cases. But HTML in HTML works, and JSON in JSON works.
 Handlebars
 ----------
 
+Handlebars, as you may now, is a very lightweight template language. It is an extension
+of Mustache, meant to solve some of Mustache limitations while staying easy to 
+port to various virtual machines. The idea is that you can use the same Handlebars
+template in various contexts, like a Ruby-on-Rails backend, a Java proxy (lackr, for
+instance) and the brosers javascript engine.
 
+```
+% curl ${BACKEND}ex3-hbs1.html
+<!-- lackr:handlebars:template name="template_name" -->
+    some text from the template name:{{name}} value:{{value}}
+<!-- /lackr:handlebars:template -->
+<!-- lackr:handlebars:eval name="template_name" -->
+    { "name": "the name", "value": "the value" }
+<!-- /lackr:handlebars:eval -->
+% curl ${PROXY}ex3-hbs1.html
+
+
+    some text from the template name:the name value:the value
+
+```
+
+Here we introduce more lackr exotic markup, to declare a handlebars template (which will
+be filtered out of the resulting page) and use it once by evaluating it against a JSON
+object.
+
+Now, the *real* fun starts when we mix this with the ESI from the previous section...
+
+```
+% curl ${BACKEND}ex3-hbs2.html
+<!-- lackr:handlebars:template name="template_name" -->
+    some text from the template name:{{bar}} value:{{foo}}
+<!-- /lackr:handlebars:template -->
+<!-- lackr:handlebars:eval name="template_name" -->
+    "ssi:include:virtual:/ex2-shared-esi.json"
+<!-- /lackr:handlebars:eval -->
+% curl ${PROXY}ex3-hbs2.html
+
+
+    some text from the template name:baz value:bar
+```
