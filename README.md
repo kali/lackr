@@ -14,7 +14,7 @@ Its main features are:
 It is distributed as a library, and principally meant to be integrated in a
 jetty 9.x server.
 A very simple proxy with ESI and Handlebars is provided in
-[/src/main/java/com/fotonauts/lackr/Demo.java](Demo.java) to help getting started. It
+[Demo.java](/src/main/java/com/fotonauts/lackr/Demo.java) to help getting started. It
 can be tweaked to become a standalone server, but Lackr will be most beneficial when
 integrated to meet your own features need. Lackr is a tool for developpers.
 
@@ -29,5 +29,5 @@ request processing with minimum headache:
 - Handlebars ad-hoc "handlers" for consistent HTML creation in Backend, browser and
   Lackr.
 
-Interested ? [/doc/getting-started.md](Try it,) or [/doc/history.md](read more).
+Interested ? [Try it](/doc/getting-started.md), or [read more](/doc/history.md).
 
