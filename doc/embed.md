@@ -108,3 +108,5 @@ import com.fotonauts.lackr.testutils.Factory;
         server.start();
         server.join();
 ```
+
+Note that this is exactly what Demo.java does, when backend and port guesswork are stripped out.
