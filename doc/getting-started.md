@@ -22,7 +22,7 @@ export BACKEND=http://localhost/~kali/lackr-examples/
 export PROXY=http://localhost:8000/
 ```
 
-The Demo server does its best to find an available TCP prot above 8000, and to
+The Demo server does its best to find an available TCP port above 8000, and to
 guess a "backend" url. If the backend url does not work for you, you can override it by running instead:
 
 ```
@@ -44,7 +44,7 @@ Hello world!
 Now let's try the proxy:
 
 ```
-% curl "${BACKEND}ex1.html"
+% curl "${PROXY}ex1.html"
 Hello world!
 ```
 
