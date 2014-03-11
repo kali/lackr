@@ -57,7 +57,7 @@ A typical setup, like the one discussed in getting-started will look like this:
 - InterpolrProxy is our main workhorse.
 - LackrProxyJettyHandler is a thin wrapper to make InterpolrProxy pluggable into a Jetty server (implements Handler)
 - ClientBackend is the backend to which InterpolrProxy will forward all incoming requests and all subsequence ESI-triggered requests too
-- Interpolr is the text-processor that will detects ESI and handlebars markup, collaborating with the proxy to generate more request.
+- Interpolr is the text-processor that will detect and process ESI and handlebars markup, collaborating with the proxy to generate more backend requests.
 
 Only the left column is deeply jetty-server tainted. Embedding as a Servlet will only alter this left column.
 
@@ -88,8 +88,23 @@ We need to add fotonauts repository (FIXME) and, of course, a dependency on lack
     <dependency>
       <groupId>com.fotonauts</groupId>
       <artifactId>lackr</artifactId>
-      <version>0.5.36</version>
+      <version>0.5.37</version>
     </dependency>
 [...]
 ```
 
+We have implemented a few factory helpers to create the graph objects we need to get lackr running, so generating the
+above graph is only a matter of a few lines of code to add in the App.java main() method...
+
+```java
+import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.interpolr.Interpolr;
+import com.fotonauts.lackr.testutils.Factory;
+[...]
+        Backend backend = Factory.buildFullClientBackend("http://localhost/~kali/lackr-examples", null);
+        Interpolr interpolr = Factory.buildInterpolr("handlebars esi");
+        Server server = Factory.buildInterpolrProxyServer(interpolr, backend, 8000);
+
+        server.start();
+        server.join();
+```
