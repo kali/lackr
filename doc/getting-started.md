@@ -14,7 +14,7 @@ server on linux.
 % mvn compile exec:java
 ```
 
-When maven is down downloading half the Internet, you should get:
+When maven is done downloading half the Internet, you should get:
 
 ```
 [...]
