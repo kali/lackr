@@ -22,18 +22,25 @@ export BACKEND=http://localhost/~kali/lackr-examples/
 export PROXY=http://localhost:8000/
 ```
 
-The Demo server does its best to find an available TCP port above 8000, and to
-guess a "backend" url. If the backend url does not work for you, you can override it by running instead:
+By default, we assume you are allowed to use your "userdir"-like directory to serve static files to
+act as a backend. If that's not the case — the feature has apparently been hidden in OSX — you can try:
 
 ```
-% mvn exec:java -Dexec.args=http://whatever.suits/you/
+cd doc
+python -m SimpleHTTPServer 8002
+```
+
+If you can and prefer using "userdir", copy lackr-examples to the appropriate location.
+
+If the automatic backend url does not work for you, you can override it by running instead:
+
+```
+% mvn exec:java -Dexec.args=http://whatever.will.work/
 ```
 
 If you want to run the snippets below, I suggest you cut and paste the two last
 lines of maven output to setup the shell variables.
 
-Leave the proxy alone, and copy or link the directory doc/lackr-examples at the appropriate
-location. Usually symlink are not followed so it's better to copy. 
 To check that the "backend" is working as expected, run:
 
 ```
