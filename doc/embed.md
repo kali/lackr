@@ -32,25 +32,25 @@ A typical setup, like the one discussed in getting-started will look like this:
 ```
            Incoming requests world                Lackr Interpolr world                Lackr Backend world
 
-        +----------------------------+                                       
- ------>|       Jetty Server         |                                       
-        +----------------------------+                                       
+        +----------------------------+
+ ------>|       Jetty Server         |
+        +----------------------------+
                       |
                       v
-        +----------------------------+        +----------------------------+        +----------------------------+                        
-        |   LackrProxyJettyHandler   | ------>|       InterpolrProxy       |------->|        ClientBackend       |-----> ${BACKEND}
-        +----------------------------+        +----------------------------+        +----------------------------+                 
-                                                            |
-                                                            v
-                                              +----------------------------+ 
-                                              |         Interpolr          | 
-                                              +----------------------------+ 
+        +----------------------------+        +----------------------------+        +----------------------------+
+        |   LackrProxyJettyHandler   | ------>|       InterpolrProxy       |------->|        ClientBackend       |
+        +----------------------------+        +----------------------------+        +----------------------------+
+                                                            |                                      |
+                                                            v                                      \---> ${BACKEND}
+                                              +----------------------------+
+                                              |         Interpolr          |
+                                              +----------------------------+
                                                      |              |
                                                      v              v
                                               +------------+  +------------+
                                               |     ESI    |  | Handlebars |
                                               +------------+  +------------+
-                                                                               
+
 ```
 
 - Jetty Server is a "standard" instance of a Jetty Server (coming from jetty-server.jar).
