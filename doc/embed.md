@@ -101,12 +101,14 @@ import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.testutils.Factory;
 [...]
-        Backend backend = Factory.buildFullClientBackend("http://localhost/~kali/lackr-examples", null);
+    public static void main(String[] args) throws Exception {
+        Backend backend = Factory.buildFullClientBackend("http://localhost/~kali/lackr-examples/", null);
         Interpolr interpolr = Factory.buildInterpolr("handlebars esi");
         Server server = Factory.buildInterpolrProxyServer(interpolr, backend, 8000);
 
         server.start();
         server.join();
+    }
 ```
 
-Note that this is exactly what Demo.java does, when backend and port guesswork are stripped out.
+Note that this is exactly what Demo.java does, when backend and port guesswork is stripped out.
