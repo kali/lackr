@@ -37,26 +37,29 @@ A typical setup, like the one discussed in getting-started will look like this:
         +----------------------------+                                       
                       |
                       v
-        +----------------------------+                         
-        |   LackrProxyJettyHandler   |                         
-        +----------------------------+                         
-                      |
-                      v
-        +----------------------------+        +----------------------------+ 
-        |       InterpolrProxy       |------->|         Interpolr          | 
-        +----------------------------+        +----------------------------+ 
-                      |                              |              |
-                      |                              v              v
-                      |                       +------------+  +------------+
-                      |                       |    ESI     |  | Handlebars |
-                      |                       +------------+  +------------+
-                      |
-                      |
-                      |                                                           +----------------------------+
-                      \---------------------------------------------------------->|        ClientBackend       |-----> ${BACKEND}
-                                                                                  +----------------------------+
+        +----------------------------+        +----------------------------+        +----------------------------+                        
+        |   LackrProxyJettyHandler   | ------>|       InterpolrProxy       |------->|        ClientBackend       |-----> ${BACKEND}
+        +----------------------------+        +----------------------------+        +----------------------------+                 
+                                                            |
+                                                            v
+                                              +----------------------------+ 
+                                              |         Interpolr          | 
+                                              +----------------------------+ 
+                                                     |              |
+                                                     v              v
+                                              +------------+  +------------+
+                                              |     ESI    |  | Handlebars |
+                                              +------------+  +------------+
+                                                                               
 ```
 
+- Jetty Server is a "standard" instance of a Jetty Server (coming from jetty-server.jar).
+- InterpolrProxy is our main workhorse.
+- LackrProxyJettyHandler is a thin wrapper to make InterpolrProxy pluggable into a Jetty server (implements Handler)
+- ClientBackend is the backend to which InterpolrProxy will forward all incoming requests and all subsequence ESI-triggered requests too
+- Interpolr is the text-processor that will detects ESI and handlebars markup, collaborating with the proxy to generate more request.
+
+Only the left column is deeply jetty-server tainted. Embedding as a Servlet will only alter this left column.
 
 
 Embed as a standalone jetty server
