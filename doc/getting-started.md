@@ -26,7 +26,7 @@ By default, we assume you are allowed to use your "userdir"-like directory to se
 act as a backend. If that's not the case — the feature has apparently been hidden in OSX — you can try:
 
 ```
-cd doc
+cd doc/lackr-examples
 python -m SimpleHTTPServer 8002
 ```
 
