@@ -31,3 +31,11 @@ request processing with minimum headache:
 
 Interested ? [Try it](/doc/getting-started.md), or [read more](/doc/history.md).
 
+Credits
+=======
+
+From Fotonauts:
+
+- Mathieu Poumeyrol (http://github.com/kali)
+
+Copyright (c) 2011-2014 Fotonauts released under the ASF license.
