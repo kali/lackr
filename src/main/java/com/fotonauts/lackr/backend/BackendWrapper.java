@@ -5,7 +5,6 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class BackendWrapper extends AbstractLifeCycle implements Backend {
 
@@ -16,7 +15,7 @@ public class BackendWrapper extends AbstractLifeCycle implements Backend {
     }
 
     @Override
-    public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
+    public LackrBackendExchange createExchange(LackrBackendRequest request) {
         return wrapped.createExchange(request);
     }
 

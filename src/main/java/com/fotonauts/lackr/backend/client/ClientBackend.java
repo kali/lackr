@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class ClientBackend extends AbstractLifeCycle implements Backend {
 
@@ -39,7 +38,7 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
     }
 
     @Override
-    public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
+    public LackrBackendExchange createExchange(LackrBackendRequest request) {
         return new ClientLackrBackendExchange(this, actualClient, prefix, request);
     }
 

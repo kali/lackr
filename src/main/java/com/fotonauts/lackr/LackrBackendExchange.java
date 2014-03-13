@@ -3,7 +3,6 @@ package com.fotonauts.lackr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 import com.mongodb.BasicDBObject;
 
 public abstract class LackrBackendExchange {
@@ -29,7 +28,7 @@ public abstract class LackrBackendExchange {
         this.lackrBackendRequest = spec;
     }
 
-    public void start() throws NotAvailableException {
+    public void start() {
         log.debug("Starting exchange {}", this);
         /*
         addRequestHeader("X-NGINX-SSI", "yes");

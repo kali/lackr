@@ -11,7 +11,6 @@ import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.LackrBackendResponse;
 import com.fotonauts.lackr.CompletionListener;
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class TryPassBackendExchange extends LackrBackendExchange {
 
@@ -28,7 +27,7 @@ public class TryPassBackendExchange extends LackrBackendExchange {
         effectiveBackendRequest = spec;
     }
 
-    protected void tryNext() throws NotAvailableException {
+    protected void tryNext() {
         int next = triedBackend.get();
         final Backend be = ((TryPassBackend) backend).getBackends()[next];
         log.debug("Trying {} for {}", be, getBackendRequest());

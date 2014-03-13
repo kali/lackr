@@ -9,7 +9,6 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 import com.fotonauts.lackr.backend.ClusterMember;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend;
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class TestRing extends TestCase {
 
@@ -22,7 +21,7 @@ public class TestRing extends TestCase {
         }
         
         @Override
-        public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
+        public LackrBackendExchange createExchange(LackrBackendRequest request) {
             throw new RuntimeException("Bouh!");
         }
 
@@ -51,8 +50,8 @@ public class TestRing extends TestCase {
 		ring.start();
 		try {
 			ring.getBackendFor("titi");
-			assertTrue("should raise NAE here", false);
-		} catch (NotAvailableException e) {
+            assertTrue("should raise before getting here", false);
+		} catch (LackrPresentableError e) {
 		}
 		ring.stop();
 	}
@@ -70,8 +69,8 @@ public class TestRing extends TestCase {
 		ring.getMemberFor("toto").setDown();
 		try {
 			ring.getBackendFor("titi");
-			assertTrue("should raise NAE here", false);
-		} catch (NotAvailableException e) {
+			assertTrue("should raise before getting here", false);
+        } catch (LackrPresentableError e) {
 		}
         ring.stop();
 	}

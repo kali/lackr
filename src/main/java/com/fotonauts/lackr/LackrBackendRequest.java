@@ -8,8 +8,6 @@ import org.eclipse.jetty.http.HttpFields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
-
 /**
  * Represents the specification and current state of a incomingServletRequest to be tried against one or more {@link Backend}.
  * 
@@ -134,7 +132,7 @@ public class LackrBackendRequest {
     */
     //    }
 
-    public void start() throws NotAvailableException, IOException {
+    public void start() throws IOException {
         log.debug("Starting incomingServletRequest on fragment {} {}", getMethod(), getQuery());
         exchange = getFrontendRequest().getProxy().getBackend().createExchange(this);
         log.debug("Created exchange {}", exchange);

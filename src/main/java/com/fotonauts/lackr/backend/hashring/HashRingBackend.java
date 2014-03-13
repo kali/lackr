@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.backend.BaseRoutingBackend;
 import com.fotonauts.lackr.backend.Cluster;
 import com.fotonauts.lackr.backend.ClusterMember;
@@ -21,10 +22,6 @@ import com.fotonauts.lackr.backend.ClusterMember;
 public class HashRingBackend extends BaseRoutingBackend implements Backend {
 
     static Logger log = LoggerFactory.getLogger(HashRingBackend.class);
-
-    @SuppressWarnings("serial")
-    public static class NotAvailableException extends Exception {
-    };
 
     private int bucketPerHost = 128;
     private Cluster cluster;
@@ -52,11 +49,11 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
     }
     
     @Override
-    public Backend chooseBackendFor(LackrBackendRequest request) throws NotAvailableException {
+    public Backend chooseBackendFor(LackrBackendRequest request) {
         return getBackendFor(request.getQuery()); 
     }
 
-    public Backend getBackendFor(String url) throws NotAvailableException {
+    public Backend getBackendFor(String url) {
         ClusterMember member = getMemberFor(url);
         if (member == null)
             return null;
@@ -64,9 +61,9 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
             return member.getBackend();
     }
 
-    public ClusterMember getMemberFor(String value) throws NotAvailableException {
+    public ClusterMember getMemberFor(String value) {
         if (!cluster.oneUp())
-            throw new NotAvailableException();
+            throw new LackrPresentableError("HashRing " + getName() + " has no working backends.");
         MessageDigest m = null;
         try {
             m = MessageDigest.getInstance("MD5");
@@ -84,7 +81,7 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
             if (entry.getValue().isUp())
                 return entry.getValue();
         }
-        throw new NotAvailableException();
+        throw new LackrPresentableError("HashRing " + getName() + " has no working backends.");
     }
 
     @Override

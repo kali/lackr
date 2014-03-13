@@ -5,7 +5,6 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public abstract class BaseRoutingBackend extends AbstractLifeCycle implements Backend {
 
@@ -13,10 +12,10 @@ public abstract class BaseRoutingBackend extends AbstractLifeCycle implements Ba
         super();
     }
 
-    public abstract Backend chooseBackendFor(LackrBackendRequest request) throws NotAvailableException;
+    public abstract Backend chooseBackendFor(LackrBackendRequest request);
 
     @Override
-    public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
+    public LackrBackendExchange createExchange(LackrBackendRequest request) {
         return chooseBackendFor(request).createExchange(request);
     }
 

@@ -2,8 +2,6 @@ package com.fotonauts.lackr;
 
 import org.eclipse.jetty.util.component.LifeCycle;
 
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
-
 /**
  * Represents a backend server or any other upstream system lackr will try to delegate a {@link LackrBackendRequest} too. 
  *  
@@ -17,9 +15,8 @@ public interface Backend extends LifeCycle {
      * 
      * @param incomingServletRequest the incomingServletRequest specification to process
      * @return a {@link LackrBackendExchange} materialising the transaction with the Backend.
-     * @throws NotAvailableException if the Backend is not available.
      */
-	public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException;
+	public LackrBackendExchange createExchange(LackrBackendRequest request);
 
 	/**
 	 * For debugging and logging purposes.

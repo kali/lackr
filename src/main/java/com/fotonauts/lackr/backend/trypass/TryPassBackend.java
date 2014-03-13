@@ -5,7 +5,6 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
 
 public class TryPassBackend extends AbstractLifeCycle implements Backend {
 
@@ -16,7 +15,7 @@ public class TryPassBackend extends AbstractLifeCycle implements Backend {
     }
 
     @Override
-    public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
+    public LackrBackendExchange createExchange(LackrBackendRequest request) {
         return new TryPassBackendExchange(this, request);
     }
 
@@ -60,7 +59,7 @@ public class TryPassBackend extends AbstractLifeCycle implements Backend {
         return true;
     }
 
-    public void handleComplete(TryPassBackendExchange exchange, LackrBackendExchange subExchange) throws NotAvailableException {
+    public void handleComplete(TryPassBackendExchange exchange, LackrBackendExchange subExchange) {
         LackrBackendRequest effective;
         if (mustTryNext(exchange, subExchange) && exchange.getTriedBackend().incrementAndGet() < getBackends().length) {
             exchange.tryNext();
