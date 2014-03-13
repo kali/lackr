@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.backend.BaseRoutingBackend;
 
 public class RingMember extends AbstractLifeCycle {
 
@@ -53,7 +54,7 @@ public class RingMember extends AbstractLifeCycle {
         this.ring = ring;
     }
 
-    public HashRingBackend getRing() {
+    public BaseRoutingBackend getRing() {
         return ring;
     }
 

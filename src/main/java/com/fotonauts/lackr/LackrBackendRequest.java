@@ -62,7 +62,7 @@ public class LackrBackendRequest {
     }
 
     /**
-     * Return the full query to send (both path and parameters).  
+     * Return the full query to send (both path and servlet "query string").  
      * @return the query 
      */
     public String getQuery() {

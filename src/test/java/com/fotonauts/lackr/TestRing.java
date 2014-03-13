@@ -50,7 +50,7 @@ public class TestRing extends TestCase {
 		HashRingBackend ring = new HashRingBackend(new Backend[0]);
 		ring.start();
 		try {
-			ring.getHostFor("titi");
+			ring.getBackendFor("titi");
 			assertTrue("should raise NAE here", false);
 		} catch (NotAvailableException e) {
 		}
@@ -60,7 +60,7 @@ public class TestRing extends TestCase {
 	public void testTrivialRing() throws Exception {
 		HashRingBackend ring = buildHashRing("localhost");
 		ring.start();
-		assertEquals("localhost", ring.getHostFor("titi").getName());
+		assertEquals("localhost", ring.getBackendFor("titi").getName());
         ring.stop();
 	}
 
@@ -69,7 +69,7 @@ public class TestRing extends TestCase {
 		ring.start();
 		ring.getMemberFor("toto").setDown();
 		try {
-			ring.getHostFor("titi");
+			ring.getBackendFor("titi");
 			assertTrue("should raise NAE here", false);
 		} catch (NotAvailableException e) {
 		}
@@ -82,8 +82,8 @@ public class TestRing extends TestCase {
 		HashRingBackend ring2 = buildHashRing("host2", "host1");
 		ring2.start();
 		for (int i = 0; i < 10; i++) {
-			assertEquals("ring 1 and 2 should give same host", ring1.getHostFor("url" + i).getName(), ring2
-			        .getHostFor("url" + i).getName());
+			assertEquals("ring 1 and 2 should give same host", ring1.getBackendFor("url" + i).getName(), ring2
+			        .getBackendFor("url" + i).getName());
 		}
         ring1.stop();
         ring2.stop();

@@ -11,15 +11,14 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.Backend;
-import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
+import com.fotonauts.lackr.backend.BaseRoutingBackend;
 
-public class HashRingBackend extends AbstractLifeCycle implements Backend {
+public class HashRingBackend extends BaseRoutingBackend implements Backend {
 
     static Logger log = LoggerFactory.getLogger(HashRingBackend.class);
 
@@ -28,7 +27,7 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
     };
 
     private int bucketPerHost = 128;
-    private AtomicInteger up = new AtomicInteger(0);
+    AtomicInteger up = new AtomicInteger(0);
     private RingMember[] hosts;
     private int sleepMS = 100; 
 
@@ -80,8 +79,13 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
         return up.intValue() > 0;
     }
 
-    public Backend getHostFor(String value) throws NotAvailableException {
-        RingMember member = getMemberFor(value);
+    @Override
+    public Backend chooseBackendFor(LackrBackendRequest request) throws NotAvailableException {
+        return getBackendFor(request.getQuery()); 
+    }
+
+    public Backend getBackendFor(String url) throws NotAvailableException {
+        RingMember member = getMemberFor(url);
         if (member == null)
             return null;
         else
@@ -140,11 +144,6 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
         proberThread.join();
         for (RingMember host : hosts)
             host.stop();
-    }
-
-    @Override
-    public LackrBackendExchange createExchange(LackrBackendRequest request) throws NotAvailableException {
-        return getHostFor(request.getQuery()).createExchange(request);
     }
 
     @Override
