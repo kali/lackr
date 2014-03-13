@@ -19,6 +19,14 @@ public class LackrProxyJettyHandler extends AbstractHandler {
 
     private BaseProxy proxy;
 
+    public LackrProxyJettyHandler() {
+
+    }
+
+    public LackrProxyJettyHandler(BaseProxy proxy) {
+        setProxy(proxy);
+    }
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
