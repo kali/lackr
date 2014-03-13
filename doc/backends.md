@@ -26,8 +26,8 @@ confusing).
                        +----------------------------+                                                                         
 ```
 
-Real-life example
------------------
+a real life example
+-------------------
 
 But in real life, things can get slightly more interesting. This is the _real_ backend hierarchy that is in
 use for the Fotopedia Web app and Web services.
@@ -62,4 +62,12 @@ It's pseudo-code. Attributes of the various backends have been ommited. Let's ha
   against another server. It will performs queries against one given varnish, which will in turn forward them to our
   slow Ruby-on-Rails stack if necessary.
 
+So basically, we give the *fast* and *in-process* stack a chance to deal with the request itself before falling back
+to a cache cluster, which in turn falls back to the Ruby-on-Rails app. We could use a ClientBackend and have the fast
+stack run elsewhere in its own JVM, but the use of InProcessBackend is an optimisation to avoid a network roundtrip to
+a remote HTTP server that in many cases would result to a 501 "please pass to the next" response.
 
+Obviously this optimisation can only work for backends that are implemented as Servlet. If the fast stack was in go, for
+instance, we would have no choice but use the ClientBackend. Another constraint on the InProcessBackend is for the
+wrapped servlet to be strictly synchronous. Once again, if it was to use asynchronous servlet processing (as Lackr
+proxies do, by the way), we would have to go through a separate server and a ClientBackend.
