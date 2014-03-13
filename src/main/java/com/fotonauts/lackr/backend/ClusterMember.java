@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.fotonauts.lackr.backend.hashring;
+package com.fotonauts.lackr.backend;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -10,21 +10,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.Backend;
-import com.fotonauts.lackr.backend.BaseRoutingBackend;
 
-public class RingMember extends AbstractLifeCycle {
+public class ClusterMember extends AbstractLifeCycle {
 
-    static Logger log = LoggerFactory.getLogger(RingMember.class);
+    static Logger log = LoggerFactory.getLogger(ClusterMember.class);
 
+    private Cluster cluster;
     protected Backend backend;
-    private HashRingBackend ring;
+    private int id;
 
-    public RingMember(Backend backend) {
+    public ClusterMember(Cluster cluster, Backend backend, int id) {
+        this.cluster = cluster;
         this.backend = backend;
+        this.id = id;
     }
 
     public Backend getBackend() {
         return backend;
+    }
+    
+    public int getId() {
+        return id;
     }
 
     public boolean isUp() {
@@ -40,22 +46,22 @@ public class RingMember extends AbstractLifeCycle {
 
     public void setDown() {
         up.set(false);
-        if (ring != null)
-            ring.refreshStatus();
+        if (cluster != null)
+            cluster.refreshStatus();
     }
 
     public void setUp() {
         up.set(true);
-        if (ring != null)
-            ring.refreshStatus();
+        if (cluster != null)
+            cluster.refreshStatus();
     }
 
-    public void setRing(HashRingBackend ring) {
-        this.ring = ring;
+    public void setCluster(Cluster cluster) {
+        this.cluster = cluster;
     }
 
-    public BaseRoutingBackend getRing() {
-        return ring;
+    public Cluster getCluster() {
+        return cluster;
     }
 
     public boolean probe() {
@@ -69,8 +75,8 @@ public class RingMember extends AbstractLifeCycle {
         boolean before = up.getAndSet(after);
         if (before != after) {
             log.warn("Status change: " + toString());
-            if (ring != null)
-                ring.refreshStatus();
+            if (cluster != null)
+                cluster.refreshStatus();
         }
         return after;
     }
@@ -84,4 +90,6 @@ public class RingMember extends AbstractLifeCycle {
     protected void doStop() throws Exception {
         backend.stop();
     }
+    
+
 }

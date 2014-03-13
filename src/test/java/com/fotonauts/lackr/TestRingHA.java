@@ -15,8 +15,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.junit.After;
 
+import com.fotonauts.lackr.backend.ClusterMember;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend;
-import com.fotonauts.lackr.backend.hashring.RingMember;
 import com.fotonauts.lackr.testutils.Factory;
 
 public class TestRingHA extends TestCase {
@@ -61,7 +61,7 @@ public class TestRingHA extends TestCase {
     }
 
     public void testHostProbeNoConnection() throws Exception {
-        RingMember h = new RingMember(Factory.buildFullClientBackend(54321, "/"));
+        ClusterMember h = new ClusterMember(null, Factory.buildFullClientBackend(54321, "/"), 0);
         h.start();
         h.probe();
         assertFalse("h is down", h.isUp());
@@ -69,7 +69,7 @@ public class TestRingHA extends TestCase {
     }
 
     public void testHostProbeWrongHostname() throws Exception {
-        RingMember h = new RingMember(Factory.buildFullClientBackend("something.that.does.not.exists:1212", "/"));
+        ClusterMember h = new ClusterMember(null, Factory.buildFullClientBackend("something.that.does.not.exists:1212", "/"), 0);
         h.probe();
         assertFalse("h is down", h.isUp());
     }
@@ -77,7 +77,7 @@ public class TestRingHA extends TestCase {
     public void testHostProbe500() throws Exception {
         StubServer backend = new StubServer();
         backend.up.set(false);
-        RingMember h = new RingMember(Factory.buildFullClientBackend(backend.getPort(), "/"));
+        ClusterMember h = new ClusterMember(null, Factory.buildFullClientBackend(backend.getPort(), "/"), 0);
         h.start();
         assertFalse(h.probe());
         assertEquals("server has been probed", 1, backend.requestCount.get());
@@ -88,7 +88,7 @@ public class TestRingHA extends TestCase {
 
     public void testHostProbe200() throws Exception {
         StubServer backend = new StubServer();
-        RingMember h = new RingMember(Factory.buildFullClientBackend(backend.getPort(), "/"));
+        ClusterMember h = new ClusterMember(null, Factory.buildFullClientBackend(backend.getPort(), "/"), 0);
         h.start();
         assertTrue(h.probe());
         assertEquals("server has been probed", 1, backend.requestCount.get());
@@ -106,22 +106,22 @@ public class TestRingHA extends TestCase {
         Thread.sleep(500);
         assertTrue("server has been probed", server1.requestCount.get() > 0);
         assertTrue("server has been probed", server2.requestCount.get() > 0);
-        assertTrue("ring is up", ring.up());
+        assertTrue("ring is up", ring.probe());
         server1.up.set(false);
         Thread.sleep(1500);
-        assertTrue("ring is still up", ring.up());
-        assertTrue("backend1 is down", !ring.getMember(0).isUp());
-        assertTrue("backend2 is up", ring.getMember(1).isUp());
+        assertTrue("ring is still up", ring.probe());
+        assertTrue("backend1 is down", !ring.getCluster().getMember(0).isUp());
+        assertTrue("backend2 is up", ring.getCluster().getMember(1).isUp());
         server2.up.set(false);
         Thread.sleep(1500);
-        assertTrue("ring is now down", !ring.up());
-        assertTrue("backend1 is down", !ring.getMember(0).isUp());
-        assertTrue("backend2 is down", !ring.getMember(1).isUp());
+        assertTrue("ring is now down", !ring.probe());
+        assertTrue("backend1 is down", !ring.getCluster().getMember(0).isUp());
+        assertTrue("backend2 is down", !ring.getCluster().getMember(1).isUp());
         server1.up.set(true);
         Thread.sleep(1500);
-        assertTrue("ring is back up", ring.up());
-        assertTrue("backend1 is up", ring.getMember(0).isUp());
-        assertTrue("backend2 is down", !ring.getMember(1).isUp());
+        assertTrue("ring is back up", ring.probe());
+        assertTrue("backend1 is up", ring.getCluster().getMember(0).isUp());
+        assertTrue("backend2 is down", !ring.getCluster().getMember(1).isUp());
         server1.stop();
         server2.stop();
         ring.stop();

@@ -8,8 +8,6 @@ import java.util.NavigableMap;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import com.fotonauts.lackr.Backend;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.backend.BaseRoutingBackend;
+import com.fotonauts.lackr.backend.Cluster;
+import com.fotonauts.lackr.backend.ClusterMember;
 
 public class HashRingBackend extends BaseRoutingBackend implements Backend {
 
@@ -27,77 +27,45 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
     };
 
     private int bucketPerHost = 128;
-    AtomicInteger up = new AtomicInteger(0);
-    private RingMember[] hosts;
-    private int sleepMS = 100; 
+    private Cluster cluster;
 
-    private NavigableMap<Integer, RingMember> ring;
-
-    private AtomicBoolean mustStop = new AtomicBoolean(false);
-    private Thread proberThread;
+    private NavigableMap<Integer, ClusterMember> ring;
 
     public HashRingBackend(Backend... backends) {
-        hosts = new RingMember[backends.length];
-        for (int i = 0; i < backends.length; i++)
-            hosts[i] = new RingMember(backends[i]);
+        cluster = new Cluster(backends);
     }
 
     public void doStart() throws Exception {
-        ring = new TreeMap<Integer, RingMember>();
-        for (RingMember h : hosts) {
-            h.setRing(this);
+        ring = new TreeMap<Integer, ClusterMember>();
+        for (ClusterMember h : cluster.getMembers()) {
             Random random = new Random(h.getBackend().getName().hashCode());
             for (int i = 0; i < bucketPerHost; i++) {
                 ring.put(random.nextInt(), h);
             }
         }
-        for (RingMember h : hosts)
-            h.start();
-        up.set(hosts.length);
-        proberThread = new Thread() {
-            public void run() {
-                while (!mustStop.get()) {
-                    try {
-                        for (RingMember h : hosts)
-                            h.probe();
-                    } catch (Throwable e) {
-                        log.warn("Caught exception in probing thread: ", e);
-                    }
-                    try {
-                        Thread.sleep(getSleepMS());
-                    } catch (InterruptedException e) {
-                    }
-                }
-            };
-        };
-        proberThread.setName("ProberThread: " + getName());
-        proberThread.setDaemon(true);
-        proberThread.start();
+        cluster.start();
     }
 
-    public boolean up() {
-        return up.intValue() > 0;
+    @Override
+    protected void doStop() throws Exception {
+        cluster.stop();
     }
-
+    
     @Override
     public Backend chooseBackendFor(LackrBackendRequest request) throws NotAvailableException {
         return getBackendFor(request.getQuery()); 
     }
 
     public Backend getBackendFor(String url) throws NotAvailableException {
-        RingMember member = getMemberFor(url);
+        ClusterMember member = getMemberFor(url);
         if (member == null)
             return null;
         else
             return member.getBackend();
     }
 
-    public RingMember getMember(int i) {
-        return hosts[i];
-    }
-
-    public RingMember getMemberFor(String value) throws NotAvailableException {
-        if (!up())
+    public ClusterMember getMemberFor(String value) throws NotAvailableException {
+        if (!cluster.oneUp())
             throw new NotAvailableException();
         MessageDigest m = null;
         try {
@@ -107,56 +75,30 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
         }
         m.update(value.getBytes());
         ByteBuffer bb = ByteBuffer.wrap(m.digest());
-        SortedMap<Integer, RingMember> tail = ring.tailMap(bb.getInt());
-        for (Entry<Integer, RingMember> entry : tail.entrySet()) {
+        SortedMap<Integer, ClusterMember> tail = ring.tailMap(bb.getInt());
+        for (Entry<Integer, ClusterMember> entry : tail.entrySet()) {
             if (entry.getValue().isUp())
                 return entry.getValue();
         }
-        for (Entry<Integer, RingMember> entry : ring.entrySet()) {
+        for (Entry<Integer, ClusterMember> entry : ring.entrySet()) {
             if (entry.getValue().isUp())
                 return entry.getValue();
         }
         throw new NotAvailableException();
     }
 
-    public void refreshStatus() {
-        int ups = 0;
-        for (RingMember host : hosts) {
-            if (host.isUp())
-                ups++;
-        }
-        up.set(ups);
-        String message = "Ring has " + up.get() + " backend up among " + hosts.length + ".";
-        log.warn(message);
-    }
-
     @Override
     public String getName() {
-        if (hosts.length == 0)
-            return "Empty hashring.";
-        else
-            return "HashRingBackend: " + hosts[0].getBackend().getName() + " et al.";
-    }
-
-    @Override
-    public void doStop() throws Exception {
-        mustStop.set(true);
-        proberThread.join();
-        for (RingMember host : hosts)
-            host.stop();
+        return cluster.getName();
     }
 
     @Override
     public boolean probe() {
-        return up.get() > 0;
+        return cluster.oneUp();
     }
 
-    public int getSleepMS() {
-        return sleepMS;
-    }
-
-    public void setSleepMS(int sleep) {
-        this.sleepMS = sleep;
+    public Cluster getCluster() {
+        return cluster;
     }
 
 }

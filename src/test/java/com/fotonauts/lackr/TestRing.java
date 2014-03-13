@@ -7,9 +7,9 @@ import junit.framework.TestCase;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
+import com.fotonauts.lackr.backend.ClusterMember;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend.NotAvailableException;
-import com.fotonauts.lackr.backend.hashring.RingMember;
 
 public class TestRing extends TestCase {
 
@@ -92,17 +92,17 @@ public class TestRing extends TestCase {
 	public void testSpread() throws Exception {
 		HashRingBackend ring = buildHashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
 		ring.start();
-		HashMap<RingMember, Integer> result = new HashMap<RingMember, Integer>();
+		HashMap<ClusterMember, Integer> result = new HashMap<ClusterMember, Integer>();
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			RingMember h = ring.getMemberFor(url);
+			ClusterMember h = ring.getMemberFor(url);
 			if(!result.containsKey(h))
 				result.put(h, 1);
 			else
 				result.put(h, result.get(h) + 1);
 		}
 		assertEquals("queried backends", 8, result.size());
-		for(Entry<RingMember, Integer> entry : result.entrySet()) {
+		for(Entry<ClusterMember, Integer> entry : result.entrySet()) {
 			assertTrue(entry.getKey().getBackend() + " got its share", entry.getValue() > 500);
 		}
 		ring.stop();
@@ -111,18 +111,18 @@ public class TestRing extends TestCase {
 	public void testAvoidDead() throws Exception {
 		HashRingBackend ring = buildHashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
 		ring.start();
-		RingMember[] result1 = new RingMember[10000];
+		ClusterMember[] result1 = new ClusterMember[10000];
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			RingMember h = ring.getMemberFor(url);
+			ClusterMember h = ring.getMemberFor(url);
 			result1[i] = h;
 		}
-		RingMember dead = ring.getMemberFor("dead");
+		ClusterMember dead = ring.getMemberFor("dead");
 		dead.setDown();
-		RingMember[] result2 = new RingMember[10000];
+		ClusterMember[] result2 = new ClusterMember[10000];
 		for(int i = 0; i < 10000; i++) {
 			String url = "blahblah" + i;
-			RingMember h = ring.getMemberFor(url);
+			ClusterMember h = ring.getMemberFor(url);
 			result2[i] = h;
 		}
 		for(int i = 0; i < 10000; i++) {
