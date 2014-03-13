@@ -113,8 +113,7 @@ Note:
 - Executing code before the request is quite trivial. The problematic part is plugging into the completion listener
   chain to run after the request is done.
 - BackendWrapper provides doStart() and doStop() implementations managing the wrapped Backend lifecycle. they can be
-  overriden for managing additional resources, but the *must* call their _super_ implementation
-
+  overriden for managing additional resources, but the *must* call their _super_ implementation.
 
 Implementing a multi backend router
 -----------------------------------
@@ -122,16 +121,17 @@ Implementing a multi backend router
 RoundRobinBackend is a backend that will hit every backend children in a round robin fashion, skipping the down
 ones.
 
-We are not using it in production but we feel pretty confident it does work. It is meant to be starting point for
+We are not using it in production but we feel pretty confident it does work. It is meant to be a starting point for
 implementing alternative cluster targetting backends.
-
 [Check out the code.](/src/main/java/com/fotonauts/lackr/backend/RoundRobinBackend.java)
 
-It leverages the same Cluster/ClusterMember than the HashRingBackend, for background health checking (aka probe() )
-of a list of backends. Implementing a Backend is actually pretty easy. A good starting point is to subclass jetty's
-AbstractLifeCycle to get a reasonable and robust LifeCycle implementation. doStart() and doStop() *must* call stop()
-and start() on any inner backend (or inner cluster of backends). probe() must return true iif the backend is on a
-working state. Finally the all important "createExchange" method can be forwarded to an inner backend on any suitable
-logic.
+It leverages the same Cluster/ClusterMember abstraction than the HashRingBackend, for background health checking
+(aka probe() ) of a list of backends. Implementing a routing Backend is actually easier than a Logging one, as
+the magic happens at the beginning of the processing. 
+
+A good starting point is to subclass jetty's AbstractLifeCycle to get a reasonable and robust LifeCycle
+implementation. doStart() and doStop() *must* call stop() and start() on any inner backend (or inner cluster of 
+backends). probe() must return true iif the backend is on a working state. Finally the all important "createExchange" 
+method can be forwarded to an inner backend according to any suitable logic.
 
 More off-the-shelf backends may be added in the future...
