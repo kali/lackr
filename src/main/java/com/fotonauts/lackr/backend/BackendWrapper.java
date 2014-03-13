@@ -19,6 +19,10 @@ public class BackendWrapper extends AbstractLifeCycle implements Backend {
         return wrapped.createExchange(request);
     }
 
+    public Backend getWrapped() {
+        return wrapped;
+    }
+
     @Override
     public String getName() {
         return wrapped.getName();

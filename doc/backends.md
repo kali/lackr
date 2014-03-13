@@ -11,19 +11,19 @@ request to a given remote http server (that we have also called "backend" so far
 confusing).
 
 ```
-                       +----------------------------+                                                                         
-                       |                            |                                                                         
-   Incoming            |  +----------------------+  |                                                                         
-   Requests    --------+->|       BaseProxy      |  |                                                                         
-                       |  +----------------------+  |                                                                         
-                       |              |             |                                                                         
-                       |              v             |                                                                         
-                       |  +----------------------+  |                                                                         
-                       |  |     ClientBackend    |--+------> Actual HTTP server Backend                                    
-                       |  +----------------------+  |                                                                         
-                       |                            |                                                                         
-                       |         Lackr Demo         |                                                                         
-                       +----------------------------+                                                                         
+                       +----------------------------+
+                       |                            |
+   Incoming            |  +----------------------+  |
+   Requests    --------+->|       BaseProxy      |  |
+                       |  +----------------------+  |
+                       |              |             |
+                       |              v             |
+                       |  +----------------------+  |
+                       |  |     ClientBackend    |--+------> Actual HTTP server Backend
+                       |  +----------------------+  |
+                       |                            |
+                       |         Lackr Demo         |
+                       +----------------------------+
 ```
 
 a real life example
@@ -52,7 +52,7 @@ It's pseudo-code. Attributes of the various backends have been ommited. Let's ha
 - TryPassBackend is a backend that is configured with an orderd list of backends. It will try them in turn until one
   of them handles the query.
 - LoggingBackend is logically transparent but... logs stuff. It's currently not part of Lackr but of our
-  application specific code. We may move it to Lackr someday, but it needs some work.
+  application specific code (we describe a dummy logging backend in the next section).
 - InProcessBackend wraps a standard Servlet (which is actually our fast-stack app) and performs queries against it
   without going through the network.
 - HashRingBackend performs consistent hashing against a ring made of its children backends. The choice of backend
@@ -72,6 +72,50 @@ for instance, we would have no choice but use the ClientBackend. Another constra
 wrapped servlet to be strictly synchronous. Once again, if it was to use asynchronous servlet processing (as Lackr
 proxies do, by the way), we would have to go through a separate server and a ClientBackend.
 
+Implementing a pass-through backend (LoggingBackend)
+----------------------------------------------------
+
+If LoggingBackend is not present in itself, it is interesting to know how it is actually implemented. Running code
+before and after a request is made a bit tedious by the asynchronous nature of Lackr processing.
+
+```
+public class LoggingBackend extends BackendWrapper {
+
+    public LoggingBackend(Backend wrapped) {
+        super(wrapped);
+    }
+
+    @Override
+    public LackrBackendExchange createExchange(final LackrBackendRequest request) {
+        final long start = System.currentTimeMillis();
+        final LackrBackendExchange innerExchange = getWrapped().createExchange(request);
+        final CompletionListener innerCompletionListener = innerExchange.getCompletionListener();
+        innerExchange.setCompletionListener(new CompletionListener() {
+
+            @Override
+            public void fail(Throwable t) {
+                System.err.println(request + " took " + (System.currentTimeMillis() - start) + " millisecs but failed: " + t);
+                innerCompletionListener.fail(t);
+            }
+
+            @Override
+            public void complete() {
+                System.err.println(request + " took " + (System.currentTimeMillis() - start) + " millisecs.");
+                innerCompletionListener.complete();
+            }
+        });
+        return innerExchange;
+    }
+}
+```
+
+Note:
+- Executing code before the request is quite trivial. The problematic part is plugging into the completion listener
+  chain to run after the request is done.
+- BackendWrapper provides doStart() and doStop() implementations managing the wrapped Backend lifecycle. they can be
+  overriden for managing additional resources, but the *must* call their _super_ implementation
+
+
 Implementing a multi backend router
 -----------------------------------
 
@@ -79,7 +123,7 @@ RoundRobinBackend is a backend that will hit every backend children in a round r
 ones.
 
 We are not using it in production but we feel pretty confident it does work. It is meant to be starting point for
-implementing alternative cluster targetting backends. 
+implementing alternative cluster targetting backends.
 
 [Check out the code.](/src/main/java/com/fotonauts/lackr/backend/RoundRobinBackend.java)
 
