@@ -71,3 +71,23 @@ Obviously this optimisation can only work for backends that are implemented as S
 for instance, we would have no choice but use the ClientBackend. Another constraint on the InProcessBackend is for the
 wrapped servlet to be strictly synchronous. Once again, if it was to use asynchronous servlet processing (as Lackr
 proxies do, by the way), we would have to go through a separate server and a ClientBackend.
+
+Implementing a multi backend router
+-----------------------------------
+
+RoundRobinBackend is a backend that will hit every backend children in a round robin fashion, skipping the down
+ones.
+
+We are not using it in production but we feel pretty confident it does work. It is meant to be starting point for
+implementing alternative cluster targetting backends. 
+
+[Check out the code.](/src/main/java/com/fotonauts/lackr/backend/RoundRobinBackend.java)
+
+It leverages the same Cluster/ClusterMember than the HashRingBackend, for background health checking (aka probe() )
+of a list of backends. Implementing a Backend is actually pretty easy. A good starting point is to subclass jetty's
+AbstractLifeCycle to get a reasonable and robust LifeCycle implementation. doStart() and doStop() *must* call stop()
+and start() on any inner backend (or inner cluster of backends). probe() must return true iif the backend is on a
+working state. Finally the all important "createExchange" method can be forwarded to an inner backend on any suitable
+logic.
+
+More off-the-shelf backends may be added in the future...

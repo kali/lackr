@@ -9,17 +9,18 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.backend.BaseRoutingBackend;
 import com.fotonauts.lackr.backend.Cluster;
 import com.fotonauts.lackr.backend.ClusterMember;
 
-public class HashRingBackend extends BaseRoutingBackend implements Backend {
+public class HashRingBackend extends AbstractLifeCycle implements Backend {
 
     static Logger log = LoggerFactory.getLogger(HashRingBackend.class);
 
@@ -49,8 +50,8 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
     }
     
     @Override
-    public Backend chooseBackendFor(LackrBackendRequest request) {
-        return getBackendFor(request.getQuery()); 
+    public LackrBackendExchange createExchange(LackrBackendRequest request) {
+        return getBackendFor(request.getQuery()).createExchange(request);
     }
 
     public Backend getBackendFor(String url) {

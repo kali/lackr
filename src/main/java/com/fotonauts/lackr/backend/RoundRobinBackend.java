@@ -2,10 +2,19 @@ package com.fotonauts.lackr.backend;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+
 import com.fotonauts.lackr.Backend;
+import com.fotonauts.lackr.LackrBackendExchange;
 import com.fotonauts.lackr.LackrBackendRequest;
 
-public class RoundRobinBackend extends BaseRoutingBackend implements Backend {
+/**
+ * Demonstration example of a round-robin backend.
+ * 
+ * @author kali
+ *
+ */
+public class RoundRobinBackend extends AbstractLifeCycle implements Backend {
 
     private Cluster cluster;
     private AtomicInteger i = new AtomicInteger();
@@ -24,6 +33,11 @@ public class RoundRobinBackend extends BaseRoutingBackend implements Backend {
         return cluster.oneUp();
     }
 
+    @Override
+    public LackrBackendExchange createExchange(LackrBackendRequest request) {
+        return chooseBackendFor(request).createExchange(request);
+    }
+    
     public ClusterMember chooseMemberFor(LackrBackendRequest req) {
         while(true) {
             int node = i.getAndIncrement();
@@ -35,7 +49,6 @@ public class RoundRobinBackend extends BaseRoutingBackend implements Backend {
         }
     }
     
-    @Override
     public Backend chooseBackendFor(LackrBackendRequest request) {
         return chooseMemberFor(request).getBackend();
     }
