@@ -9,43 +9,43 @@ import com.fotonauts.lackr.interpolr.InterpolrScope;
 
 public class RequestChunk implements Chunk {
 
-	private boolean isChecked = false;
-	
-	private InterpolrScope sub;
-	
-	private ESIIncludeRule rule;
-	
-	public RequestChunk(InterpolrScope sub, ESIIncludeRule rule) {
-		this.sub = sub;
-		this.rule = rule;
+    private boolean isChecked = false;
+
+    private InterpolrScope sub;
+
+    private ESIIncludeRule rule;
+
+    public RequestChunk(InterpolrScope sub, ESIIncludeRule rule) {
+        this.sub = sub;
+        this.rule = rule;
     }
-	
-	@Override
+
+    @Override
     public int length() {
-		return rule.filterDocumentAsChunk(sub).length();
+        return rule.filterDocumentAsChunk(sub).length();
     }
 
-	@Override
+    @Override
     public String toDebugString() {
-	    return "{{{" + rule.getClass().getSimpleName() + ":" + sub.toString() + "}}}";
+        return "{{{" + rule.getClass().getSimpleName() + ":" + sub.toString() + "}}}";
     }
 
-	@Override
+    @Override
     public void writeTo(OutputStream stream) throws IOException {
-		rule.filterDocumentAsChunk(sub).writeTo(stream);
+        rule.filterDocumentAsChunk(sub).writeTo(stream);
     }
-	
-	@Override
-	public void check() {
-		if(isChecked)
-			return;
-		if(sub.getParsedDocument() == null)
-		    sub.getInterpolrContext().addError(new LackrPresentableError("expected a parsed document here, found nothing", sub));
-		else {
-		    sub.getParsedDocument().check();
-		    rule.check(sub);
-		}
-		isChecked = true;
-	}
+
+    @Override
+    public void check() {
+        if (isChecked)
+            return;
+        if (sub.getParsedDocument() == null)
+            sub.getInterpolrContext().addError(new LackrPresentableError("expected a parsed document here, found nothing", sub));
+        else {
+            sub.getParsedDocument().check();
+            rule.check(sub);
+        }
+        isChecked = true;
+    }
 
 }

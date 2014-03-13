@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
 public class Archive {
 
     private String name;
@@ -17,7 +16,7 @@ public class Archive {
         this.data = data;
         process();
     }
-    
+
     /*
     @SuppressWarnings("unchecked")
     private void simplifyJavascriptObjects(Object object) {
@@ -36,29 +35,29 @@ public class Archive {
         }
     }
     */
-    
+
     @SuppressWarnings("unchecked")
     private void process() {
-//        simplifyJavascriptObjects(data);
+        //        simplifyJavascriptObjects(data);
         addArchiveReference(data);
-        Map<String,Object> objects = (Map<String, Object>) data.get("objects");
-        for(Entry<String, Object> entry : objects.entrySet()) {
+        Map<String, Object> objects = (Map<String, Object>) data.get("objects");
+        for (Entry<String, Object> entry : objects.entrySet()) {
             straightIndex.put(Integer.parseInt(entry.getKey()), entry.getValue());
         }
     }
 
     @SuppressWarnings("unchecked")
     private void addArchiveReference(Object object) {
-        if(object instanceof Map<?,?>) {
-            Map<String,Object> hash = (Map<String, Object>) object;
-            if(hash.containsKey("$$id") && !hash.containsKey("$$archive")) {
+        if (object instanceof Map<?, ?>) {
+            Map<String, Object> hash = (Map<String, Object>) object;
+            if (hash.containsKey("$$id") && !hash.containsKey("$$archive")) {
                 hash.put("$$archive", name);
             }
-            for(Object value : hash.values())
+            for (Object value : hash.values())
                 addArchiveReference(value);
-        } else if(object instanceof List<?>) {
-            for(Object value : ((List<Object>) object))
-                addArchiveReference(value);            
+        } else if (object instanceof List<?>) {
+            for (Object value : ((List<Object>) object))
+                addArchiveReference(value);
         }
     }
 
@@ -72,22 +71,22 @@ public class Archive {
 
     public Object getRootObject() {
         Integer i = getRootId();
-        if(i == null)
+        if (i == null)
             return null;
         return getObject(i);
     }
 
     public Integer getRootId() {
         Object r = data.get("root_id");
-        if(r instanceof Integer)
+        if (r instanceof Integer)
             return (Integer) r;
         return null;
     }
-    
+
     public String getName() {
         return name;
     }
-    
+
     @Override
     public int hashCode() {
         return getName().hashCode();

@@ -16,17 +16,17 @@ public interface Backend extends LifeCycle {
      * @param incomingServletRequest the incomingServletRequest specification to process
      * @return a {@link LackrBackendExchange} materialising the transaction with the Backend.
      */
-	public LackrBackendExchange createExchange(LackrBackendRequest request);
+    public LackrBackendExchange createExchange(LackrBackendRequest request);
 
-	/**
-	 * For debugging and logging purposes.
-	 */
-	public String getName();
-	
-	/**
-	 * Check the current status of the backend stack.
-	 * 
-	 * @return true if the backend is in a good state
-	 */
-	public boolean probe();
+    /**
+     * For debugging and logging purposes.
+     */
+    public String getName();
+
+    /**
+     * Check the current status of the backend stack.
+     * 
+     * @return true if the backend is in a good state
+     */
+    public boolean probe();
 }

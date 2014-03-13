@@ -27,8 +27,7 @@ public class ClientLackrBackendExchange extends LackrBackendExchange {
     private LackrBackendResponse response;
     private byte[] responseBody;
 
-    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, String prefix, LackrBackendRequest spec)
-            {
+    public ClientLackrBackendExchange(ClientBackend backend, HttpClient jettyClient, String prefix, LackrBackendRequest spec) {
         super(backend, spec);
         String url = prefix + getBackendRequest().getQuery();
         request = jettyClient.newRequest(url);

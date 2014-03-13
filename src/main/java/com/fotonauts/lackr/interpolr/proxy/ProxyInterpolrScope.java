@@ -61,7 +61,7 @@ public class ProxyInterpolrScope implements InterpolrScope {
     public void setRequest(LackrBackendRequest request) {
         this.request = request;
     }
-    
+
     @Override
     public String toString() {
         return request.toString();

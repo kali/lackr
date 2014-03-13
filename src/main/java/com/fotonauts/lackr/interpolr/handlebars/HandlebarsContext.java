@@ -22,7 +22,6 @@ import com.github.jknack.handlebars.io.StringTemplateSource;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 
-
 public class HandlebarsContext {
 
     static Logger log = LoggerFactory.getLogger(HandlebarsContext.class);
@@ -101,7 +100,7 @@ public class HandlebarsContext {
     }
 
     public void registerTemplate(String name, Document template) {
-        if(log.isDebugEnabled())
+        if (log.isDebugEnabled())
             log.debug("registerTemplate({}, {})", name, template.toDebugString());
         registeredTemplatesDocument.put(name, template);
     }
@@ -114,7 +113,7 @@ public class HandlebarsContext {
                 t.text().trim().substring(0, 30);
             log.debug("get(\"{}\") = \"{}[...]\"", templateName, StringEscapeUtils.escapeJava(templateText));
         }
-        if(t == null)
+        if (t == null)
             log.warn("Template {} not found.", templateName);
         return t;
     }
@@ -145,7 +144,7 @@ public class HandlebarsContext {
 
     public String eval(Template template, Object data) throws IOException {
         Context context = plugin.makeHbsContext(this, data);
-        String result = template.apply(context); 
+        String result = template.apply(context);
         return result;
     }
 

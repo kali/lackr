@@ -47,7 +47,7 @@ public class JsonContext {
     public Archive getArchive(String name) {
         return expandedArchives.get(name);
     }
-    
+
     public Set<String> getAllArchiveNames() {
         return expandedArchives.keySet();
     }

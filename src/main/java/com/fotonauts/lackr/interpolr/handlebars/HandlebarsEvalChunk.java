@@ -1,4 +1,4 @@
-    package com.fotonauts.lackr.interpolr.handlebars;
+package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,7 +28,7 @@ public class HandlebarsEvalChunk implements Chunk {
     private String name;
 
     private Plugin plugin;
-    
+
     public HandlebarsEvalChunk(Plugin plugin, String name, byte[] buffer, int start, int stop, InterpolrScope scope) {
         this.scope = scope;
         this.plugin = plugin;
@@ -39,7 +39,7 @@ public class HandlebarsEvalChunk implements Chunk {
     @Override
     public void check() {
         inner.check();
-        
+
         Map<String, Object> data = null;
         data = JsonParseUtils.parse(inner, scope.getInterpolrContext(), name);
         HandlebarsContext context = (HandlebarsContext) scope.getInterpolrContext().getPluginData(plugin);

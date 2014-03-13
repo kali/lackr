@@ -26,19 +26,19 @@ public class JsonParseUtils {
             boolean haveSomething = false;
             int i = 0;
             byte[] byteArray = baos.toByteArray();
-            while(!haveSomething && ++i < byteArray.length) {
-                haveSomething = byteArray[i] != ' ' && byteArray[i] != '\n' &&  byteArray[i] != '\t' && byteArray[i] != '\r';
+            while (!haveSomething && ++i < byteArray.length) {
+                haveSomething = byteArray[i] != ' ' && byteArray[i] != '\n' && byteArray[i] != '\t' && byteArray[i] != '\r';
             }
-            if(haveSomething) {
+            if (haveSomething) {
                 data = jacksonObjectMapper.readValue(baos.toByteArray(), Map.class);
                 return data;
             } else {
                 return null;
             }
         } catch (JsonParseException e) {
-            if(log.isErrorEnabled()) {
+            if (log.isErrorEnabled()) {
                 log.error("Parsing json: [[{}]] ", new String(baos.toByteArray()));
-                log.error(e.getMessage(),e);
+                log.error(e.getMessage(), e);
             }
             StringBuilder builder = new StringBuilder();
             builder.append("While parsing json for " + context + ": JsonParseException\n");
@@ -47,9 +47,9 @@ public class JsonParseUtils {
             builder.append("\n");
             context.addError(new LackrPresentableError(builder.toString()));
         } catch (IOException e) {
-            if(log.isErrorEnabled()) {
+            if (log.isErrorEnabled()) {
                 log.error("Parsing json: [[{}]] ", new String(baos.toByteArray()));
-                log.error(e.getMessage(),e);
+                log.error(e.getMessage(), e);
             }
             StringBuilder builder = new StringBuilder();
             builder.append("While parsing json for " + context + ": IOException\n");
@@ -82,12 +82,12 @@ public class JsonParseUtils {
 
     public static String prettyPrint(Map<String, Object> data) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try {
-                jacksonObjectMapper.writer().withDefaultPrettyPrinter().writeValue(baos, data);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+        try {
+            jacksonObjectMapper.writer().withDefaultPrettyPrinter().writeValue(baos, data);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return baos.toString();
     }
 

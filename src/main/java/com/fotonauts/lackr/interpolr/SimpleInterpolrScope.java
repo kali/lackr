@@ -1,6 +1,5 @@
 package com.fotonauts.lackr.interpolr;
 
-
 public class SimpleInterpolrScope implements InterpolrScope {
 
     protected InterpolrContext context;
@@ -46,7 +45,7 @@ public class SimpleInterpolrScope implements InterpolrScope {
 
     @Override
     public String toString() {
-        if(parsedDocument != null)
+        if (parsedDocument != null)
             return "<<" + parsedDocument.toDebugString() + ">>";
         else
             return new String(bodyBytes);

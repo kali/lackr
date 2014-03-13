@@ -23,7 +23,7 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
 
     private String probeUrl;
     private long probeTimeoutMs = 500;
-    private long requestTimeoutMs = 45*1000;
+    private long requestTimeoutMs = 45 * 1000;
 
     public long getProbeTimeoutMs() {
         return probeTimeoutMs;
@@ -45,7 +45,7 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
     public void setPrefix(String prefix) {
         this.prefix = prefix;
     }
-    
+
     public void setProbeUrl(String probeUrl) {
         this.probeUrl = probeUrl;
     }
@@ -72,15 +72,16 @@ public class ClientBackend extends AbstractLifeCycle implements Backend {
 
     @Override
     public boolean probe() {
-        if(probeUrl != null) {
+        if (probeUrl != null) {
             try {
-                ContentResponse resp = actualClient.newRequest(prefix + probeUrl).timeout(probeTimeoutMs, TimeUnit.MILLISECONDS).send();
+                ContentResponse resp = actualClient.newRequest(prefix + probeUrl).timeout(probeTimeoutMs, TimeUnit.MILLISECONDS)
+                        .send();
                 return resp.getStatus() == HttpStatus.OK_200;
             } catch (Throwable e) {
                 log.info("Error while probing: ", e);
                 return false;
             }
-            
+
         }
         return true;
     }

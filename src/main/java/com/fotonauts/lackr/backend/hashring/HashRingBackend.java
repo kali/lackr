@@ -48,7 +48,7 @@ public class HashRingBackend extends AbstractLifeCycle implements Backend {
     protected void doStop() throws Exception {
         cluster.stop();
     }
-    
+
     @Override
     public LackrBackendExchange createExchange(LackrBackendRequest request) {
         return getBackendFor(request.getQuery()).createExchange(request);

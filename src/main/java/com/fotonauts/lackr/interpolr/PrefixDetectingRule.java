@@ -6,7 +6,7 @@ public abstract class PrefixDetectingRule extends SimpleTriggerRule {
 
     public PrefixDetectingRule() {
     }
-    
+
     public PrefixDetectingRule(String prefix) {
         setTrigger(prefix);
     }

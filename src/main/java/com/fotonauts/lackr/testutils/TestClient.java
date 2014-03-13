@@ -65,11 +65,12 @@ public class TestClient extends AbstractLifeCycle {
         loadPageAndExpectsContains("/page.html", expect);
     }
 
-    public void loadPageAndExpectsContains(String target, String expect) throws InterruptedException, TimeoutException, ExecutionException {
+    public void loadPageAndExpectsContains(String target, String expect) throws InterruptedException, TimeoutException,
+            ExecutionException {
         ContentResponse response = createRequest(target).timeout(600, TimeUnit.SECONDS).send();
         //System.err.println(response.getContentAsString());
         assertEquals(200, response.getStatus());
-        assertTrue("response contains `" + expect+ "'", response.getContentAsString().contains(expect));
+        assertTrue("response contains `" + expect + "'", response.getContentAsString().contains(expect));
     }
 
 }

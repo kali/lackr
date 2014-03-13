@@ -50,7 +50,7 @@ public class InterpolrScopeStub implements InterpolrScope {
 
     @Override
     public String toString() {
-        if(parsedDocument != null)
+        if (parsedDocument != null)
             return "<<" + parsedDocument.toDebugString() + ">>";
         else
             return new String(bodyBytes);

@@ -23,7 +23,6 @@ public class RemoteControlledStub extends AbstractLifeCycle {
     public AtomicInteger requestCount = new AtomicInteger(0);
     public AtomicBoolean up = new AtomicBoolean(true);
 
-
     public RemoteControlledStub() {
         backendStub = new Server();
         backendStub.setHandler(new AbstractHandler() {
@@ -32,7 +31,7 @@ public class RemoteControlledStub extends AbstractLifeCycle {
                     throws IOException, ServletException {
                 requestCount.incrementAndGet();
                 if (up.get()) {
-                    if(currentHandler.get() != null)
+                    if (currentHandler.get() != null)
                         currentHandler.get().handle(target, baseRequest, request, response);
                     else {
                         response.setStatus(200);

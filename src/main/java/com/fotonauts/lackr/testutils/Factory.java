@@ -100,14 +100,14 @@ public class Factory {
     public static Server buildProxyServer(BaseProxy proxy) throws Exception {
         return buildProxyServer(proxy, 0);
     }
-    
+
     public static Server buildProxyServer(BaseProxy proxy, int port) throws Exception {
         Server proxyServer = new Server();
         LackrProxyJettyHandler handler = new LackrProxyJettyHandler();
         handler.setProxy(proxy);
         proxyServer.setHandler(handler);
         ServerConnector connector = new ServerConnector(proxyServer);
-        if(port != 0)
+        if (port != 0)
             connector.setPort(port);
         proxyServer.addConnector(connector);
         return proxyServer;

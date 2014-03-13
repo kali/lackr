@@ -6,6 +6,7 @@ public interface InterpolrScope {
     Interpolr getInterpolr();
 
     Document getParsedDocument();
+
     void setParsedDocument(Document result);
 
     String getResultMimeType();

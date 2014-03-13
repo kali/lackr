@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.fotonauts.lackr.LackrPresentableError;
 
-
 public interface InterpolrContext {
 
     void addError(LackrPresentableError lackrPresentableError);
@@ -16,6 +15,6 @@ public interface InterpolrContext {
     InterpolrScope getRootScope();
 
     List<LackrPresentableError> getErrors();
-    
+
     Object getPluginData(Plugin plugin);
 }

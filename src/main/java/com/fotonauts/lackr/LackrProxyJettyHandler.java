@@ -18,10 +18,10 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 public class LackrProxyJettyHandler extends AbstractHandler {
 
     private BaseProxy proxy;
-    
+
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException,
-            ServletException {
+    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
         getProxy().handle(request, response);
     }
 
@@ -30,9 +30,9 @@ public class LackrProxyJettyHandler extends AbstractHandler {
     }
 
     public void setProxy(BaseProxy proxy) {
-        if(proxy == this.proxy)
+        if (proxy == this.proxy)
             return;
-        if(this.proxy != null)
+        if (this.proxy != null)
             removeBean(this.proxy);
         this.proxy = proxy;
         addBean(proxy);

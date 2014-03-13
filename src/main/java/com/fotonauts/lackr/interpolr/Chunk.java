@@ -4,12 +4,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public interface Chunk {
-	int length();
+    int length();
 
-	void writeTo(OutputStream stream) throws IOException;
+    void writeTo(OutputStream stream) throws IOException;
 
-	String toDebugString();
+    String toDebugString();
 
-	void check();
+    void check();
 }
-

@@ -7,67 +7,67 @@ import java.util.List;
 
 public class Document implements Chunk {
 
-	List<Chunk> chunks;
-	
-	public Document() {
-		
-	}
-	
-	public Document(DataChunk dataChunk) {
-		getChunks().add(dataChunk);
+    List<Chunk> chunks;
+
+    public Document() {
+
+    }
+
+    public Document(DataChunk dataChunk) {
+        getChunks().add(dataChunk);
     }
 
     public Document(Chunk[] chunks) {
-        for(Chunk chunk: chunks)
+        for (Chunk chunk : chunks)
             getChunks().add(chunk);
     }
 
     public String toDebugString() {
-        if(chunks == null)
+        if (chunks == null)
             return "{EMPTY DOC}";
-		StringBuilder builder = new StringBuilder();
-		for(Chunk chunk: chunks) {
-			builder.append(chunk.toDebugString());
-		}
-		return builder.toString();
+        StringBuilder builder = new StringBuilder();
+        for (Chunk chunk : chunks) {
+            builder.append(chunk.toDebugString());
+        }
+        return builder.toString();
     }
 
-	public int length() {
-        if(chunks == null)
+    public int length() {
+        if (chunks == null)
             return 0;
-		int l = 0;
-		for (Chunk chunk : chunks)
-			l += chunk.length();
-		return l;
-	}
+        int l = 0;
+        for (Chunk chunk : chunks)
+            l += chunk.length();
+        return l;
+    }
 
-	public  void writeTo(OutputStream stream) throws IOException {
-        if(chunks == null)
+    public void writeTo(OutputStream stream) throws IOException {
+        if (chunks == null)
             return;
-		for (Chunk chunk : chunks) {
-			chunk.writeTo(stream);
-		}
-	}
-	
-	public void check() {
-	    if(chunks == null)
-	        return;
-		for (Chunk chunk : chunks) {
-			chunk.check();
-		}		
-	}
-
-	public void addAll(List<Chunk> added) {
-		getChunks().addAll(added);
+        for (Chunk chunk : chunks) {
+            chunk.writeTo(stream);
+        }
     }
 
-	public void add(Chunk added) {
-		getChunks().add(added);
+    public void check() {
+        if (chunks == null)
+            return;
+        for (Chunk chunk : chunks) {
+            chunk.check();
+        }
     }
 
-	public List<Chunk> getChunks() {
-		if(chunks == null)
-			chunks = new LinkedList<Chunk>();
-		return chunks;
+    public void addAll(List<Chunk> added) {
+        getChunks().addAll(added);
+    }
+
+    public void add(Chunk added) {
+        getChunks().add(added);
+    }
+
+    public List<Chunk> getChunks() {
+        if (chunks == null)
+            chunks = new LinkedList<Chunk>();
+        return chunks;
     }
 }

@@ -37,7 +37,7 @@ public class HandlebarsPlugin implements Plugin {
     private void buildRules() {
         rules = new Rule[] { new TemplateRule(this), new EvalRule(this) };
     }
-    
+
     @Override
     public Rule[] getRules() {
         return rules;
@@ -55,33 +55,31 @@ public class HandlebarsPlugin implements Plugin {
     }
 
     public Context makeHbsContext(HandlebarsContext handlebarsContext, Object data) {
-        
+
         ArrayList<ValueResolver> resolvers = new ArrayList<>();
-        for(HandlebarsExtension prep:handlebarsExtensions) {
+        for (HandlebarsExtension prep : handlebarsExtensions) {
             Collection<ValueResolver> r = prep.getValueResolvers(handlebarsContext);
-            if(r!=null)
+            if (r != null)
                 resolvers.addAll(r);
         }
         resolvers.add(MapValueResolver.INSTANCE);
 
-        Builder contextBuilder = Context
-                .newBuilder(data)
-                .combine("_ftn_handlebars_context", handlebarsContext)
+        Builder contextBuilder = Context.newBuilder(data).combine("_ftn_handlebars_context", handlebarsContext)
                 .resolver(resolvers.toArray(new ValueResolver[resolvers.size()]));
-        
-        for(HandlebarsExtension prep:handlebarsExtensions) {
-            Map<String,Object> combined = prep.getCombinedValues(handlebarsContext);
-            if(combined != null)
+
+        for (HandlebarsExtension prep : handlebarsExtensions) {
+            Map<String, Object> combined = prep.getCombinedValues(handlebarsContext);
+            if (combined != null)
                 contextBuilder.combine(combined);
         }
 
         return contextBuilder.build();
     }
-    
+
     public void registerExtension(HandlebarsExtension handlebarsExtension) {
         handlebarsExtensions.add(handlebarsExtension);
     }
-    
+
     public String getPrefix() {
         return prefix;
     }

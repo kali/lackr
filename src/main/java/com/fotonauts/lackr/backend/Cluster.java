@@ -19,15 +19,15 @@ public class Cluster extends AbstractLifeCycle {
     private Thread proberThread;
 
     public ClusterMember[] members;
-    private int sleepMS = 100; 
-    
+    private int sleepMS = 100;
+
     public Cluster(Backend... backends) {
         this.members = new ClusterMember[backends.length];
-        for(int i = 0 ; i<backends.length; i++) {
+        for (int i = 0; i < backends.length; i++) {
             members[i] = new ClusterMember(this, backends[i], i);
         }
     }
-    
+
     public void refreshStatus() {
         int ups = 0;
         for (ClusterMember host : members) {
@@ -68,7 +68,7 @@ public class Cluster extends AbstractLifeCycle {
         proberThread.setDaemon(true);
         proberThread.start();
     }
-    
+
     public boolean up() {
         return up.intValue() > 0;
     }
@@ -91,7 +91,7 @@ public class Cluster extends AbstractLifeCycle {
         for (ClusterMember host : members)
             host.stop();
     }
-    
+
     public boolean oneUp() {
         return up.get() > 0;
     }
@@ -107,7 +107,5 @@ public class Cluster extends AbstractLifeCycle {
     public void setSleepMS(int sleep) {
         this.sleepMS = sleep;
     }
-
-
 
 }

@@ -23,7 +23,7 @@ public class JsonPlugin implements AdvancedPlugin {
     private Rule[] rules;
     private Interpolr interpolr;
     private String archiveCaptureTrigger = "<script type=\"vnd.fotonauts/lackrarchive\" id=\"*\">*</script><!-- END OF ARCHIVE -->";
-    
+
     public JsonPlugin(String archiveCaptureTrigger) {
         this.archiveCaptureTrigger = archiveCaptureTrigger;
         buildRules();

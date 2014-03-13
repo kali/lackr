@@ -9,8 +9,8 @@ import com.fotonauts.lackr.interpolr.InterpolrScope;
 @SuppressWarnings("serial")
 public class LackrPresentableError extends RuntimeException {
 
-	public LackrPresentableError(String string) {
-		super(string);
+    public LackrPresentableError(String string) {
+        super(string);
     }
 
     public LackrPresentableError(String string, LackrBackendExchange exchange) {
@@ -22,17 +22,17 @@ public class LackrPresentableError extends RuntimeException {
     }
 
     public static LackrPresentableError fromThrowable(Throwable e) {
-    	return fromThrowableAndMessage(e, null);
+        return fromThrowableAndMessage(e, null);
     }
-    
+
     public static LackrPresentableError fromThrowableAndExchange(Throwable e, LackrBackendExchange exchange) {
         return fromThrowableAndMessage(e, exchange != null ? "Processing backend request " + exchange.getBackendRequest() : null);
     }
-    
+
     public static LackrPresentableError fromThrowableAndMessage(Throwable e, String message) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
-        if(message != null) {
+        if (message != null) {
             ps.println(message);
         }
         e.printStackTrace(ps);

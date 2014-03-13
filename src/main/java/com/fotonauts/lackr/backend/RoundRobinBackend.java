@@ -37,22 +37,22 @@ public class RoundRobinBackend extends AbstractLifeCycle implements Backend {
     public LackrBackendExchange createExchange(LackrBackendRequest request) {
         return chooseBackendFor(request).createExchange(request);
     }
-    
+
     public ClusterMember chooseMemberFor(LackrBackendRequest req) {
-        while(true) {
+        while (true) {
             int node = i.getAndIncrement();
             ClusterMember member = cluster.getMember(node % cluster.getMembers().length);
-            if(member.isUp())
+            if (member.isUp())
                 return member;
-            if(!probe())
+            if (!probe())
                 throw new RuntimeException("No backend up");
         }
     }
-    
+
     public Backend chooseBackendFor(LackrBackendRequest request) {
         return chooseMemberFor(request).getBackend();
     }
-    
+
     @Override
     protected void doStart() throws Exception {
         cluster.start();

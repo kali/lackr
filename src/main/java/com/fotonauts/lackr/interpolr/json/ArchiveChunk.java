@@ -38,5 +38,5 @@ public class ArchiveChunk implements Chunk {
     public void check() {
         // check is handled by context
     }
-    
+
 }

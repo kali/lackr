@@ -14,18 +14,18 @@ public class Interpolr extends AbstractLifeCycle {
 
     @Override
     protected void doStart() throws Exception {
-        for(Plugin p: plugins) {
-            if(p instanceof AdvancedPlugin) {
+        for (Plugin p : plugins) {
+            if (p instanceof AdvancedPlugin) {
                 ((AdvancedPlugin) p).setInterpolr(this);
                 ((AdvancedPlugin) p).start();
             }
         }
     }
-    
+
     @Override
     protected void doStop() throws Exception {
-        for(Plugin p: plugins) {
-            if(p instanceof AdvancedPlugin) {
+        for (Plugin p : plugins) {
+            if (p instanceof AdvancedPlugin) {
                 ((AdvancedPlugin) p).stop();
             }
         }
@@ -80,7 +80,7 @@ public class Interpolr extends AbstractLifeCycle {
     */
 
     public void preflightCheck(InterpolrContext context) {
-        for(Plugin plugin: getPlugins())
+        for (Plugin plugin : getPlugins())
             plugin.preflightCheck(context);
         if (context.getRootScope().getParsedDocument() != null) {
             context.getRootScope().getParsedDocument().check();

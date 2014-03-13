@@ -295,7 +295,7 @@ public class BaseProxy extends AbstractLifeCycle {
         StringBuilder sb = new StringBuilder();
         int i = 0;
         for (LackrPresentableError t : req.getErrors()) {
-            if(req.getErrors().size() > 1)
+            if (req.getErrors().size() > 1)
                 sb.append(String.format("Error #%d/%d: ", ++i, req.getErrors().size()));
             sb.append(t.getMessage());
             sb.append("\n\n\n");
@@ -354,8 +354,7 @@ public class BaseProxy extends AbstractLifeCycle {
      * <p>Will typically be called twice for each query to support asynchronous mode.
      * 
      */
-    public void handle(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         BaseFrontendRequest state = (BaseFrontendRequest) request.getAttribute(LACKR_STATE_ATTRIBUTE);
         if (state == null) {

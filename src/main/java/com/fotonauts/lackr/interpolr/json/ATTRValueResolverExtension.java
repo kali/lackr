@@ -21,11 +21,11 @@ public class ATTRValueResolverExtension implements ExtendedMapValueResolver.Valu
     // ======> { c: 12 }
     @Override
     @SuppressWarnings("unchecked")
-        public Map<String, Object> getInnerData(Map<String, Object> context) {
+    public Map<String, Object> getInnerData(Map<String, Object> context) {
         if (!(context instanceof Map<?, ?>))
             return null;
         Map<String, Object> map = (Map<String, Object>) context;
-        if (map.containsKey(keyname) && map.get(keyname) instanceof Map<?,?>)
+        if (map.containsKey(keyname) && map.get(keyname) instanceof Map<?, ?>)
             return (Map<String, Object>) map.get(keyname);
         else
             return null;

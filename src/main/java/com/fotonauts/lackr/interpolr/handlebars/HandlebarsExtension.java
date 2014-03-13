@@ -6,11 +6,11 @@ import java.util.Map;
 import com.github.jknack.handlebars.ValueResolver;
 
 public interface HandlebarsExtension {
-    
+
     Collection<ValueResolver> getValueResolvers(HandlebarsContext handlebarsContext);
-    
+
     Map<String, Object> getCombinedValues(HandlebarsContext handlebarsContext);
-    
+
     public static class Noop implements HandlebarsExtension {
 
         @Override
@@ -22,6 +22,6 @@ public interface HandlebarsExtension {
         public Map<String, Object> getCombinedValues(HandlebarsContext handlebarsContext) {
             return null;
         }
-        
+
     }
 }

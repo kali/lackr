@@ -26,13 +26,13 @@ public class InlineWrapperValueResolverExtension implements ExtendedMapValueReso
     // ======> { c: 12 }
     @SuppressWarnings("unchecked")
     @Override
-    public Map<String,Object> getInnerData(Map<String,Object> context) {
+    public Map<String, Object> getInnerData(Map<String, Object> context) {
         if (!(context instanceof Map<?, ?>))
             return null;
-        HashMap<String,Object> map = new HashMap<>();
-        for(Object value: ((Map<String,Object>) context).values()) {
-            if(value instanceof Map<?,?> && ((Map<String,Object>) value).get(keyname) instanceof Map<?,?>) {
-                map.putAll((Map<String,Object>) ((Map<String,Object>) value).get(keyname));
+        HashMap<String, Object> map = new HashMap<>();
+        for (Object value : ((Map<String, Object>) context).values()) {
+            if (value instanceof Map<?, ?> && ((Map<String, Object>) value).get(keyname) instanceof Map<?, ?>) {
+                map.putAll((Map<String, Object>) ((Map<String, Object>) value).get(keyname));
             }
         }
         return map;

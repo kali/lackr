@@ -16,15 +16,15 @@ public abstract class LackrBackendResponse {
     public abstract String getHeader(String name);
 
     public abstract byte[] getBodyBytes();
-    
+
     public abstract int getStatus();
 
     protected LackrBackendExchange exchange;
-    
+
     public LackrBackendResponse(LackrBackendExchange exchange) {
         this.exchange = exchange;
     }
-    
+
     public String getResponseHeaderValue(String name) {
         List<String> values = null;
         try {
@@ -37,7 +37,7 @@ public abstract class LackrBackendResponse {
         else
             return values.get(0);
     }
-    
+
     @Override
     public String toString() {
         return String.format("Response:%s", exchange);

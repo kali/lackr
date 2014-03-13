@@ -6,57 +6,57 @@ import java.io.OutputStream;
 import com.fotonauts.lackr.interpolr.Chunk;
 
 public class JsonQuotingChunk implements Chunk {
-	
-	private Chunk inner;
-	private int length = -1;
-	private boolean addSurrondingQuotes;
 
-	public JsonQuotingChunk(Chunk inner, boolean addSurrondingQuotes) {
-		this.inner = inner;
-		this.addSurrondingQuotes = addSurrondingQuotes;
+    private Chunk inner;
+    private int length = -1;
+    private boolean addSurrondingQuotes;
+
+    public JsonQuotingChunk(Chunk inner, boolean addSurrondingQuotes) {
+        this.inner = inner;
+        this.addSurrondingQuotes = addSurrondingQuotes;
     }
 
-	private static class SizingOutputStream extends OutputStream {
-		
-		public int length = 0;
-		
-		@Override
-		public void write(int b) throws IOException {
-			length++;
-		}
-	}
-	
-	@Override
+    private static class SizingOutputStream extends OutputStream {
+
+        public int length = 0;
+
+        @Override
+        public void write(int b) throws IOException {
+            length++;
+        }
+    }
+
+    @Override
     public int length() {
-		if(length == -1) {
-			SizingOutputStream sos = new SizingOutputStream();
-			try {
-	            writeTo(sos);
+        if (length == -1) {
+            SizingOutputStream sos = new SizingOutputStream();
+            try {
+                writeTo(sos);
             } catch (IOException e) {
-            	// nope
+                // nope
             }
-			length = sos.length;
-		}
-		return length;
+            length = sos.length;
+        }
+        return length;
     }
 
-	@Override
+    @Override
     public String toDebugString() {
-	    return "JSONIZER";
+        return "JSONIZER";
     }
 
-	@Override
-    public void writeTo(OutputStream stream) throws IOException{
-		if(addSurrondingQuotes)
-			stream.write('\"');
-		inner.writeTo(new JsonQuoteFilterOutputStream(stream));
-		if(addSurrondingQuotes)
-			stream.write('\"');
+    @Override
+    public void writeTo(OutputStream stream) throws IOException {
+        if (addSurrondingQuotes)
+            stream.write('\"');
+        inner.writeTo(new JsonQuoteFilterOutputStream(stream));
+        if (addSurrondingQuotes)
+            stream.write('\"');
     }
 
-	@Override
+    @Override
     public void check() {
-		inner.check();
+        inner.check();
     }
-	
+
 }

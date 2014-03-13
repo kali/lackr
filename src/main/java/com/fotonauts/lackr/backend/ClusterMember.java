@@ -28,7 +28,7 @@ public class ClusterMember extends AbstractLifeCycle {
     public Backend getBackend() {
         return backend;
     }
-    
+
     public int getId() {
         return id;
     }
@@ -90,6 +90,5 @@ public class ClusterMember extends AbstractLifeCycle {
     protected void doStop() throws Exception {
         backend.stop();
     }
-    
 
 }

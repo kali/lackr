@@ -15,11 +15,11 @@ public abstract class SimpleTriggerRule implements Rule {
     }
 
     public void setTrigger(String trigger) {
-    	try {
-    	    if(StringUtils.isNotBlank(trigger))
-    	        setTrigger(new BoyerMooreScanner(trigger.getBytes("UTF-8")));
-    	    else
-    	        trigger = null;
+        try {
+            if (StringUtils.isNotBlank(trigger))
+                setTrigger(new BoyerMooreScanner(trigger.getBytes("UTF-8")));
+            else
+                trigger = null;
         } catch (UnsupportedEncodingException e) {
             // unlikely
         }
@@ -29,11 +29,10 @@ public abstract class SimpleTriggerRule implements Rule {
         trigger = boyerMooreScanner;
     }
 
-
     @Override
     public List<Chunk> parse(DataChunk chunk, InterpolrScope scope) {
         List<Chunk> result = new ArrayList<Chunk>();
-        if(trigger == null) {
+        if (trigger == null) {
             result.add(chunk);
             return result;
         }

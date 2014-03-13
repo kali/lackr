@@ -9,7 +9,7 @@ import com.fotonauts.lackr.LackrBackendRequest;
 public class BackendWrapper extends AbstractLifeCycle implements Backend {
 
     protected Backend wrapped;
-    
+
     public BackendWrapper(Backend wrapped) {
         this.wrapped = wrapped;
     }
@@ -32,12 +32,12 @@ public class BackendWrapper extends AbstractLifeCycle implements Backend {
     public boolean probe() {
         return wrapped.probe();
     }
-    
+
     @Override
     protected void doStart() throws Exception {
         wrapped.start();
     }
-    
+
     @Override
     protected void doStop() throws Exception {
         wrapped.stop();

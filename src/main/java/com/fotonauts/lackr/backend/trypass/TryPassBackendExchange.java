@@ -15,9 +15,9 @@ import com.fotonauts.lackr.CompletionListener;
 public class TryPassBackendExchange extends LackrBackendExchange {
 
     static Logger log = LoggerFactory.getLogger(TryPassBackendExchange.class);
-    
-    private LackrBackendRequest effectiveBackendRequest; 
-    
+
+    private LackrBackendRequest effectiveBackendRequest;
+
     private AtomicInteger triedBackend = new AtomicInteger(0);
 
     private AtomicReference<LackrBackendExchange> lastExchange = new AtomicReference<LackrBackendExchange>();
@@ -40,21 +40,21 @@ public class TryPassBackendExchange extends LackrBackendExchange {
             @Override
             public void complete() {
                 try {
-                    if(previousListener != null)
+                    if (previousListener != null)
                         previousListener.complete();
                     log.debug("entering subExchange {} completion handler", subExchange);
                     ((TryPassBackend) backend).handleComplete(that, subExchange);
                 } catch (Throwable e) {
-                    if(previousListener != null)
+                    if (previousListener != null)
                         previousListener.fail(e);
                     log.debug("Exception in completion handler", e);
                     that.getCompletionListener().fail(e);
                 }
             }
-            
+
             @Override
             public void fail(Throwable t) {
-                if(previousListener != null)
+                if (previousListener != null)
                     previousListener.fail(t);
                 log.debug("Failure handler for", t);
                 that.getCompletionListener().fail(t);
