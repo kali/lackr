@@ -112,8 +112,8 @@ public class LoggingBackend extends BackendWrapper {
 Note:
 - Executing code before the request is quite trivial. The problematic part is plugging into the completion listener
   chain to run after the request is done.
-- BackendWrapper provides doStart() and doStop() implementations managing the wrapped Backend lifecycle. they can be
-  overriden for managing additional resources, but the *must* call their _super_ implementation.
+- BackendWrapper provides doStart() and doStop() implementations managing the wrapped Backend lifecycle. They can be
+  overriden for managing additional resources, but they *must* call their _super_ implementation.
 
 Implementing a multi backend router
 -----------------------------------
