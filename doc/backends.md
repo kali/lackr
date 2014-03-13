@@ -67,7 +67,7 @@ to a cache cluster, which in turn falls back to the Ruby-on-Rails app. We could 
 stack run elsewhere in its own JVM, but the use of InProcessBackend is an optimisation to avoid a network roundtrip to
 a remote HTTP server that in many cases would result to a 501 "please pass to the next" response.
 
-Obviously this optimisation can only work for backends that are implemented as Servlet. If the fast stack was in go, for
-instance, we would have no choice but use the ClientBackend. Another constraint on the InProcessBackend is for the
+Obviously this optimisation can only work for backends that are implemented as Servlet. If the fast stack was in go,
+for instance, we would have no choice but use the ClientBackend. Another constraint on the InProcessBackend is for the
 wrapped servlet to be strictly synchronous. Once again, if it was to use asynchronous servlet processing (as Lackr
 proxies do, by the way), we would have to go through a separate server and a ClientBackend.

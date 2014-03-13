@@ -86,7 +86,7 @@ public class HashRingBackend extends BaseRoutingBackend implements Backend {
 
     @Override
     public String getName() {
-        return cluster.getName();
+        return "HashRing: " + cluster.getName();
     }
 
     @Override

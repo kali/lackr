@@ -1,16 +1,18 @@
 package com.fotonauts.lackr;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import junit.framework.TestCase;
-
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.junit.Test;
 
 import com.fotonauts.lackr.backend.ClusterMember;
 import com.fotonauts.lackr.backend.hashring.HashRingBackend;
 
-public class TestRing extends TestCase {
+public class TestConsistentHashRing {
 
     static class Stub extends AbstractLifeCycle implements Backend {
 
@@ -45,6 +47,7 @@ public class TestRing extends TestCase {
         return ring;
     }
     
+    @Test
 	public void testEmptyRing() throws Exception {
 		HashRingBackend ring = new HashRingBackend(new Backend[0]);
 		ring.start();
@@ -56,6 +59,7 @@ public class TestRing extends TestCase {
 		ring.stop();
 	}
 
+    @Test
 	public void testTrivialRing() throws Exception {
 		HashRingBackend ring = buildHashRing("localhost");
 		ring.start();
@@ -63,6 +67,7 @@ public class TestRing extends TestCase {
         ring.stop();
 	}
 
+    @Test
 	public void testSingleBackendDown() throws Exception {
 		HashRingBackend ring = buildHashRing("titi");
 		ring.start();
@@ -75,6 +80,7 @@ public class TestRing extends TestCase {
         ring.stop();
 	}
 
+    @Test
 	public void testConsistency() throws Exception {
 		HashRingBackend ring1 = buildHashRing("host1", "host2");
 		ring1.start();
@@ -88,6 +94,7 @@ public class TestRing extends TestCase {
         ring2.stop();
 	}
 	
+    @Test
 	public void testSpread() throws Exception {
 		HashRingBackend ring = buildHashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
 		ring.start();
@@ -107,6 +114,7 @@ public class TestRing extends TestCase {
 		ring.stop();
 	}
 
+    @Test
 	public void testAvoidDead() throws Exception {
 		HashRingBackend ring = buildHashRing("h1", "h2","h3", "h4", "h5", "h6", "h7", "h8");
 		ring.start();

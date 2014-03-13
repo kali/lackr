@@ -1,6 +1,8 @@
 package com.fotonauts.lackr.testutils;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.ServletException;
@@ -18,6 +20,9 @@ public class RemoteControlledStub extends AbstractLifeCycle {
 
     private AtomicReference<Handler> currentHandler = new AtomicReference<>();
     protected Server backendStub;
+    public AtomicInteger requestCount = new AtomicInteger(0);
+    public AtomicBoolean up = new AtomicBoolean(true);
+
 
     public RemoteControlledStub() {
         backendStub = new Server();
@@ -25,7 +30,19 @@ public class RemoteControlledStub extends AbstractLifeCycle {
 
             public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
                     throws IOException, ServletException {
-                currentHandler.get().handle(target, baseRequest, request, response);
+                requestCount.incrementAndGet();
+                if (up.get()) {
+                    if(currentHandler.get() != null)
+                        currentHandler.get().handle(target, baseRequest, request, response);
+                    else {
+                        response.setStatus(200);
+                        response.getWriter().write("okie");
+                        response.flushBuffer();
+                    }
+                } else {
+                    response.setStatus(500);
+                    response.flushBuffer();
+                }
             }
         });
         ServerConnector backendStubConnector = new ServerConnector(backendStub);
