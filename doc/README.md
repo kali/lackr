@@ -1,6 +1,9 @@
 Documentation index
 ===================
 
+![Xkcd stript about software manuals](http://imgs.xkcd.com/comics/manuals.png)
+from [xkcd](http://xkcd.com/license.html)
+
 Readable materia
 ----------------
 - [History](history.md) explains why we did all this, and maybe why you could be interested.
