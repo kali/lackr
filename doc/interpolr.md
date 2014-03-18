@@ -63,7 +63,7 @@ A good starting point is the SingleRulePlugin with a SimpleSubstitutionRule. See
 It creates a simple interpolr which will replace every occurence of "titi" by "toto". InterpolrTestUtils make
 it easier to tranform chunk test data to and from String.
 
-### [SingleRulePlugin](src/main/java/com/fotonauts/lackr/interpolr/plugins/SingleRulePlugin.java)
+### [SingleRulePlugin](/src/main/java/com/fotonauts/lackr/interpolr/plugins/SingleRulePlugin.java)
 
 It demounstrates the basic responsibilities of a trivial Plugin:
 - getRules() returns the rules
@@ -72,10 +72,10 @@ It demounstrates the basic responsibilities of a trivial Plugin:
   be there is there indeed (for instance the Handlebars plugin will compile all templates and check that all "eval"
   tags have their template defined.
 
-[SimpleSubstitutionRule](src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleSubstitutionRule.java) builds
+[SimpleSubstitutionRule](/src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleSubstitutionRule.java) builds
 upon an abstract class:
 
-### [SimpleTriggerRule](src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleTriggerRule.java) 
+### [SimpleTriggerRule](/src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleTriggerRule.java) 
 
 It's an abstract class that is meant to be subclassed by all rules that will be triggered by a "constant" markup
 (aka Trigger). All of the rules we have implemented so far are actually subclasses of SimpleTriggerRule.
@@ -87,12 +87,12 @@ then returns the number of bytes to be skipped by SimpleTriggerRule before start
 With these simple convention, SimpleTriggerRule will take care of dealing with the untouched chunks to create
 before and after the matches.
 
-### [SimpleSubstitutionRule](src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleSubstitutionRule.java)
+### [SimpleSubstitutionRule](/src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleSubstitutionRule.java)
 
 The actual implementation of onFound() adds the replacement ConstantChunk to the result buffer, then returns
 the length of the trigger.
 
-### [MarkupDetectingRule](src/main/java/com/fotonauts/lackr/interpolr/plugins/MarkupDetectingRule.java)
+### [MarkupDetectingRule](/src/main/java/com/fotonauts/lackr/interpolr/plugins/MarkupDetectingRule.java)
 
 But most of the exotic markup Lackr takes a form that is rarely a pure constant. We often need to capture something
 that looks like a xml attribute. For instance the "main" HTML ESI markup has one attribute to capture:
