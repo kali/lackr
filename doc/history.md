@@ -51,17 +51,17 @@ It was time for a bigger hammer.
 Edge Side Include
 -----------------
 
-As an alternative to full page caching, we briefly considered html fragment caching inside the Rails application
-itself. Each card, for instance, could have been cached as a separate html fragment in memcache, replacing
-each time expensive database queries by a single memcache request. We had to discard this approach as it was
+As an alternative to full page caching, we briefly considered HTML fragment caching inside the Rails application
+itself. Each card, for instance, could have been cached as a separate HTML fragment in Memcache, replacing
+each time expensive database queries by a single Memcache request. We had to discard this approach as it was
 not allowing us to cache the top content of the page (without expanding the card) thus solving only half of our
 problem.
 
 We preferred to leverage a nifty feature that Varnish was including: Edge Side Include support. ESI
-main feature is the availibility of a cached delivered page to contain placeholder in the HTML text to be resolved
+main feature is the availability of a cached delivered page to contain placeholder in the HTML text to be resolved
 at service time.
 
-One of the simplest usages of ESI with Varnish is to extract from a common page the infamous log-in/logged-as html
+One of the simplest usages of ESI with Varnish is to extract from a common page the infamous log-in/logged-as HTML
 fragment, so one single cached page can be served to all users, the backend being hit only to fetch a login box
 or a label in a very simple — so hopefully fast — query.
 
@@ -71,9 +71,9 @@ birds:
 - ability to invalidate a resource *cards* without invalidating the page
 - a one-order-of-magnitude-faster page composition.
 
-After a few months on this regimen, we actually switched from Varnish ESI to nginx Server Side Include. We already
-had a nginx layer on top of Varnish for SSL and zipping support, so it was merely a matter of changing syntax. The
-purpose of this change was to take advantage of the ability of nginx to perform SSI expansion in parallel
+After a few months on this regimen, we actually switched from Varnish ESI to Nginx Server Side Include. We already
+had a Nginx layer on top of Varnish for SSL and zipping support, so it was merely a matter of changing syntax. The
+purpose of this change was to take advantage of the ability of Nginx to perform SSI expansion in parallel
 whereas Varnish performed the sub-queries one after the other.
 
 So at this point our stack was looking like that:
@@ -105,7 +105,7 @@ So at this point our stack was looking like that:
 
 ```
 
-For one single Internet query, nginx performed one "root" request, then several SSI fragment requests to
+For one single Internet query, Nginx performed one "root" request, then several SSI fragment requests to
 Varnish. Varnish only let a few simple and fast queries trickle down to the Ruby on Rails application. A
 non-represented invalidation loop, triggered by write operations on the Rails backend, takes care of PURGE-ing
 impacted fragments from Varnish.
@@ -113,11 +113,11 @@ impacted fragments from Varnish.
 Introducing Lackr
 -----------------
 
-Even if this architecture allowed us to get serious performance improvements without redesigning the whole app and
+Even if this architecture allowed us to get serious performance improvements without redesigning the whole App and
 database, we were still not fully satisfied with it. We had a serious feel of lack of control on what was going in
-the nginx-Varnish interaction:
+the Nginx-Varnish interaction:
 - ESI support for Ajax queries: as we were expanding the web application design to get it more interactive, the need
-  arose for fragment expansion inside a json document. The same performance issues we had in the backend were starting
+  arose for fragment expansion inside a JSON document. The same performance issues we had in the backend were starting
   to show.
 - better control over caching: we needed a robust and efficient way of using Varnish servers RAM. We wanted a
   consistent hash ring.
@@ -126,21 +126,21 @@ the nginx-Varnish interaction:
 
 We also wanted to be able to solve efficiently, without jumping through dozens of hoops, some of the key issues in the
 application. We were thinking about things like generating signed urls for our images, verifying sessions tokens, etc.
-As writing application code in Varnish or nginx, both in C with complex concurrency approaches, was not appealing to
-us, we started thinking about a more developper friendly java layer somewhere in between the internet and Varnish.
+As writing application code in Varnish or Nginx, both in C with complex concurrency approaches, was not appealing to
+us, we started thinking about a more developer friendly Java layer somewhere in between the Internet and Varnish.
 
-And, ho yeah. Also. We, at Fotonauts, do love developping stuff. Much more fun than integrating.
+And, ho yeah. Also. We, at Fotonauts, do love developing stuff. Much more fun than integrating.
 
 Lackr first baby steps
 ----------------------
 
-So, on a cold and rainy november weekend, Lackr was born and baptized by the name being a far-fetched pun on
+So, on a cold and rainy November weekend, Lackr was born and baptized by the name being a far-fetched pun on
 Varnish name.
 
 The core was basically a buffered extensible ESI-like engine. The focus was on performance and scalability, so
 everything was written to run in asynchronous fashion.
 The ESI engine, called "Interpolr", was able to detect include-like patterns in HTML, XML, JS and JSON documents,
-grab them from the backend, and re-encode them on the fly to accomodate the layers of escaping required by the
+grab them from the backend, and re-encode them on the fly to accommodate the layers of escaping required by the
 originating document. For instance a JS chunk from an HTML document may query an HTML fragment, in which case
 double quotes, line feeds, but also less-than signs had to be dealt with, in order not to break the main document
 syntax.
@@ -182,8 +182,8 @@ Our stack became:
 
 ```
 
-Not a huge change in terms of architecture. nginx was kept as an efficient way to direct queries to
-non-represented static resources, to implement a few redirects and to protect against various internet
+Not a huge change in terms of architecture. Nginx was kept as an efficient way to direct queries to
+non-represented static resources, to implement a few redirects and to protect against various Internet
 hazards.
 
 More application needs
@@ -192,15 +192,15 @@ More application needs
 Now that we felt again in control of the top levels of our stack, we could move on to solve various issues
 that had been bugging us for months. Both old and new application requirements were calling for
 uncacheable, application-level, request-time processing:
-- vote information: when a user was shown an album, the webpage needed to know whether the user had already
+- vote information: when a user was shown an album, the web page needed to know whether the user had already
   cast a vote on the current resource
-- ad targetting: depending on the geolocalisation, language, device kind and another dozen other parameters,
+- ad targeting: depending on the geolocalization, language, device kind and another dozen other parameters,
   one ad or another had to be shown in a given placeholder
 - ad tracking: a given ad insertion had a unique id for performance evaluation
 - customized views: new mosaic views had to be tailored to the device size of the user, while enforcing a
   consistent pagination on updatable collections
 
-If having a Java server was a great improvement to application flexibility compared to nginx or Varnish code,
+If having a Java server was a great improvement to application flexibility compared to Nginx or Varnish code,
 plugging extension in Lackr was still a bit awkward. Its asynchronous nature made the code trickier to write
 than necessary, while Java felt like assembly with our Ruby bad habits.
 
@@ -209,7 +209,7 @@ Scala and Unfiltered to implement a "fast stack" alongside the Varnish/Rails one
 expensive rails endpoints and move them to the new stack to improve the general performance.
 
 The new stack was to have its own server process, but to live in the same git repository as the Rails
-app, to simplify deployments with cross-dependencies between the Rails and Scala apps.
+App, to simplify deployments with cross-dependencies between the Rails and Scala Apps.
 
 ```
                               *************
@@ -245,15 +245,15 @@ app, to simplify deployments with cross-dependencies between the Rails and Scala
 ```
 
 We experimented with several ways of implementing the actual dispatching between the Varnish/Rails and
-the Scala stacks. After a few months, the best solution we found was to actually run the Scala app in the same
+the Scala stacks. After a few months, the best solution we found was to actually run the Scala App in the same
 JVM as Lackr, bypassing the whole HTTP network interaction, at the price of some tricky black magic.
 
 The Scala stack is called first and offered a chance to process every query Lackr is emitting, and Lackr will then
-try to call Varnish when the Scala app does not show interest.
+try to call Varnish when the Scala App does not show interest.
 
 Both stack, the Scala and the ruby one, were accessing the same MongoDB databases where most stuff had been migrated
-from MySQL. To date, we are quite happy with the combination of sluggish but very developper friendly Rails stack,
-still the workhouse of our app, containing all views templates and, on the other side, the more webservice-oriented 
+from MySQL. To date, we are quite happy with the combination of sluggish but very developer friendly Rails stack,
+still the workhouse of our App, containing all views templates and, on the other side, the more webservice-oriented
 Scala stack producing fresh JSON data to the empty web views, or XML data to our rich-client iOS applications.
 
 Lackr gets Handlebars
@@ -266,7 +266,7 @@ as well as improving the rendering performance of rich web pages, we decided to 
 
 It worked very well, so well that we also wanted Handlebars support in our iOS applications. The price of it was that
 more and more really application-level stuff (Handlebars handlers for instance) was migrating to the Lackr codebase
-occasionally making deployments a bit difficult to manage, by binding Lackr versions to the Rails app versions.
+occasionally making deployments a bit difficult to manage, by binding Lackr versions to the Rails App versions.
 
 Time for a refactoring
 ----------------------
@@ -277,9 +277,9 @@ a few things on the black board.
 We decided to switch roles: the unfiltered stack would be the container, and Lackr was to become a library.
 Jetty, heavily used by both components, provided most structural interfaces to build upon.
 
-Swapping roles would also solve most of the boring configuration issues: the Scala app becoming the container, it had
+Swapping roles would also solve most of the boring configuration issues: the Scala App becoming the container, it had
 all the necessary knowledge to setup Lackr components the right way, without duplicating information in
 pseudo-generic configuration files all over the place.
 
-Also, that way Lackr becomes something other people might have interest in instead of a ugly kludge at the core of 
+Also, that way Lackr becomes something other people might have interest in instead of a ugly kludge at the core of
 our web stack...

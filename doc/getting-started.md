@@ -1,12 +1,12 @@
-Try lackr
+Try Lackr !
 =========
 
 Build and run the demos
 -----------------------
 
-You will need git, java and maven installed. A working http server able to deliver files
-will be required too. The built-in OSX support for http sharing will do, or a userdir-able
-server on linux.
+You will need git, Java and Maven installed. A working HTTP server able to deliver files
+will be required too. The built-in OSX support for HTTP sharing will do, or a userdir-able
+server on Linux.
 
 ```
 % git clone git@github.com:fotonauts/lackr.git
@@ -14,7 +14,7 @@ server on linux.
 % mvn compile exec:java
 ```
 
-When maven is done downloading half the Internet, you should get:
+When Maven is done downloading half the Internet, you should get:
 
 ```
 [...]
@@ -69,7 +69,7 @@ I'm some text at the top of the main document before an ESI call.
 I'm some text at the bottom of the main document after an ESI call.
 ```
 
-There is obviously some exotic markup on the second line that lackr will catch, and 
+There is obviously some exotic markup on the second line that Lackr will catch, and 
 replace with the result of another request:
 
 ```
@@ -87,8 +87,8 @@ I'm the content of ex2-shared-esi.html.
 I'm some text at the bottom of the main document after an ESI call.
 ```
 
-Here we go. That's probably the most basic feature of lackr. At this point this is roughly
-equivalent of what Varnish and nginx (or apache respectable mod_ssi) do out of the box.
+Here we go. That's probably the most basic feature of Lackr. At this point this is roughly
+equivalent of what Varnish and Nginx (or Apache respectable mod_ssi) do out of the box.
 
 ESI and JSON
 ------------
@@ -105,7 +105,7 @@ But we can go a bit further. Lackr detects other variants of ESI markup...
 ; </script>
 ```
 
-And as lackr also look for markup in JSON files...
+And as Lackr also look for markup in JSON files...
 
 ```
 % curl ${BACKEND}ex2-esi2.json
@@ -115,7 +115,7 @@ And as lackr also look for markup in JSON files...
  }
 ```
 
-Note that _some_ provision is made for escaping combination like html included in json:
+Note that _some_ provision is made for escaping combination like HTML included in JSON:
 
 ```
 % curl ${BACKEND}ex2-esi3.json
@@ -126,9 +126,9 @@ I'm some "complicated" html to be <i>included</i> in JSON.
 { "some" : "wrapper", "content" : "I'm some \"complicated\" html to be <i>included<\/i> in JSON.\n" }
 ```
 
-Note how the html is transformed in a json string, with its double-quote escaped.
+Note how the HTML is transformed in a JSON string, with its double-quote escaped.
 
-All escaping scenario are not covered here (and some would be very difficult to do), 
+All escaping scenario are not covered here (and some would be very difficult to do),
 so if you plan on doing some very tricky inclusion, you may encounter some issues.
 Test thoroughly your use cases. But HTML in HTML works, and JSON in JSON works.
 
@@ -136,10 +136,10 @@ Handlebars
 ----------
 
 Handlebars, as you may now, is a very lightweight template language. It is an extension
-of Mustache, meant to solve some of Mustache limitations while staying easy to 
+of Mustache, meant to solve some of Mustache limitations while staying easy to
 port to various virtual machines. The idea is that you can use the same Handlebars
-template in various contexts, like a Ruby-on-Rails backend, a Java proxy (lackr, for
-instance) and the brosers javascript engine.
+template in various contexts, like a Ruby-on-Rails backend, a Java proxy (Lackr, for
+instance) and the browser Javascript engine.
 
 ```
 % curl ${BACKEND}ex3-hbs1.html
@@ -156,7 +156,7 @@ instance) and the brosers javascript engine.
 
 ```
 
-Here we introduce more lackr exotic markup, to declare a handlebars template (which will
+Here we introduce more Lackr exotic markup, to declare a handlebars template (which will
 be filtered out of the resulting page) and use it once by evaluating it against a JSON
 object.
 

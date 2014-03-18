@@ -29,15 +29,15 @@ InterpolrProxy and a few others classes from its package are the link between th
   concatenated.
 - Lackr generates much of its entropy scanning byte[]s to find its exotic — but constant — markup. In order to save
   a few white bears, and some milliseconds of performance, we use an efficient Boyer-Moore scanner to find these
-  markup occurencies. As we are using byte[] and not String anyway, Regexp would not have cut it.
+  markup occurrences. As we are using byte[] and not String anyway, Regexp would not have cut it.
 - various features can be plugged in and plugged out of Interpolr by the use of Plugin and Rules abstraction.
 
 Plugins and Rules
 -----------------
 
-A Plugin is analogous to a feature. For instance ESI support is a plugin, and so is Handlebars.
+A Plugin is analogous to a feature. For instance ESI support is a Plugin, and so is Handlebars.
 
-One of the most important aspect of a Plugin is a listt of Rules. Interpolr will run all rules from all
+One of the most important aspect of a Plugin is a list of Rules. Interpolr will run all rules from all
 its registered plugins against a DataChunk (which is basically a slice of a byte[]). Each rule will returns
 a list of Chunk:
 - a rule that does not find anything to do will simply return a list with its input as single item
@@ -50,7 +50,7 @@ a list of Chunk:
 Implementing a Plugin
 ---------------------
 
-A good starting point is the SingleRulePlugin with a SimpleSubstitutionRule. See for instance 
+A good starting point is the SingleRulePlugin with a SimpleSubstitutionRule. See for instance
 [TestSubstitution](/src/test/java/com/fotonauts/lackr/TestSimpleSubstitution.java).
 
 ```java
@@ -60,12 +60,12 @@ A good starting point is the SingleRulePlugin with a SimpleSubstitutionRule. See
     assertEquals("tototata", InterpolrTestUtils.expand(r));
 ```
 
-It creates a simple interpolr which will replace every occurence of "titi" by "toto". InterpolrTestUtils make
-it easier to tranform chunk test data to and from String.
+It creates a simple interpolr which will replace every occurrence of "titi" by "toto". InterpolrTestUtils make
+it easier to transform chunk test data to and from String.
 
 ### [SingleRulePlugin](/src/main/java/com/fotonauts/lackr/interpolr/plugins/SingleRulePlugin.java)
 
-It demounstrates the basic responsibilities of a trivial Plugin:
+It demonstrates the basic responsibilities of a trivial Plugin:
 - getRules() returns the rules
 - createContext() creates the Plugin-specific context instance (when needed)
 - preflightCheck() is called just before page rendering. It's a good place to check that everything that should
@@ -77,7 +77,7 @@ upon an abstract class:
 
 ### [SimpleTriggerRule](/src/main/java/com/fotonauts/lackr/interpolr/plugins/SimpleTriggerRule.java) 
 
-It's an abstract class that is meant to be subclassed by all rules that will be triggered by a "constant" markup
+It's an abstract class that is meant to be sub-classed by all rules that will be triggered by a "constant" markup
 (aka Trigger). All of the rules we have implemented so far are actually subclasses of SimpleTriggerRule.
 
 The onFound method() will be called with the position where the trigger was found, and the current chunk list that
@@ -95,13 +95,13 @@ the length of the trigger.
 ### [MarkupDetectingRule](/src/main/java/com/fotonauts/lackr/interpolr/plugins/MarkupDetectingRule.java)
 
 But most of the exotic markup Lackr takes a form that is rarely a pure constant. We often need to capture something
-that looks like a xml attribute. For instance the "main" HTML ESI markup has one attribute to capture:
+that looks like a XML attribute. For instance the "main" HTML ESI markup has one attribute to capture:
 
 ```
 <!--# include virtual="/path-to-esi.html" -->
 ```
 
-And Handlebars plugin markup is even more complex with one attribute and the body to capture.
+And Handlebars Plugin markup is even more complex with one attribute and the body to capture.
 
 ```
 <!-- lackr:handlebars:template name="template_name" -->
