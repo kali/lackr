@@ -1,14 +1,25 @@
 package com.fotonauts.lackr.interpolr.plugins;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.rope.Chunk;
 import com.fotonauts.lackr.interpolr.rope.ConstantChunk;
+import com.fotonauts.lackr.interpolr.rope.DataChunk;
 
-public class SimpleSubstitutionRule extends PrefixDetectingRule {
+public class SimpleSubstitutionRule extends SimpleTriggerRule {
 
     private Chunk replacement;
+
+    public SimpleSubstitutionRule(String placeholder, String replacement) {
+        setTrigger(placeholder);
+        setReplacement(replacement);
+    }
+
+    public void setPlaceholder(String placeholder) {
+        setTrigger(placeholder);
+    }
 
     public void setReplacement(String replacement) {
         try {
@@ -18,27 +29,10 @@ public class SimpleSubstitutionRule extends PrefixDetectingRule {
         }
     }
 
-    public void setPlaceholder(String placeholder) {
-        setTrigger(placeholder);
-    }
-
-    public SimpleSubstitutionRule() {
-        super(null);
-    }
-
-    public SimpleSubstitutionRule(String placeholder, String replacement) {
-        super(placeholder);
-        setReplacement(replacement);
-    }
-
     @Override
-    public int lookaheadForEnd(byte[] buffer, int start, int stop) {
-        return start + trigger.length();
-    }
-
-    @Override
-    public Chunk substitute(byte[] buffer, int start, int stop, InterpolrScope scope) {
-        return replacement;
+    protected int onFound(List<Chunk> result, DataChunk chunk, int startFound, InterpolrScope scope) {
+        result.add(replacement);
+        return trigger.length();
     }
 
 }
