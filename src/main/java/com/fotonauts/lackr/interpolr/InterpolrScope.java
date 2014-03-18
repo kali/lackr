@@ -1,5 +1,7 @@
 package com.fotonauts.lackr.interpolr;
 
+import com.fotonauts.lackr.interpolr.rope.Document;
+
 public interface InterpolrScope {
     InterpolrContext getInterpolrContext();
 

@@ -1,10 +1,10 @@
 package com.fotonauts.lackr.interpolr.esi;
 
-import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.ConstantChunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
-import com.fotonauts.lackr.interpolr.Rule;
+import com.fotonauts.lackr.interpolr.plugins.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.plugins.Rule;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.ConstantChunk;
 
 abstract public class ESIIncludeRule extends MarkupDetectingRule implements Rule {
 

@@ -1,6 +1,10 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.interpolr.plugins;
 
 import java.util.List;
+
+import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.DataChunk;
 
 public abstract class PrefixDetectingRule extends SimpleTriggerRule {
 

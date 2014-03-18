@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.interpolr.utils;
 
 import java.util.Arrays;
 

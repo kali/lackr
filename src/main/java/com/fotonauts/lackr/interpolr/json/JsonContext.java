@@ -9,9 +9,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.interpolr.JsonParseUtils;
+import com.fotonauts.lackr.interpolr.rope.Document;
+import com.fotonauts.lackr.interpolr.utils.JsonParseUtils;
 
 public class JsonContext {
     static Logger log = LoggerFactory.getLogger(JsonContext.class);

@@ -3,9 +3,9 @@ package com.fotonauts.lackr.interpolr.json;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
 public class ArchiveChunk implements Chunk {
 

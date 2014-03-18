@@ -19,7 +19,7 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
 
 public class InterpolrFrontendRequest extends BaseFrontendRequest implements InterpolrContext {
 
@@ -31,7 +31,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
     private Set<String> pendingQueries = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     private String ROOT_QUERY = "<ROOT QUERY>";
 
-    private ProxyInterpolrScope rootScope;
+    private InterpolrBackendRequest rootScope;
 
     protected HashMap<Plugin, Object> pluginData = new HashMap<>();
 
@@ -51,9 +51,9 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         if (ex != null)
             return ex;
 
-        final ProxyInterpolrScope newBorn = new ProxyInterpolrScope(this);
+        final InterpolrBackendRequest newBorn = new InterpolrBackendRequest(this);
         backendRequestCache.put(key, newBorn);
-        LackrBackendRequest dadRequest = ((ProxyInterpolrScope) dad).getRequest();
+        LackrBackendRequest dadRequest = ((InterpolrBackendRequest) dad).getRequest();
         LackrBackendRequest req = service.createSubRequest(this, dadRequest, url, format, new CompletionListener() {
 
             @Override
@@ -117,7 +117,7 @@ public class InterpolrFrontendRequest extends BaseFrontendRequest implements Int
         return pluginData.get(plugin);
     }
 
-    public void setRootScope(ProxyInterpolrScope rootScope) {
+    public void setRootScope(InterpolrBackendRequest rootScope) {
         this.rootScope = rootScope;
     }
 

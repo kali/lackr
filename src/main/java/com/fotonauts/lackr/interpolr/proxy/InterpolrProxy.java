@@ -15,9 +15,9 @@ import com.fotonauts.lackr.BaseProxy;
 import com.fotonauts.lackr.CompletionListener;
 import com.fotonauts.lackr.LackrBackendRequest;
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
 /**
  * Extends {@link BaseProxy} with {@link Interpolr} support, the gist of it being ESI expansion.
@@ -72,7 +72,7 @@ public class InterpolrProxy extends BaseProxy {
     public void onBackendRequestDone(BaseFrontendRequest baseFrontendRequest) {
         InterpolrFrontendRequest frontendRequest = (InterpolrFrontendRequest) baseFrontendRequest;
         log.debug("Request completion for root: {}", getPathAndQuery(frontendRequest.getIncomingServletRequest()));
-        ProxyInterpolrScope scope = new ProxyInterpolrScope(frontendRequest);
+        InterpolrBackendRequest scope = new InterpolrBackendRequest(frontendRequest);
         frontendRequest.setRootScope(scope);
         scope.setRequest(frontendRequest.getBackendRequest());
         getInterpolr().processResult(frontendRequest.getRootScope());

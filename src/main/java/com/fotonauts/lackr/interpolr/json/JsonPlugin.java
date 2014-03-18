@@ -6,14 +6,14 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fotonauts.lackr.interpolr.AdvancedPlugin;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.interpolr.Plugin;
-import com.fotonauts.lackr.interpolr.Rule;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsContext;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsExtension;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
+import com.fotonauts.lackr.interpolr.plugins.AdvancedPlugin;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Rule;
 import com.github.jknack.handlebars.ValueResolver;
 
 public class JsonPlugin implements AdvancedPlugin {

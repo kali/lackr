@@ -3,6 +3,7 @@ package com.fotonauts.lackr.interpolr;
 import java.util.List;
 
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
 
 public interface InterpolrContext {
 

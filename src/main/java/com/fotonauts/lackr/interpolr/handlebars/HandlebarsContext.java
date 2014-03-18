@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
+import com.fotonauts.lackr.interpolr.rope.Document;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.HandlebarsException;

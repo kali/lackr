@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.interpolr.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fotonauts.lackr.LackrPresentableError;
+import com.fotonauts.lackr.interpolr.InterpolrContext;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
 
 public class JsonParseUtils {
 

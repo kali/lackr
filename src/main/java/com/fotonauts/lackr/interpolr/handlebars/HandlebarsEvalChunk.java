@@ -8,12 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrPresentableError;
-import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.ConstantChunk;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.JsonParseUtils;
-import com.fotonauts.lackr.interpolr.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.ConstantChunk;
+import com.fotonauts.lackr.interpolr.rope.Document;
+import com.fotonauts.lackr.interpolr.utils.JsonParseUtils;
 import com.github.jknack.handlebars.Template;
 
 public class HandlebarsEvalChunk implements Chunk {

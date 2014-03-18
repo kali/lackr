@@ -1,4 +1,6 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.interpolr.plugins;
+
+import com.fotonauts.lackr.interpolr.InterpolrContext;
 
 public class SingleRulePlugin implements Plugin {
 

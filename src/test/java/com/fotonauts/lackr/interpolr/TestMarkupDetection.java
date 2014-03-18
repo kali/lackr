@@ -6,6 +6,13 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import com.fotonauts.lackr.interpolr.plugins.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.SingleRulePlugin;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.ConstantChunk;
+import com.fotonauts.lackr.interpolr.rope.Document;
+
 public class TestMarkupDetection {
 
     protected Interpolr simpleIterpolr() throws Exception {

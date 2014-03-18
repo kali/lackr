@@ -1,6 +1,10 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.interpolr.plugins;
 
 import java.io.UnsupportedEncodingException;
+
+import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.ConstantChunk;
 
 public class SimpleSubstitutionRule extends PrefixDetectingRule {
 

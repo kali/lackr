@@ -1,4 +1,4 @@
-package com.fotonauts.lackr.interpolr;
+package com.fotonauts.lackr.interpolr.rope;
 
 import java.io.IOException;
 import java.io.OutputStream;

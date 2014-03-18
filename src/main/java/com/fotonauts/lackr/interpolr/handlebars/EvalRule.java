@@ -2,10 +2,10 @@ package com.fotonauts.lackr.interpolr.handlebars;
 
 import java.io.UnsupportedEncodingException;
 
-import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
-import com.fotonauts.lackr.interpolr.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
 
 public class EvalRule extends MarkupDetectingRule {
 

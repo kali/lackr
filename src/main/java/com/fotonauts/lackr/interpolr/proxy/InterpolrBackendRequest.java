@@ -5,20 +5,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.LackrBackendRequest;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
-public class ProxyInterpolrScope implements InterpolrScope {
+public class InterpolrBackendRequest implements InterpolrScope {
 
-    static Logger log = LoggerFactory.getLogger(ProxyInterpolrScope.class);
+    static Logger log = LoggerFactory.getLogger(InterpolrBackendRequest.class);
 
     private InterpolrFrontendRequest context;
     private Document parsedDocument;
     private LackrBackendRequest request;
 
-    public ProxyInterpolrScope(InterpolrFrontendRequest context) {
+    public InterpolrBackendRequest(InterpolrFrontendRequest context) {
         super();
         this.context = context;
     }

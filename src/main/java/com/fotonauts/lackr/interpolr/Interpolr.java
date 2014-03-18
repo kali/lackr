@@ -7,6 +7,12 @@ import java.util.List;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 import com.fotonauts.lackr.MimeType;
+import com.fotonauts.lackr.interpolr.plugins.AdvancedPlugin;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Rule;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.DataChunk;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
 public class Interpolr extends AbstractLifeCycle {
 
@@ -72,12 +78,6 @@ public class Interpolr extends AbstractLifeCycle {
         }
         return result;
     }
-
-    /*
-    public ObjectMapper getJacksonObjectMapper() {
-        return jacksonObjectMapper;
-    }
-    */
 
     public void preflightCheck(InterpolrContext context) {
         for (Plugin plugin : getPlugins())

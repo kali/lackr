@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.interpolr.Plugin;
-import com.fotonauts.lackr.interpolr.Rule;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Rule;
 import com.github.jknack.handlebars.Context;
 import com.github.jknack.handlebars.Context.Builder;
 import com.github.jknack.handlebars.ValueResolver;

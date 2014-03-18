@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
 public class InterpolrTestUtils {
 

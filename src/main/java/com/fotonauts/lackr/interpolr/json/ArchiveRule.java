@@ -2,12 +2,12 @@ package com.fotonauts.lackr.interpolr.json;
 
 import java.io.UnsupportedEncodingException;
 
-import com.fotonauts.lackr.interpolr.Chunk;
-import com.fotonauts.lackr.interpolr.DataChunk;
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.MarkupDetectingRule;
-import com.fotonauts.lackr.interpolr.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.MarkupDetectingRule;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
+import com.fotonauts.lackr.interpolr.rope.DataChunk;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
 public class ArchiveRule extends MarkupDetectingRule {
 

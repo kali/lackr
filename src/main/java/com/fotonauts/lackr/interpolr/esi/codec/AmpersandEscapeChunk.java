@@ -3,7 +3,7 @@ package com.fotonauts.lackr.interpolr.esi.codec;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.fotonauts.lackr.interpolr.Chunk;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
 
 public class AmpersandEscapeChunk implements Chunk {
 

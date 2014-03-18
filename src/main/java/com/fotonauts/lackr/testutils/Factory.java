@@ -21,10 +21,10 @@ import com.fotonauts.lackr.MimeType;
 import com.fotonauts.lackr.backend.client.ClientBackend;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.Plugin;
 import com.fotonauts.lackr.interpolr.esi.ESIPlugin;
 import com.fotonauts.lackr.interpolr.handlebars.HandlebarsPlugin;
 import com.fotonauts.lackr.interpolr.json.JsonPlugin;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
 import com.fotonauts.lackr.interpolr.proxy.InterpolrProxy;
 
 public class Factory {

@@ -4,6 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.SimpleSubstitutionRule;
+import com.fotonauts.lackr.interpolr.plugins.SingleRulePlugin;
+import com.fotonauts.lackr.interpolr.rope.Document;
 import com.fotonauts.lackr.testutils.InterpolrTestUtils;
 
 public class TestSimpleSubstitution {

@@ -1,8 +1,8 @@
 package com.fotonauts.lackr.interpolr.esi;
 
 import com.fotonauts.lackr.interpolr.InterpolrContext;
-import com.fotonauts.lackr.interpolr.Plugin;
-import com.fotonauts.lackr.interpolr.Rule;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Rule;
 
 public class ESIPlugin implements Plugin {
 

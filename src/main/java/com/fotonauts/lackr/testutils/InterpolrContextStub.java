@@ -12,7 +12,7 @@ import com.fotonauts.lackr.LackrPresentableError;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
-import com.fotonauts.lackr.interpolr.Plugin;
+import com.fotonauts.lackr.interpolr.plugins.Plugin;
 
 public class InterpolrContextStub implements InterpolrContext {
     static Logger log = LoggerFactory.getLogger(InterpolrContextStub.class);

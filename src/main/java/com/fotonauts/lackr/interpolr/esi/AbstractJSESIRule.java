@@ -1,9 +1,9 @@
 package com.fotonauts.lackr.interpolr.esi;
 
 import com.fotonauts.lackr.MimeType;
-import com.fotonauts.lackr.interpolr.Chunk;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
 import com.fotonauts.lackr.interpolr.esi.codec.JsonQuotingChunk;
+import com.fotonauts.lackr.interpolr.rope.Chunk;
 
 public class AbstractJSESIRule extends ESIIncludeRule {
 

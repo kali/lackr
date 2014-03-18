@@ -1,9 +1,9 @@
 package com.fotonauts.lackr.testutils;
 
-import com.fotonauts.lackr.interpolr.Document;
 import com.fotonauts.lackr.interpolr.Interpolr;
 import com.fotonauts.lackr.interpolr.InterpolrContext;
 import com.fotonauts.lackr.interpolr.InterpolrScope;
+import com.fotonauts.lackr.interpolr.rope.Document;
 
 public class InterpolrScopeStub implements InterpolrScope {
 
