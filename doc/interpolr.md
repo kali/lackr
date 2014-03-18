@@ -4,8 +4,8 @@ Interpolr
 Internal Architecture
 ---------------------
 
-Interpolr is where the response bodies are scanned and processed. It is quite modular in its design, allowing to 
-extend it featureset with generic features (like ESIs) or with very application oriented features.
+Interpolr is where the response bodies are scanned and processed. It is quite modular in its design, allowing
+generic features (like ESIs) or very application oriented features.
 
 Interpolr has been designed to be testable without HTTP, so we have introduced a few classes and interfaces
 abstracting away the HTTP and Servlet stuff.
