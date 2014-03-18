@@ -91,7 +91,7 @@ it against the JSON data in the "eval" tag:
 These two ideas (and some work) provide ways to mix together fresh data from a http source and
 presentation from another...
 
-Interested ? [Try it](/doc/getting-started.md), or [read more](/doc/history.md).
+Interested ? [Try it](/doc/getting-started.md), or [read more](/doc/README.md).
 
 Credits
 =======
