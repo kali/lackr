@@ -3,34 +3,26 @@ Lackr is Fotonauts high speed front-side HTTP proxy server.
 In short
 ========
 
-It was meant to be a way to workaround the slugginess of our Rails backend.
-
-In our web stack, it complements Varnish, Haproxy and nginx features and allows
-us to give a high degree of sophistication and control upon what our front stack
-does.
+It was meant to help working around the slugginess of our Rails backend.
 
 Its main features are:
-- small overhead when used as a proxy, scalable,
 - extended (and extensible) ESI support,
-- Handlebars evaluation support.
+- Handlebars evaluation support,
+- being fast and scalable.
+
+ESI, or Edge-Side Include, allows to mix, at request time, markup text and/or data
+from one or more backends HTTP server. This is a way to build hybrid stacks and
+support real-life scenarios ranging from
+- stack optimisation "Let's get this bit of the page faster by moving its computation
+  from a slow backend technology to a faster one, and leave the rest of the page alone"
+- progressive migration "Let's migrate the top bar to the new stack, and keep the
+  the rest where it is for now"
+- differentiated caching "Let's cache the whole page without the top level corner where
+  we will have either a small login form or user info"
+- etc.
 
 It is distributed as a library, and principally meant to be integrated in a
-jetty 9.x server.
-A very simple proxy with ESI and Handlebars is provided in
-[Demo.java](/src/main/java/com/fotonauts/lackr/Demo.java) to help getting started. It
-can be tweaked to become a standalone server, but Lackr will be most beneficial when
-integrated to meet your own features need. Lackr is a tool for developpers.
-
-In our case, our server integrated a top level Lackr making hybrid pages from both
-an in-process unfiltered/Scala stack, and a varnish/Rails fragment cache cluster.
-Integrating the library with application code allows to "hook" at several places in
-request processing with minimum headache:
-- on the top-level jetty handler: centralized user-agent detection (phone vs rest),
-  request and error logging, etc
-- on backend request processing: normalize headers for Varnish cache, manipulate query,
-  backend sharding and balancing
-- Handlebars ad-hoc "handlers" for consistent HTML creation in Backend, browser and
-  Lackr.
+jetty 9.0.x server.
 
 In less short
 =============
@@ -88,10 +80,22 @@ it against the JSON data in the "eval" tag:
     some text from the template name:the name value:the value
 ```
 
-These two ideas (and some work) provide ways to mix together fresh data from a http source and
-presentation from another...
+In details
+==========
 
-Interested ? [Try it](/doc/getting-started.md), or [read more](/doc/README.md).
+- [Getting Started](doc/getting-started.md) will demonstrate how to start a dummy Lackr server with ESI and Handlebars
+  support
+- [History](doc/history.md) explains why we did all this, and maybe why you could be interested.
+
+In excruciating details
+=======================
+
+- [Embed](doc/embed.md) provides hints about Lackr internal architecture, and how to embed Lackr
+- [Backends](doc/backends.md) example use cases of the composable Backends
+- [Interpolr](doc/interpolr.md) how Interpolr can be extended
+- [Handlebars support](doc/handlebars.md) Plugin handlebars "helpers"
+- [Servlet](doc/servlet.md) embed as a Servlet
+
 
 Credits
 =======
