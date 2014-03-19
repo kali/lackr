@@ -18,7 +18,7 @@ Architecture
 ------------
 
 Lackr main entry point a _proxy_. Lackr contains a basic implementation called _BaseProxy_ which is mostly meant to be
-use is unit and integration tests. The useful one is its subclass _InterpolrProxy_, which embeds an instance of
+use in unit and integration tests. The useful one is its subclass _InterpolrProxy_, which embeds an instance of
 Interpolr.
 
 BaseProxy, as well as InterpolrProxy delegates all HTTP queries to one or several backends server through the
