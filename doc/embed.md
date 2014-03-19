@@ -89,6 +89,9 @@ What does this do ?
 
 ```
 
+Jetty Server is a "standard" instance of a Jetty Server (coming from jetty-server.jar). LackrProxyJettyHandler is a 
+thin wrapper to make InterpolrProxy pluggable into a Jetty server (implements Handler)
+
 Lackr main entry point is a _proxy_. Lackr contains a basic implementation called _BaseProxy_ which is mostly meant 
 to be use in unit and integration tests. The useful one is its subclass _InterpolrProxy_, which embeds an instance of
 Interpolr.
@@ -97,15 +100,11 @@ BaseProxy, as well as InterpolrProxy delegates all HTTP queries to one or severa
 composable Backend abstraction. Composing Backend allows to build complex scenarios like hashring based sharding,
 try-and-pass request handling. The final provider of content will be in-process backends or real HTTP backends.
 
-Interpolr is where all the magic will happen. ESI detection, handlebars expansion, and smart JSON management.
+ClientBackend is the Backend to which InterpolrProxy will forward all incoming requests and all subsequent
+ESI-triggered requests too. It forwards the requests to the backend HTTP server.
 
-- Jetty Server is a "standard" instance of a Jetty Server (coming from jetty-server.jar).
-- InterpolrProxy is our main workhorse.
-- LackrProxyJettyHandler is a thin wrapper to make InterpolrProxy pluggable into a Jetty server (implements Handler)
-- ClientBackend is the backend to which InterpolrProxy will forward all incoming requests and all subsequent
-  ESI-triggered requests too
-- Interpolr is the text-processor that will detect and process ESI and handlebars markup, collaborating with the proxy
-  to generate more backend requests.
+Interpolr is where all the content processing will happen. ESI detection, handlebars expansion, and smart JSON
+management.
 
 Only the left column is deeply jetty-server tainted. [Embedding as a Servlet](servlet.md) will only alter the left
 column.
