@@ -15,5 +15,5 @@ How-to
 - [Embed](embed.md) provides hints about Lackr internal architecture, and how to embed Lackr
 - [Backends](backends.md) example use cases of the composable Backends
 - [Interpolr](interpolr.md) how Interpolr can be extended
-- [Handlebars support](handlebars.md) Plugin handlebars "handlers" [TODO]
+- [Handlebars support](handlebars.md) Plugin handlebars "helpers"
 - [Servlet](servlet.md) embed as a Servlet [TODO]
