@@ -16,4 +16,4 @@ How-to
 - [Backends](backends.md) example use cases of the composable Backends
 - [Interpolr](interpolr.md) how Interpolr can be extended
 - [Handlebars support](handlebars.md) Plugin handlebars "helpers"
-- [Servlet](servlet.md) embed as a Servlet [TODO]
+- [Servlet](servlet.md) embed as a Servlet
