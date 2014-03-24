@@ -34,7 +34,7 @@ public class Demo {
     }
 
     public static void main(String[] args) throws Exception {
-        String backendUrl = "http://localhost/~" + System.getProperty("user.name") + "/lackr-examples/";
+        String backendUrl = "http://localhost:8888/lackr-examples/";
         if (args.length > 0 && args[0] != null && !"".equals(args[0]))
             backendUrl = args[0];
 

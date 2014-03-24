@@ -18,30 +18,28 @@ When Maven is done downloading half the Internet, you should get:
 
 ```
 [...]
-export BACKEND=http://localhost/~kali/lackr-examples/
+export BACKEND=http://localhost:8888/lackr-examples/
 export PROXY=http://localhost:8000/
 ```
 
-By default, we assume you are allowed to use your "userdir"-like directory to serve static files to
-act as a backend. If that's not the case — the feature has apparently been hidden in OSX — you can try:
+We need to get a simple backend running where lackr expects it. A simple default python server
+will do for now. In another terminal:
 
 ```
-cd doc/lackr-examples
-python -m SimpleHTTPServer 8002
+cd lackr/doc
+python -m SimpleHTTPServer 8888
 ```
 
-If you can and prefer using "userdir", copy lackr-examples to the appropriate location.
-
-If the automatic backend url does not work for you, you can override it by running instead:
+If the default backend url does not work for you, you can override it by running instead:
 
 ```
 % mvn exec:java -Dexec.args=http://whatever.will.work/
 ```
 
-If you want to run the snippets below, I suggest you cut and paste the two last
-lines of maven output to setup the shell variables.
+We're going to test in a third terminal. If you want to run the snippets below, I suggest
+you cut and paste the two last lines of maven output to setup the shell variables.
 
-To check that the "backend" is working as expected, run:
+First let's check that the "backend" is working as expected, run:
 
 ```
 % curl "${BACKEND}ex1.html"
