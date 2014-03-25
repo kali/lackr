@@ -259,7 +259,8 @@ Scala stack producing fresh JSON data to the empty web views, or XML data to our
 Lackr gets Handlebars
 ---------------------
 
-On the application side, we found out that the use of Handlebars (both .js and .rb implementations) was helping a lot
+On the application side, we found out that the use of Handlebars (in the browser but also on embedded in the Ruby on 
+Rails backend) was helping a lot
 with content vs format separation. In order to provide static HTML views for Javascript-less browser
 (including crawlers)
 as well as improving the rendering performance of rich web pages, we decided to add Handlebars support to Lackr too.
