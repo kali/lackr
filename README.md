@@ -1,14 +1,7 @@
 Lackr is Fotonauts high speed front-side HTTP proxy server.
 
-In short
+ESI on Steroids
 ========
-
-It was meant to help working around the slugginess of our Rails backend.
-
-Its main features are:
-- extended (and extensible) ESI support,
-- Handlebars evaluation support,
-- being fast and scalable.
 
 ESI, or Edge-Side Include, allows to mix, at request time, markup text and/or data
 from one or more backends HTTP server. This is a way to build hybrid stacks and
@@ -21,13 +14,18 @@ support real-life scenarios ranging from
   we will have either a small login form or user info"
 - etc.
 
+Its main features are:
+- extended (and extensible) ESI support,
+- Handlebars evaluation support,
+- being fast and scalable.
+
 It is distributed as a library, and principally meant to be integrated in a
 jetty 9.0.x server.
 
-In less short
+Introduction
 =============
 
-It's meant to build reverse proxies, something you will setup on your server stack,
+Lackr is meant to build reverse proxies, something you will setup on your server stack,
 between the internet and one ore more "backends" servers.
 
                           Internet
@@ -60,7 +58,7 @@ substitute the content.
 Handlebars
 ----------
 
-[Handlebars](http://handlebarsjs.com/) is a lightweight template engine.
+[Handlebars](http://handlebarsjs.com/) is a lightweight template engine available in many languages ([Java](https://github.com/jknack/handlebars.java), [Javascript](http://handlebarsjs.com/), [Ruby](https://github.com/cowboyd/handlebars.rb)). We've also developed an [Objective-C](https://github.com/fotonauts/handlebars-objc) for Mac and iOS applications. 
 
 So if the backend sends something like that:
 
