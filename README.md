@@ -8,7 +8,7 @@ from one or more backends HTTP server. This is a way to build hybrid stacks and
 support real-life scenarios ranging from
 - stack optimisation "Let's get this bit of the page faster by moving its computation
   from a slow backend technology to a faster one, and leave the rest of the page alone"
-- progressive migration "Let's migrate the top bar to the new stack, and keep the
+- progressive migration "Let's migrate the top bar to the new stack, and keep
   the rest where it is for now"
 - differentiated caching "Let's cache the whole page without the top level corner where
   we will have either a small login form or user info"
