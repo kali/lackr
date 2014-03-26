@@ -129,9 +129,6 @@
             </plugin>
 		</plugins>
 	</build>
-	<scm>
-		<connection>scm:git:ssh://git@github.com/fotonauts/lackr.git</connection>
-	</scm>
 	<repositories>
 		<repository>
 			<id>central</id>
