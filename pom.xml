@@ -5,11 +5,25 @@
 	<version>0.9.1-SNAPSHOT</version>
 	<name>Lackr</name>
     <description>Fotonauts high speed front-side HTTP proxy server</description>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
-		<jetty-version>9.0.7.v20131107</jetty-version>
-	</properties>
+	<scm>
+        <url>git@github.com:fotonauts/lackr.git</url>
+		<connection>scm:git:ssh://git@github.com/fotonauts/lackr.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/fotonauts/lackr.git</developerConnection>
+	</scm>
+    <developers>
+        <developer>
+            <id>kali</id>
+            <name>Mathieu Poumeyrol</name>
+            <email>kali@fotonauts.com</email>
+            <organization>Fotonauts</organization>
+            <organizationUrl>http://www.fotopedia.com/</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -128,6 +142,11 @@
 			<url>http://repository.apache.org/snapshots/</url>
 		</repository>
 	</repositories>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.junit.jvmargs>-XX:MaxPermSize=512M</maven.junit.jvmargs>
+		<jetty-version>9.0.7.v20131107</jetty-version>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
