@@ -9,7 +9,8 @@
         <url>git@github.com:fotonauts/lackr.git</url>
 		<connection>scm:git:ssh://git@github.com/fotonauts/lackr.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/fotonauts/lackr.git</developerConnection>
-	</scm>
+	  <tag>HEAD</tag>
+  </scm>
     <developers>
         <developer>
             <id>kali</id>
