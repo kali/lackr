@@ -77,7 +77,7 @@
                 <version>1.6</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>ossrh</serverId>
+                    <serverId>ossrh-staging</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                 </configuration>
             </plugin>
@@ -134,33 +134,6 @@
             </plugin>
 		</plugins>
 	</build>
-    <profiles>
-         <profile>
-              <id>releases</id>
-              <build>
-                   <plugins>
-                        <plugin>
-                             <groupId>org.sonatype.plugins</groupId>
-                             <artifactId>nexus-staging-maven-plugin</artifactId>
-                             <version>1.5.1</version>
-                             <executions>
-                                <execution>
-                                   <id>default-deploy</id>
-                                   <phase>deploy</phase>
-                                   <goals>
-                                      <goal>deploy</goal>
-                                   </goals>
-                                </execution>
-                             </executions>
-                             <configuration>
-                                <serverId>ossrh-staging</serverId>
-                             </configuration>
-                        </plugin>
-                   </plugins>
-              </build>
-         </profile>
-    </profiles>
-
 	<repositories>
 		<repository>
 			<id>central</id>
